@@ -36,3 +36,68 @@ body {
   background: var(--color-background);
   color: var(--color-foreground);
 }
+
+/* Print-friendly worksheet styles */
+@media print {
+  body {
+    background: white;
+    color: black;
+    font-size: 12pt;
+  }
+
+  /* Hide non-content elements */
+  nav,
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Worksheet table styling for print */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th,
+  td {
+    border: 1px solid #ccc;
+    padding: 6px 8px;
+    text-align: left;
+    font-size: 10pt;
+  }
+
+  th {
+    background: #f5f5f5 !important;
+    font-weight: 600;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Ensure inputs show their values */
+  input,
+  textarea,
+  select {
+    border: 1px solid #ccc !important;
+    padding: 4px !important;
+    background: white !important;
+  }
+
+  /* Expand textareas */
+  textarea {
+    min-height: 60px;
+  }
+
+  /* Page break management */
+  section {
+    page-break-inside: avoid;
+  }
+
+  h3 {
+    page-break-after: avoid;
+  }
+}
