@@ -7,3 +7,10 @@ export { DateField } from './date-field'
 export { TimeField } from './time-field'
 export { SelectField } from './select-field'
 export { TableField } from './table-field'
+// Extended field types
+export { ComputedField } from './computed-field'
+export { HierarchyField } from './hierarchy-field'
+// Layout components
+export { SafetyPlanLayout, SafetyPlanReadOnly } from './safety-plan-layout'
+export { DecisionTreeLayout, DecisionTreeReadOnly } from './decision-tree-layout'
+export { FormulationLayout, FormulationReadOnly } from './formulation-layout'
