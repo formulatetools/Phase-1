@@ -1,9 +1,10 @@
+import type { User } from '@supabase/supabase-js'
 import { createClient } from './server'
 import type { Profile } from '@/types/database'
 
 // Server-side: get current user and profile
 export async function getCurrentUser(): Promise<{
-  user: Awaited<ReturnType<Awaited<ReturnType<typeof createClient>>['auth']['getUser']>>['data']['user']
+  user: User | null
   profile: Profile | null
 }> {
   const supabase = await createClient()
@@ -20,5 +21,5 @@ export async function getCurrentUser(): Promise<{
     .eq('id', user.id)
     .single()
 
-  return { user, profile }
+  return { user, profile: profile as Profile | null }
 }

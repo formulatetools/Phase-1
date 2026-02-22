@@ -244,28 +244,8 @@ export interface ConsentRecord {
   created_at: string
 }
 
-// Supabase Database type (for client generics)
-export interface Database {
-  public: {
-    Tables: {
-      profiles: { Row: Profile; Insert: Partial<Profile> & Pick<Profile, 'id' | 'email'>; Update: Partial<Profile> }
-      organisations: { Row: Organisation; Insert: Omit<Organisation, 'id' | 'created_at'>; Update: Partial<Organisation> }
-      subscriptions: { Row: Subscription; Insert: Omit<Subscription, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Subscription> }
-      categories: { Row: Category; Insert: Omit<Category, 'id' | 'created_at'>; Update: Partial<Category> }
-      worksheets: { Row: Worksheet; Insert: Omit<Worksheet, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Worksheet> }
-      worksheet_access_log: { Row: WorksheetAccessLog; Insert: Omit<WorksheetAccessLog, 'id' | 'created_at'>; Update: Partial<WorksheetAccessLog> }
-      audit_log: { Row: AuditLog; Insert: Omit<AuditLog, 'id' | 'created_at'>; Update: never }
-      worksheet_assignments: { Row: WorksheetAssignment; Insert: Omit<WorksheetAssignment, 'id'>; Update: Partial<WorksheetAssignment> }
-      worksheet_responses: { Row: WorksheetResponse; Insert: Omit<WorksheetResponse, 'id' | 'created_at'>; Update: Partial<WorksheetResponse> }
-      measure_administrations: { Row: MeasureAdministration; Insert: Omit<MeasureAdministration, 'id' | 'created_at'>; Update: Partial<MeasureAdministration> }
-      therapeutic_relationships: { Row: TherapeuticRelationship; Insert: Omit<TherapeuticRelationship, 'id'>; Update: Partial<TherapeuticRelationship> }
-      training_modules: { Row: TrainingModule; Insert: Omit<TrainingModule, 'id' | 'created_at' | 'updated_at'>; Update: Partial<TrainingModule> }
-      training_content: { Row: TrainingContent; Insert: Omit<TrainingContent, 'id' | 'created_at' | 'updated_at'>; Update: Partial<TrainingContent> }
-      training_progress: { Row: TrainingProgress; Insert: Omit<TrainingProgress, 'id' | 'created_at' | 'updated_at'>; Update: Partial<TrainingProgress> }
-      ema_schedules: { Row: EmaSchedule; Insert: Omit<EmaSchedule, 'id' | 'created_at' | 'updated_at'>; Update: Partial<EmaSchedule> }
-      ema_responses: { Row: EmaResponse; Insert: Omit<EmaResponse, 'id' | 'created_at'>; Update: Partial<EmaResponse> }
-      emi_rules: { Row: EmiRule; Insert: Omit<EmiRule, 'id' | 'created_at' | 'updated_at'>; Update: Partial<EmiRule> }
-      consent_records: { Row: ConsentRecord; Insert: Omit<ConsentRecord, 'id' | 'created_at'>; Update: Partial<ConsentRecord> }
-    }
-  }
-}
+// Note: We use untyped Supabase clients and cast query results to our
+// row types explicitly. This avoids fighting Supabase's complex internal
+// generics which require Views, Functions, Enums, and Relationships fields.
+// When Supabase CLI codegen is set up, replace with the generated types.
+export type Database = Record<string, never>
