@@ -108,19 +108,22 @@ export interface WorksheetAssignment {
   id: string
   worksheet_id: string
   therapist_id: string
-  client_id: string
+  relationship_id: string
+  token: string
   status: AssignmentStatus
   assigned_at: string
   due_date: string | null
+  expires_at: string
   completed_at: string | null
+  locked_at: string | null
   deleted_at: string | null
 }
 
 export interface WorksheetResponse {
   id: string
-  assignment_id: string | null
+  assignment_id: string
   worksheet_id: string
-  client_id: string
+  relationship_id: string
   response_data: Record<string, unknown>
   source: ResponseSource
   started_at: string
@@ -144,7 +147,7 @@ export interface MeasureAdministration {
 export interface TherapeuticRelationship {
   id: string
   therapist_id: string
-  client_id: string
+  client_label: string
   status: RelationshipStatus
   started_at: string
   ended_at: string | null

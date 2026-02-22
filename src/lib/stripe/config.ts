@@ -12,11 +12,17 @@ export const STRIPE_PRICES = {
 export const TIER_LIMITS = {
   free: {
     monthlyUses: 5,
+    maxClients: 2,
+    maxActiveAssignments: 3,
   },
   standard: {
     monthlyUses: Infinity,
+    maxClients: Infinity,
+    maxActiveAssignments: Infinity,
   },
   professional: {
     monthlyUses: Infinity,
+    maxClients: Infinity,
+    maxActiveAssignments: Infinity,
   },
 } as const

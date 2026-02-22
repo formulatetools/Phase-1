@@ -19,18 +19,25 @@ type FieldValue = string | number | '' | string[] | Record<string, string | numb
 interface WorksheetRendererProps {
   schema: WorksheetSchema
   readOnly?: boolean
+  initialValues?: Record<string, unknown>
   onValuesChange?: (values: Record<string, FieldValue>) => void
 }
 
 export function WorksheetRenderer({
   schema,
   readOnly = false,
+  initialValues,
   onValuesChange,
 }: WorksheetRendererProps) {
   const [values, setValues] = useState<Record<string, FieldValue>>(() => {
     const initial: Record<string, FieldValue> = {}
     for (const section of schema.sections) {
       for (const field of section.fields) {
+        // Use provided initial value if available
+        if (initialValues && field.id in initialValues) {
+          initial[field.id] = initialValues[field.id] as FieldValue
+          continue
+        }
         switch (field.type) {
           case 'likert':
             initial[field.id] = field.min

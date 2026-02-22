@@ -4,8 +4,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Routes accessible without authentication
 const publicRoutes = ['/', '/login', '/signup', '/pricing', '/auth/callback']
 
-// Routes that are browse-only for unauthenticated users (worksheet library)
-const browseRoutes = ['/worksheets']
+// Routes that are browse-only for unauthenticated users (worksheet library + homework links)
+const browseRoutes = ['/worksheets', '/hw']
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })

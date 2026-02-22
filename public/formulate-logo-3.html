@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulate — Logo Exploration</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Instrument+Serif:ital@0;1&family=Sora:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: #f5f5f3; padding: 2rem; color: #1a1a1a; }
+  h1 { font-size: 1rem; font-weight: 500; color: #888; margin-bottom: 2.5rem; }
+  h2 { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 1.25rem; }
+  .section { margin-bottom: 3.5rem; }
+  .grid { display: grid; gap: 1.25rem; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .logo-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    position: relative;
+  }
+  .logo-card.dark {
+    background: #1a1a1a;
+  }
+  .logo-card.slate {
+    background: #1e293b;
+  }
+  .logo-card .variant-label {
+    position: absolute;
+    top: 0.75rem;
+    left: 1rem;
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .logo-card.dark .variant-label,
+  .logo-card.slate .variant-label { color: #555; }
+
+  /* Wordmarks */
+  .wordmark { font-size: 2rem; letter-spacing: -0.02em; }
+
+  /* Logomarks / icons */
+  .logomark-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .logomark-row .wordmark { font-size: 1.6rem; }
+
+  /* Icon concepts */
+  .icon-concept {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Favicon strip */
+  .favicon-strip {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .favicon-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .favicon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .favicon-label { font-size: 0.6rem; color: #999; }
+
+  /* Context mockups */
+  .browser-bar {
+    background: #e8e8e8;
+    border-radius: 10px 10px 0 0;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 500px;
+  }
+  .browser-dots { display: flex; gap: 4px; }
+  .browser-dots span { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+  .browser-url {
+    background: white;
+    border-radius: 4px;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.7rem;
+    color: #666;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .browser-content {
+    background: white;
+    border-radius: 0 0 10px 10px;
+    padding: 1.25rem;
+    max-width: 500px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .browser-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 1rem;
+  }
+  .browser-nav .nav-links {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: #888;
+    margin-left: auto;
+  }
+
+  .note {
+    font-size: 0.8rem;
+    color: #777;
+    line-height: 1.5;
+    max-width: 600px;
+    margin-top: 0.75rem;
+  }
+
+  /* SVG icons */
+  svg { display: block; }
+</style>
+</head>
+<body>
+
+<h1>Formulate — Logo Exploration with #e4a930 Amber</h1>
+
+<!-- ============================================ -->
+<!-- SECTION 1: WORDMARK OPTIONS -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>1 — Wordmark Typeface Options</h2>
+  <div class="grid grid-3">
+
+    <div class="logo-card">
+      <div class="variant-label">DM Sans — Clean</div>
+      <div class="wordmark" style="font-family: 'DM Sans', sans-serif; font-weight: 600; color: #e4a930;">formulate</div>
+    </div>
+
+    <div class="logo-card">
+      <div class="variant-label">Sora — Geometric</div>
+      <div class="wordmark" style="font-family: 'Sora', sans-serif; font-weight: 600; color: #e4a930;">formulate</div>
+    </div>
+
+    <div class="logo-card">
+      <div class="variant-label">Plus Jakarta — Friendly</div>
+      <div class="wordmark" style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; color: #e4a930;">formulate</div>
+    </div>
+
+    <div class="logo-card">
+      <div class="variant-label">Fraunces — Distinctive</div>
+      <div class="wordmark" style="font-family: 'Fraunces', serif; font-weight: 500; color: #e4a930; font-style: normal;">formulate</div>
+    </div>
+
+    <div class="logo-card">
+      <div class="variant-label">Instrument Serif — Editorial</div>
+      <div class="wordmark" style="font-family: 'Instrument Serif', serif; font-weight: 400; color: #e4a930; font-style: normal;">formulate</div>
+    </div>
+
+    <div class="logo-card">
+      <div class="variant-label">Inter — Neutral Pro</div>
+      <div class="wordmark" style="font-family: 'Inter', sans-serif; font-weight: 600; color: #e4a930;">formulate</div>
+    </div>
+
+  </div>
+  <p class="note">Sans-serifs read as "modern tool." Serifs read as "editorial/thoughtful." The Fraunces option has distinctive optical character that could set you apart — it has personality without being quirky.</p>
+</div>
+
+
+<!-- ============================================ -->
+<!-- SECTION 2: LOGOMARK CONCEPTS -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>2 — Logomark Concepts (Icon + Wordmark)</h2>
+  <div class="grid grid-2">
+
+    <!-- A: Interlocking circles (formulation = connecting parts) -->
+    <div class="logo-card">
+      <div class="variant-label">A — Vicious Flower / Connected Circles</div>
+      <div class="logomark-row">
+        <div class="icon-concept">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <circle cx="22" cy="14" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/>
+            <circle cx="14" cy="28" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/>
+            <circle cx="30" cy="28" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <div class="wordmark" style="font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 1.5rem; color: #1a1a1a;">formulate</div>
+      </div>
+    </div>
+
+    <!-- B: Abstract F with flow -->
+    <div class="logo-card">
+      <div class="variant-label">B — Abstract F</div>
+      <div class="logomark-row">
+        <div class="icon-concept">
+          <svg width="40" height="44" viewBox="0 0 40 44">
+            <path d="M8 6 h24 a2 2 0 0 1 0 4 H14 v10 h14 a2 2 0 0 1 0 4 H14 v14 a2 2 0 0 1 -4 0 V8 a2 2 0 0 1 2-2z" fill="#e4a930"/>
+          </svg>
+        </div>
+        <div class="wordmark" style="font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 1.5rem; color: #1a1a1a;">formulate</div>
+      </div>
+    </div>
+
+    <!-- C: Maintenance cycle arrows -->
+    <div class="logo-card">
+      <div class="variant-label">C — Maintenance Cycle</div>
+      <div class="logomark-row">
+        <div class="icon-concept">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <!--
+              Three-fold rotational symmetry: one arc+chevron segment, rotated 120° apart.
+              Circle: center (22,22), radius 14.
+              Each arc: 84° sweep centered on top, from -42° to +42° (clockwise from 12 o'clock).
+              Chevron arrowheads computed from tangent at arc endpoint.
+            -->
+            <g transform="rotate(0, 22, 22)">
+              <path d="M12.6 11.6 A14 14 0 0 1 31.4 11.6" fill="none" stroke="#e4a930" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M30.1 6.2 L31.4 11.6 L25.9 10.9" fill="none" stroke="#e4a930" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <g transform="rotate(120, 22, 22)">
+              <path d="M12.6 11.6 A14 14 0 0 1 31.4 11.6" fill="none" stroke="#e4a930" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M30.1 6.2 L31.4 11.6 L25.9 10.9" fill="none" stroke="#e4a930" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <g transform="rotate(240, 22, 22)">
+              <path d="M12.6 11.6 A14 14 0 0 1 31.4 11.6" fill="none" stroke="#e4a930" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M30.1 6.2 L31.4 11.6 L25.9 10.9" fill="none" stroke="#e4a930" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+          </svg>
+        </div>
+        <div class="wordmark" style="font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 1.5rem; color: #1a1a1a;">formulate</div>
+      </div>
+    </div>
+
+    <!-- D: Nested brackets / structure -->
+    <div class="logo-card">
+      <div class="variant-label">D — Structure Brackets</div>
+      <div class="logomark-row">
+        <div class="icon-concept">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <rect x="4" y="4" width="36" height="36" rx="4" fill="none" stroke="#e4a930" stroke-width="2.5"/>
+            <rect x="12" y="12" width="20" height="20" rx="3" fill="none" stroke="#e4a930" stroke-width="2" opacity="0.6"/>
+            <circle cx="22" cy="22" r="5" fill="#e4a930" opacity="0.8"/>
+          </svg>
+        </div>
+        <div class="wordmark" style="font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 1.5rem; color: #1a1a1a;">formulate</div>
+      </div>
+    </div>
+
+    <!-- E: Dot grid / mapping -->
+    <div class="logo-card">
+      <div class="variant-label">E — Mapping Grid</div>
+      <div class="logomark-row">
+        <div class="icon-concept">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <circle cx="10" cy="10" r="4" fill="#e4a930"/>
+            <circle cx="34" cy="10" r="4" fill="#e4a930" opacity="0.6"/>
+            <circle cx="10" cy="34" r="4" fill="#e4a930" opacity="0.6"/>
+            <circle cx="34" cy="34" r="4" fill="#e4a930" opacity="0.4"/>
+            <line x1="14" y1="10" x2="30" y2="10" stroke="#e4a930" stroke-width="1.5" opacity="0.4"/>
+            <line x1="10" y1="14" x2="10" y2="30" stroke="#e4a930" stroke-width="1.5" opacity="0.4"/>
+            <line x1="14" y1="12" x2="32" y2="32" stroke="#e4a930" stroke-width="1.5" opacity="0.3"/>
+            <circle cx="22" cy="22" r="3" fill="#e4a930" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="wordmark" style="font-family: 'Sora', sans-serif; font-weight: 600; font-size: 1.5rem; color: #1a1a1a;">formulate</div>
+      </div>
+    </div>
+
+    <!-- F: Pen nib / clinical writing -->
+    <div class="logo-card">
+      <div class="variant-label">F — Pen / Clinical Writing</div>
+      <div class="logomark-row">
+        <div class="icon-concept">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <path d="M32 4 L40 12 L16 36 L4 40 L8 28 Z" fill="none" stroke="#e4a930" stroke-width="2.5" stroke-linejoin="round"/>
+            <line x1="28" y1="8" x2="36" y2="16" stroke="#e4a930" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="wordmark" style="font-family: 'Fraunces', serif; font-weight: 500; font-size: 1.5rem; color: #1a1a1a;">formulate</div>
+      </div>
+    </div>
+
+  </div>
+  <p class="note">Concept A (connected circles) directly references the vicious flower/cogs formulation model — clinicians would recognise the visual metaphor. Concept C (maintenance cycle) similarly references how problems maintain themselves. These are the most meaningful options; the others are more generic.</p>
+</div>
+
+
+<!-- ============================================ -->
+<!-- SECTION 3: ON DARK BACKGROUNDS -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>3 — Logo on Dark Backgrounds</h2>
+  <div class="grid grid-3">
+    <div class="logo-card dark">
+      <div class="variant-label">Pure dark</div>
+      <div class="logomark-row">
+        <svg width="36" height="36" viewBox="0 0 44 44">
+          <circle cx="22" cy="14" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/>
+          <circle cx="14" cy="28" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/>
+          <circle cx="30" cy="28" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/>
+        </svg>
+        <span style="font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 1.3rem; color: #f0f0f0;">formulate</span>
+      </div>
+    </div>
+    <div class="logo-card slate">
+      <div class="variant-label">Slate</div>
+      <div class="logomark-row">
+        <svg width="36" height="36" viewBox="0 0 44 44">
+          <circle cx="22" cy="14" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/>
+          <circle cx="14" cy="28" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/>
+          <circle cx="30" cy="28" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/>
+        </svg>
+        <span style="font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 1.3rem; color: #e2e8f0;">formulate</span>
+      </div>
+    </div>
+    <div class="logo-card" style="background: #e4a930;">
+      <div class="variant-label" style="color: rgba(0,0,0,0.3);">Reversed on amber</div>
+      <div class="logomark-row">
+        <svg width="36" height="36" viewBox="0 0 44 44">
+          <circle cx="22" cy="14" r="9" fill="none" stroke="white" stroke-width="2.5"/>
+          <circle cx="14" cy="28" r="9" fill="none" stroke="white" stroke-width="2.5"/>
+          <circle cx="30" cy="28" r="9" fill="none" stroke="white" stroke-width="2.5"/>
+        </svg>
+        <span style="font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 1.3rem; color: white;">formulate</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!-- SECTION 4: FAVICON OPTIONS -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>4 — Favicon / App Icon</h2>
+  <div class="favicon-strip">
+    <div class="favicon-box">
+      <div class="favicon" style="background: #e4a930; color: white; font-family: 'DM Sans', sans-serif;">f</div>
+      <div class="favicon-label">Amber bg</div>
+    </div>
+    <div class="favicon-box">
+      <div class="favicon" style="background: #1a1a1a; color: #e4a930; font-family: 'DM Sans', sans-serif;">f</div>
+      <div class="favicon-label">Dark bg</div>
+    </div>
+    <div class="favicon-box">
+      <div class="favicon" style="background: #e4a930; color: white;">
+        <svg width="20" height="20" viewBox="0 0 44 44">
+          <circle cx="22" cy="14" r="8" fill="none" stroke="white" stroke-width="3.5"/>
+          <circle cx="14" cy="28" r="8" fill="none" stroke="white" stroke-width="3.5"/>
+          <circle cx="30" cy="28" r="8" fill="none" stroke="white" stroke-width="3.5"/>
+        </svg>
+      </div>
+      <div class="favicon-label">Icon on amber</div>
+    </div>
+    <div class="favicon-box">
+      <div class="favicon" style="background: #1e293b;">
+        <svg width="20" height="20" viewBox="0 0 44 44">
+          <circle cx="22" cy="14" r="8" fill="none" stroke="#e4a930" stroke-width="3.5"/>
+          <circle cx="14" cy="28" r="8" fill="none" stroke="#e4a930" stroke-width="3.5"/>
+          <circle cx="30" cy="28" r="8" fill="none" stroke="#e4a930" stroke-width="3.5"/>
+        </svg>
+      </div>
+      <div class="favicon-label">Icon on slate</div>
+    </div>
+    <div class="favicon-box">
+      <div class="favicon" style="background: white; border: 1px solid #eee;">
+        <svg width="20" height="20" viewBox="0 0 44 44">
+          <circle cx="22" cy="14" r="8" fill="none" stroke="#e4a930" stroke-width="3.5"/>
+          <circle cx="14" cy="28" r="8" fill="none" stroke="#e4a930" stroke-width="3.5"/>
+          <circle cx="30" cy="28" r="8" fill="none" stroke="#e4a930" stroke-width="3.5"/>
+        </svg>
+      </div>
+      <div class="favicon-label">Icon on white</div>
+    </div>
+    <div class="favicon-box">
+      <div class="favicon" style="background: #e4a930; border-radius: 50%; color: white; font-family: 'Fraunces', serif; font-weight: 500; font-size: 1.3rem;">f</div>
+      <div class="favicon-label">Round serif</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!-- SECTION 5: IN-CONTEXT BROWSER MOCK -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>5 — In Context (Amber Logo, Neutral UI)</h2>
+
+  <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+    <!-- Version A: Neutral slate UI with amber logo only -->
+    <div>
+      <div style="font-size: 0.7rem; color: #999; margin-bottom: 0.5rem;">UI accent: Slate #334155 — amber reserved for logo</div>
+      <div class="browser-bar">
+        <div class="browser-dots"><span></span><span></span><span></span></div>
+        <div class="browser-url">
+          <svg width="12" height="12" viewBox="0 0 44 44"><circle cx="22" cy="14" r="8" fill="none" stroke="#e4a930" stroke-width="4"/><circle cx="14" cy="28" r="8" fill="none" stroke="#e4a930" stroke-width="4"/><circle cx="30" cy="28" r="8" fill="none" stroke="#e4a930" stroke-width="4"/></svg>
+          formulate.app
+        </div>
+      </div>
+      <div class="browser-content">
+        <div class="browser-nav">
+          <div class="logomark-row" style="gap: 0.5rem;">
+            <svg width="24" height="24" viewBox="0 0 44 44"><circle cx="22" cy="14" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/><circle cx="14" cy="28" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/><circle cx="30" cy="28" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/></svg>
+            <span style="font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 1rem; color: #1a1a1a;">formulate</span>
+          </div>
+          <div class="nav-links">
+            <span>Library</span>
+            <span>Clients</span>
+          </div>
+          <span style="background: #334155; color: white; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.75rem; font-weight: 500;">Upgrade</span>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Thought Record</div>
+        <div style="font-size: 0.7rem; color: #888; margin-bottom: 0.75rem;">CBT • Health Anxiety</div>
+        <div style="height: 6px; border-radius: 3px; background: #e8e8e8; margin-bottom: 1rem;">
+          <div style="height: 100%; width: 65%; border-radius: 3px; background: #334155;"></div>
+        </div>
+        <div style="display: flex; gap: 0.4rem;">
+          <span style="background: #334155; color: white; padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.75rem;">Save</span>
+          <span style="border: 1.5px solid #ccc; color: #666; padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.75rem;">Export</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Version B: Warm neutral UI with amber touches -->
+    <div>
+      <div style="font-size: 0.7rem; color: #999; margin-bottom: 0.5rem;">UI accent: Warm charcoal — amber on logo + key moments</div>
+      <div class="browser-bar">
+        <div class="browser-dots"><span></span><span></span><span></span></div>
+        <div class="browser-url">
+          <svg width="12" height="12" viewBox="0 0 44 44"><circle cx="22" cy="14" r="8" fill="none" stroke="#e4a930" stroke-width="4"/><circle cx="14" cy="28" r="8" fill="none" stroke="#e4a930" stroke-width="4"/><circle cx="30" cy="28" r="8" fill="none" stroke="#e4a930" stroke-width="4"/></svg>
+          formulate.app
+        </div>
+      </div>
+      <div class="browser-content" style="background: #fafaf8;">
+        <div class="browser-nav">
+          <div class="logomark-row" style="gap: 0.5rem;">
+            <svg width="24" height="24" viewBox="0 0 44 44"><circle cx="22" cy="14" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/><circle cx="14" cy="28" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/><circle cx="30" cy="28" r="9" fill="none" stroke="#e4a930" stroke-width="2.5"/></svg>
+            <span style="font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 1rem; color: #1a1a1a;">formulate</span>
+          </div>
+          <div class="nav-links">
+            <span>Library</span>
+            <span>Clients</span>
+          </div>
+          <span style="background: #2d2d2d; color: white; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.75rem; font-weight: 500;">Upgrade</span>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Thought Record</div>
+        <div style="font-size: 0.7rem; color: #888; margin-bottom: 0.75rem;">CBT • Health Anxiety</div>
+        <div style="height: 6px; border-radius: 3px; background: #e8e8e8; margin-bottom: 1rem;">
+          <div style="height: 100%; width: 65%; border-radius: 3px; background: linear-gradient(to right, #ddd, #e4a930);"></div>
+        </div>
+        <div style="display: flex; gap: 0.4rem;">
+          <span style="background: #2d2d2d; color: white; padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.75rem;">Save</span>
+          <span style="border: 1.5px solid #ddd; color: #666; padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.75rem;">Export</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note" style="margin-top: 1.25rem;">Notice the amber logo anchors the brand identity in both versions, but the UI itself uses neutral tones. This avoids the accessibility issues of amber UI elements while keeping the brand distinctive. The second version lets amber bleed into progress bars and highlights — small moments of warmth without overusing it.</p>
+</div>
+
+
+<!-- ============================================ -->
+<!-- SECTION 6: LOGO + UI COLOUR SEPARATION -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>6 — Recommended Colour System</h2>
+  <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+    <div>
+      <div style="font-size: 0.75rem; font-weight: 600; color: #666; margin-bottom: 0.5rem;">Brand / Logo</div>
+      <div style="display: flex; gap: 0.5rem;">
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #e4a930;"></div>
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #c48d1e;"></div>
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #fdf6e3;"></div>
+      </div>
+      <div style="font-size: 0.65rem; color: #999; margin-top: 0.3rem;">Logo, favicon, brand moments</div>
+    </div>
+    <div>
+      <div style="font-size: 0.75rem; font-weight: 600; color: #666; margin-bottom: 0.5rem;">UI Primary</div>
+      <div style="display: flex; gap: 0.5rem;">
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #1e293b;"></div>
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #334155;"></div>
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #64748b;"></div>
+      </div>
+      <div style="font-size: 0.65rem; color: #999; margin-top: 0.3rem;">Buttons, links, active states</div>
+    </div>
+    <div>
+      <div style="font-size: 0.75rem; font-weight: 600; color: #666; margin-bottom: 0.5rem;">Surfaces</div>
+      <div style="display: flex; gap: 0.5rem;">
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #ffffff; border: 1px solid #eee;"></div>
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #fafaf8;"></div>
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #f1f5f9;"></div>
+      </div>
+      <div style="font-size: 0.65rem; color: #999; margin-top: 0.3rem;">Cards, backgrounds, panels</div>
+    </div>
+    <div>
+      <div style="font-size: 0.75rem; font-weight: 600; color: #666; margin-bottom: 0.5rem;">Semantic</div>
+      <div style="display: flex; gap: 0.5rem;">
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #16a34a;"></div>
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #e4a930;"></div>
+        <div style="width: 48px; height: 48px; border-radius: 8px; background: #dc2626;"></div>
+      </div>
+      <div style="font-size: 0.65rem; color: #999; margin-top: 0.3rem;">Success / In-progress / Alert</div>
+    </div>
+  </div>
+  <p class="note" style="margin-top: 1rem;">Amber does double duty: brand colour AND semantic "in progress" indicator. This means every time a client's homework shows "in progress" in amber, it subtly reinforces the brand. Elegant overlap.</p>
+</div>
+
+</body>
+</html>
