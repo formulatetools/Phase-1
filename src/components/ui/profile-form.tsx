@@ -48,7 +48,7 @@ export function ProfileForm({ initialName, initialEmail }: Props) {
           type="text"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+          className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
         />
       </div>
 
@@ -60,13 +60,13 @@ export function ProfileForm({ initialName, initialEmail }: Props) {
       </div>
 
       {message && (
-        <p className="text-sm text-accent-600">{message}</p>
+        <p className="text-sm text-brand-text">{message}</p>
       )}
 
       <button
         type="submit"
         disabled={saving}
-        className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-700 disabled:opacity-50"
+        className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900 disabled:opacity-50"
       >
         {saving ? 'Saving...' : 'Save Changes'}
       </button>

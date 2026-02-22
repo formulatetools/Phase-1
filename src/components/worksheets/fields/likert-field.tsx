@@ -27,7 +27,7 @@ export function LikertField({ field, value, onChange }: Props) {
           step={step}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full accent-accent-600"
+          className="w-full accent-brand"
         />
         <div className="mt-1 flex justify-between text-xs text-primary-500">
           {Object.entries(anchors).map(([val, label]) => (

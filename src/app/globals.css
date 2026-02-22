@@ -1,40 +1,60 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #ffffff;
-  --color-foreground: #0f172a;
+  --color-background: #fafaf8;
+  --color-foreground: #2d2d2d;
 
-  /* Slate/Navy primary palette */
-  --color-primary-50: #f8fafc;
-  --color-primary-100: #f1f5f9;
-  --color-primary-200: #e2e8f0;
-  --color-primary-300: #cbd5e1;
-  --color-primary-400: #94a3b8;
-  --color-primary-500: #64748b;
-  --color-primary-600: #475569;
-  --color-primary-700: #334155;
-  --color-primary-800: #1e293b;
-  --color-primary-900: #0f172a;
-  --color-primary-950: #020617;
+  /* Warm charcoal UI primary palette */
+  --color-primary-50: #fafaf8;
+  --color-primary-100: #f1f0ee;
+  --color-primary-200: #e8e8e6;
+  --color-primary-300: #d4d4d0;
+  --color-primary-400: #999;
+  --color-primary-500: #888;
+  --color-primary-600: #666;
+  --color-primary-700: #444;
+  --color-primary-800: #2d2d2d;
+  --color-primary-900: #1a1a1a;
+  --color-primary-950: #111;
 
-  /* Soft teal accent */
-  --color-accent-50: #f0fdfa;
-  --color-accent-100: #ccfbf1;
-  --color-accent-200: #99f6e4;
-  --color-accent-300: #5eead4;
-  --color-accent-400: #2dd4bf;
-  --color-accent-500: #14b8a6;
-  --color-accent-600: #0d9488;
-  --color-accent-700: #0f766e;
-  --color-accent-800: #115e59;
-  --color-accent-900: #134e4a;
+  /* Teal accent (retained for success / secondary) */
+  --color-accent-50: #e8f5e9;
+  --color-accent-100: #c8e6c9;
+  --color-accent-200: #a5d6a7;
+  --color-accent-300: #81c784;
+  --color-accent-400: #66bb6a;
+  --color-accent-500: #16a34a;
+  --color-accent-600: #2e7d32;
+  --color-accent-700: #1b5e20;
+  --color-accent-800: #145218;
+  --color-accent-900: #0d3b10;
 
-  --font-sans: var(--font-inter);
+  /* Brand amber */
+  --color-brand: #e4a930;
+  --color-brand-light: #fdf6e3;
+  --color-brand-dark: #c48d1e;
+  --color-brand-text: #9a6e15;
+
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-warning: #e4a930;
+  --color-danger: #dc2626;
+
+  --font-sans: var(--font-dm-sans);
 }
 
 body {
   background: var(--color-background);
   color: var(--color-foreground);
+}
+
+/* Focus ring utility — amber at low opacity */
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #e4a930 !important;
+  box-shadow: 0 0 0 3px rgba(228, 169, 48, 0.15) !important;
+  outline: none !important;
 }
 
 /* Print-friendly worksheet styles */

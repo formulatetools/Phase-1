@@ -125,7 +125,7 @@ export function AuthForm({ mode, redirectTo }: AuthFormProps) {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-primary-900 placeholder-primary-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+              className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-primary-900 placeholder-primary-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
               placeholder="Dr. Jane Smith"
             />
           </div>
@@ -144,7 +144,7 @@ export function AuthForm({ mode, redirectTo }: AuthFormProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-primary-900 placeholder-primary-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-primary-900 placeholder-primary-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
             placeholder="you@example.com"
           />
         </div>
@@ -164,7 +164,7 @@ export function AuthForm({ mode, redirectTo }: AuthFormProps) {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
-              className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-primary-900 placeholder-primary-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+              className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-primary-900 placeholder-primary-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
               placeholder="Minimum 8 characters"
             />
           </div>
@@ -177,7 +177,7 @@ export function AuthForm({ mode, redirectTo }: AuthFormProps) {
         )}
 
         {message && (
-          <div className="rounded-lg bg-accent-50 px-3 py-2 text-sm text-accent-700">
+          <div className="rounded-lg bg-brand-light px-3 py-2 text-sm text-brand-text">
             {message}
           </div>
         )}
@@ -185,7 +185,7 @@ export function AuthForm({ mode, redirectTo }: AuthFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900 focus:outline-none focus:ring-2 focus:ring-brand/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading
             ? 'Please wait...'

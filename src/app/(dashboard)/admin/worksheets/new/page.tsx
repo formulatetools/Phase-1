@@ -20,7 +20,7 @@ export default async function NewWorksheetPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-2">
-        <Link href="/admin" className="text-sm text-accent-600 hover:text-accent-700">
+        <Link href="/admin" className="text-sm text-brand-text hover:text-brand-dark">
           &larr; Back to Admin
         </Link>
       </div>

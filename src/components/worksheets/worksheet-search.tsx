@@ -48,12 +48,12 @@ export function WorksheetSearch({ initialQuery, initialTag }: Props) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search worksheets by title, description, or tags..."
-          className="w-full rounded-lg border border-primary-200 py-2.5 pl-10 pr-4 text-sm text-primary-900 placeholder-primary-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+          className="w-full rounded-lg border border-primary-200 py-2.5 pl-10 pr-4 text-sm text-primary-900 placeholder-primary-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
         />
       </div>
       <button
         type="submit"
-        className="rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-700"
+        className="rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900"
       >
         Search
       </button>

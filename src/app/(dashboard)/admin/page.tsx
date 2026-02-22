@@ -47,7 +47,7 @@ export default async function AdminPage() {
         <h1 className="text-3xl font-bold text-primary-900">Admin Panel</h1>
         <Link
           href="/admin/worksheets/new"
-          className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700"
+          className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900"
         >
           New Worksheet
         </Link>
@@ -65,11 +65,11 @@ export default async function AdminPage() {
         </div>
         <div className="rounded-xl border border-primary-100 bg-white p-4 shadow-sm">
           <p className="text-sm text-primary-500">Standard</p>
-          <p className="mt-1 text-2xl font-bold text-accent-600">{tierCounts.standard}</p>
+          <p className="mt-1 text-2xl font-bold text-brand-text">{tierCounts.standard}</p>
         </div>
         <div className="rounded-xl border border-primary-100 bg-white p-4 shadow-sm">
           <p className="text-sm text-primary-500">Professional</p>
-          <p className="mt-1 text-2xl font-bold text-accent-700">{tierCounts.professional}</p>
+          <p className="mt-1 text-2xl font-bold text-brand-dark">{tierCounts.professional}</p>
         </div>
       </div>
 
@@ -93,7 +93,7 @@ export default async function AdminPage() {
                   <td className="px-4 py-3">
                     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                       ws.is_published
-                        ? 'bg-accent-100 text-accent-700'
+                        ? 'bg-brand/10 text-brand-dark'
                         : 'bg-primary-100 text-primary-600'
                     }`}>
                       {ws.is_published ? 'Published' : 'Draft'}
@@ -105,7 +105,7 @@ export default async function AdminPage() {
                   <td className="px-4 py-3">
                     <Link
                       href={`/admin/worksheets/${ws.slug}/edit`}
-                      className="text-sm text-accent-600 hover:text-accent-700"
+                      className="text-sm text-brand-text hover:text-brand-dark"
                     >
                       Edit
                     </Link>

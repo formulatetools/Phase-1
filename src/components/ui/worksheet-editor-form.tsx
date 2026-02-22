@@ -67,7 +67,7 @@ export function WorksheetEditorForm({
             onChange={(e) => {
               if (!defaultValues?.slug) setSlug(generateSlug(e.target.value))
             }}
-            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
           />
         </div>
 
@@ -82,7 +82,7 @@ export function WorksheetEditorForm({
             required
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
           />
         </div>
       </div>
@@ -96,7 +96,7 @@ export function WorksheetEditorForm({
           name="description"
           rows={3}
           defaultValue={defaultValues?.description}
-          className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+          className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
         />
       </div>
 
@@ -109,7 +109,7 @@ export function WorksheetEditorForm({
           name="instructions"
           rows={3}
           defaultValue={defaultValues?.instructions}
-          className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+          className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
         />
       </div>
 
@@ -123,7 +123,7 @@ export function WorksheetEditorForm({
             name="category_id"
             required
             defaultValue={defaultValues?.category_id}
-            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
           >
             <option value="">Select...</option>
             {categories.map((cat) => (
@@ -144,7 +144,7 @@ export function WorksheetEditorForm({
             type="number"
             min={1}
             defaultValue={defaultValues?.estimated_minutes ?? ''}
-            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
           />
         </div>
 
@@ -158,7 +158,7 @@ export function WorksheetEditorForm({
             type="text"
             defaultValue={defaultValues?.tags?.join(', ')}
             placeholder="cognitive restructuring, CBT"
-            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 placeholder-primary-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+            className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 placeholder-primary-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
           />
         </div>
       </div>
@@ -175,7 +175,7 @@ export function WorksheetEditorForm({
             name="is_premium"
             value="true"
             defaultChecked={defaultValues?.is_premium ?? true}
-            className="h-4 w-4 rounded border-primary-300 text-accent-600 focus:ring-accent-500"
+            className="h-4 w-4 rounded border-primary-300 text-brand focus:ring-brand/30"
           />
           Premium (requires subscription)
         </label>
@@ -191,7 +191,7 @@ export function WorksheetEditorForm({
             name="is_published"
             value="true"
             defaultChecked={defaultValues?.is_published ?? false}
-            className="h-4 w-4 rounded border-primary-300 text-accent-600 focus:ring-accent-500"
+            className="h-4 w-4 rounded border-primary-300 text-brand focus:ring-brand/30"
           />
           Published
         </label>
@@ -209,7 +209,7 @@ export function WorksheetEditorForm({
             defaultValues?.schema ||
             JSON.stringify({ version: 1, sections: [] }, null, 2)
           }
-          className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 font-mono text-xs text-primary-900 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+          className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 font-mono text-xs text-primary-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
         />
         <p className="mt-1 text-xs text-primary-400">
           Define worksheet structure as JSON. Supports field types: text, textarea, number, likert, checklist, date, time, select, table.
@@ -218,7 +218,7 @@ export function WorksheetEditorForm({
 
       <button
         type="submit"
-        className="rounded-lg bg-accent-600 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-700"
+        className="rounded-lg bg-primary-800 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900"
       >
         {defaultValues?.title ? 'Update Worksheet' : 'Create Worksheet'}
       </button>

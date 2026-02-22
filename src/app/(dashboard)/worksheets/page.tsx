@@ -57,12 +57,12 @@ export default async function WorksheetsPage({
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="px-4 py-8 sm:px-8 lg:px-12">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-primary-900">
+        <h1 className="text-2xl font-bold text-primary-900 sm:text-3xl">
           Worksheet Library
         </h1>
-        <p className="mt-2 text-primary-500">
+        <p className="mt-1 text-primary-400">
           Browse professional CBT worksheets and clinical tools
         </p>
       </div>
@@ -72,7 +72,7 @@ export default async function WorksheetsPage({
       {/* Search results */}
       {searchResults ? (
         <div className="mt-8">
-          <h2 className="mb-4 text-lg font-semibold text-primary-800">
+          <h2 className="mb-4 text-base font-semibold text-primary-800">
             {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}{' '}
             {params.q && <>for &quot;{params.q}&quot;</>}
             {params.tag && <> tagged &quot;{params.tag}&quot;</>}
@@ -83,9 +83,9 @@ export default async function WorksheetsPage({
                 <Link
                   key={worksheet.id}
                   href={`/worksheets/${worksheet.slug}`}
-                  className="rounded-xl border border-primary-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+                  className="group rounded-2xl border border-primary-100 bg-white p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
                 >
-                  <h3 className="font-semibold text-primary-900">
+                  <h3 className="font-semibold text-primary-900 group-hover:text-brand-dark">
                     {worksheet.title}
                   </h3>
                   <p className="mt-1 text-sm text-primary-500 line-clamp-2">
@@ -96,7 +96,7 @@ export default async function WorksheetsPage({
                       {worksheet.tags.slice(0, 3).map((tag: string) => (
                         <span
                           key={tag}
-                          className="rounded-full bg-primary-100 px-2 py-0.5 text-xs text-primary-600"
+                          className="rounded-full bg-primary-50 px-2 py-0.5 text-xs text-primary-500"
                         >
                           {tag}
                         </span>
@@ -107,9 +107,9 @@ export default async function WorksheetsPage({
               ))}
             </div>
           ) : (
-            <p className="text-primary-500">
-              No worksheets found. Try a different search term.
-            </p>
+            <div className="rounded-2xl border border-dashed border-primary-200 bg-white p-10 text-center">
+              <p className="text-sm text-primary-500">No worksheets found. Try a different search term.</p>
+            </div>
           )}
         </div>
       ) : (
@@ -119,21 +119,21 @@ export default async function WorksheetsPage({
             <Link
               key={category.id}
               href={`/worksheets/category/${category.slug}`}
-              className="group rounded-xl border border-primary-100 bg-white p-6 shadow-sm transition-all hover:border-accent-200 hover:shadow-md"
+              className="group rounded-2xl border border-primary-100 bg-white p-6 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
             >
-              <div className="text-3xl">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-2xl transition-colors group-hover:bg-brand/10">
                 {categoryIcons[category.slug] || '📋'}
               </div>
-              <h2 className="mt-3 text-lg font-semibold text-primary-900 group-hover:text-accent-700">
+              <h2 className="mt-4 text-base font-semibold text-primary-900 group-hover:text-brand-dark">
                 {category.name}
               </h2>
-              <p className="mt-1 text-sm text-primary-500 line-clamp-2">
+              <p className="mt-1 text-sm text-primary-400 line-clamp-2">
                 {category.description}
               </p>
             </Link>
           ))}
         </div>
       )}
-    </main>
+    </div>
   )
 }

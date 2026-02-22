@@ -33,7 +33,7 @@ export function ChecklistField({ field, value, onChange }: Props) {
               type="checkbox"
               checked={value.includes(option.id)}
               onChange={() => toggle(option.id)}
-              className="h-4 w-4 rounded border-primary-300 text-accent-600 focus:ring-accent-500"
+              className="h-4 w-4 rounded border-primary-300 text-brand focus:ring-brand/30"
             />
             {option.label}
           </label>

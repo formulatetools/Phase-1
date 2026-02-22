@@ -48,7 +48,7 @@ export function WorksheetDetail({ worksheet, accessState, usesRemaining }: Props
           <div className="mt-6 flex justify-center gap-3">
             <Link
               href="/signup"
-              className="rounded-lg bg-accent-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-700"
+              className="rounded-lg bg-primary-800 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900"
             >
               Create Free Account
             </Link>
@@ -92,7 +92,7 @@ export function WorksheetDetail({ worksheet, accessState, usesRemaining }: Props
           </div>
           <Link
             href="/pricing"
-            className="mt-4 inline-block rounded-lg bg-accent-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-700"
+            className="mt-4 inline-block rounded-lg bg-primary-800 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900"
           >
             View Plans
           </Link>

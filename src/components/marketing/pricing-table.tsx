@@ -85,7 +85,7 @@ export function PricingTable() {
             }`}
           >
             Annual
-            <span className="ml-1.5 text-xs text-accent-600">Save 2 months</span>
+            <span className="ml-1.5 text-xs text-brand-text">Save 2 months</span>
           </button>
         </div>
       </div>
@@ -102,15 +102,15 @@ export function PricingTable() {
           return (
             <div
               key={tier.name}
-              className={`relative rounded-xl border p-6 ${
+              className={`relative rounded-2xl border p-6 ${
                 tier.highlighted
-                  ? 'border-accent-300 bg-white shadow-lg ring-1 ring-accent-200'
+                  ? 'border-brand/30 bg-white shadow-lg ring-1 ring-brand/20'
                   : 'border-primary-200 bg-white shadow-sm'
               }`}
             >
               {tier.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-accent-600 px-3 py-1 text-xs font-medium text-white">
+                  <span className="rounded-full bg-primary-800 px-3 py-1 text-xs font-medium text-white">
                     {tier.badge}
                   </span>
                 </div>
@@ -148,7 +148,7 @@ export function PricingTable() {
               <ul className="mb-8 space-y-3">
                 {tier.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2 text-sm text-primary-600">
-                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-accent-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                     {feature}
@@ -164,7 +164,7 @@ export function PricingTable() {
                     type="submit"
                     className={`w-full rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
                       tier.highlighted
-                        ? 'bg-accent-600 text-white hover:bg-accent-700'
+                        ? 'bg-primary-800 text-white hover:bg-primary-900'
                         : 'border border-primary-200 bg-white text-primary-700 hover:bg-primary-50'
                     }`}
                   >

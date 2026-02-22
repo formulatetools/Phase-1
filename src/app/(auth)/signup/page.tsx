@@ -1,15 +1,16 @@
 import Link from 'next/link'
+import { Logo } from '@/components/ui/logo'
 import { AuthForm } from '@/components/ui/auth-form'
 
 export default function SignupPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-primary-50 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <Link href="/" className="text-2xl font-bold text-primary-900">
-            Formulate
+        <div className="mb-8 flex flex-col items-center text-center">
+          <Link href="/">
+            <Logo size="lg" />
           </Link>
-          <p className="mt-2 text-sm text-primary-500">
+          <p className="mt-3 text-sm text-primary-500">
             Create your free account
           </p>
           <p className="mt-1 text-xs text-primary-400">
@@ -17,7 +18,7 @@ export default function SignupPage() {
           </p>
         </div>
 
-        <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-primary-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-primary-100">
           <AuthForm mode="signup" />
         </div>
 
@@ -25,7 +26,7 @@ export default function SignupPage() {
           Already have an account?{' '}
           <Link
             href="/login"
-            className="font-medium text-accent-600 hover:text-accent-700"
+            className="font-medium text-primary-800 hover:text-primary-900 underline underline-offset-2"
           >
             Sign in
           </Link>

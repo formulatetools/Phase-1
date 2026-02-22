@@ -154,7 +154,7 @@ export function TableField({ field, value, onChange }: Props) {
         <button
           type="button"
           onClick={addRow}
-          className="mt-2 flex items-center gap-1 text-sm font-medium text-accent-600 hover:text-accent-700"
+          className="mt-2 flex items-center gap-1 text-sm font-medium text-brand-text hover:text-brand-dark"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

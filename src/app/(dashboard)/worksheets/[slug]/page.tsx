@@ -52,66 +52,76 @@ export default async function WorksheetPage({
   const category = worksheet.categories as { name: string; slug: string } | null
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-2">
-        {category && (
-          <Link
-            href={`/worksheets/category/${category.slug}`}
-            className="text-sm text-accent-600 hover:text-accent-700"
-          >
-            &larr; {category.name}
-          </Link>
-        )}
-      </div>
-
-      {/* Worksheet metadata — always visible */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-primary-900">
-          {worksheet.title}
-        </h1>
-        <p className="mt-2 text-primary-600">{worksheet.description}</p>
-
-        {worksheet.instructions && (
-          <div className="mt-4 rounded-lg bg-accent-50 p-4">
-            <h2 className="text-sm font-semibold text-accent-800">
-              Instructions
-            </h2>
-            <p className="mt-1 text-sm text-accent-700">
-              {worksheet.instructions}
-            </p>
-          </div>
-        )}
-
-        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-primary-500">
-          {worksheet.estimated_minutes && (
-            <span>~{worksheet.estimated_minutes} min</span>
-          )}
-          {worksheet.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {worksheet.tags.map((tag: string) => (
-                <Link
-                  key={tag}
-                  href={`/worksheets?tag=${encodeURIComponent(tag)}`}
-                  className="rounded-full bg-primary-100 px-2 py-0.5 text-xs text-primary-600 hover:bg-primary-200"
-                >
-                  {tag}
-                </Link>
-              ))}
-            </div>
+    <div className="px-4 py-8 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-2">
+          {category && (
+            <Link
+              href={`/worksheets/category/${category.slug}`}
+              className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              {category.name}
+            </Link>
           )}
         </div>
-      </div>
 
-      {/* Worksheet content — gated by access state */}
-      <WorksheetDetail
-        worksheet={worksheet}
-        accessState={accessState}
-        usesRemaining={
-          profile
-            ? Math.max(0, TIER_LIMITS.free.monthlyUses - (profile.monthly_download_count ?? 0))
-            : 0
-        }
-      />
-    </main>
+        {/* Worksheet metadata — always visible */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-primary-900 sm:text-3xl">
+            {worksheet.title}
+          </h1>
+          <p className="mt-2 text-primary-500">{worksheet.description}</p>
+
+          {worksheet.instructions && (
+            <div className="mt-4 rounded-xl border border-brand/20 bg-brand/5 p-4">
+              <h2 className="text-sm font-semibold text-brand-dark">
+                Instructions
+              </h2>
+              <p className="mt-1 text-sm text-primary-600">
+                {worksheet.instructions}
+              </p>
+            </div>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-primary-400">
+            {worksheet.estimated_minutes && (
+              <span className="flex items-center gap-1">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                ~{worksheet.estimated_minutes} min
+              </span>
+            )}
+            {worksheet.tags?.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {worksheet.tags.map((tag: string) => (
+                  <Link
+                    key={tag}
+                    href={`/worksheets?tag=${encodeURIComponent(tag)}`}
+                    className="rounded-full bg-primary-50 px-2 py-0.5 text-xs text-primary-500 hover:bg-primary-100 transition-colors"
+                  >
+                    {tag}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Worksheet content — gated by access state */}
+        <WorksheetDetail
+          worksheet={worksheet}
+          accessState={accessState}
+          usesRemaining={
+            profile
+              ? Math.max(0, TIER_LIMITS.free.monthlyUses - (profile.monthly_download_count ?? 0))
+              : 0
+          }
+        />
+      </div>
+    </div>
   )
 }
