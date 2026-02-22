@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
         break
       }
 
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
@@ -114,15 +115,30 @@ export async function POST(request: NextRequest) {
         if (subscription.status === 'past_due') status = 'past_due'
         if (subscription.status === 'canceled') status = 'cancelled'
 
-        // Update subscription record
+        // Get period dates from the latest invoice (Stripe v20+)
+        const latestInvoice = subscription.latest_invoice
+        const invoiceObj = typeof latestInvoice === 'string'
+          ? await stripe.invoices.retrieve(latestInvoice)
+          : latestInvoice
+        const periodStart = invoiceObj?.period_start
+          ? new Date(invoiceObj.period_start * 1000).toISOString()
+          : new Date(subscription.start_date * 1000).toISOString()
+        const periodEnd = invoiceObj?.period_end
+          ? new Date(invoiceObj.period_end * 1000).toISOString()
+          : new Date((subscription.start_date + 30 * 86400) * 1000).toISOString()
+
+        // Upsert subscription record (handles both create and update)
         await supabase
           .from('subscriptions')
-          .update({
+          .upsert({
+            user_id: profile.id,
+            stripe_subscription_id: subscription.id,
             stripe_price_id: priceId,
             status: status === 'cancelled' ? 'cancelled' : status,
+            current_period_start: periodStart,
+            current_period_end: periodEnd,
             cancel_at_period_end: subscription.cancel_at_period_end,
-          })
-          .eq('stripe_subscription_id', subscription.id)
+          }, { onConflict: 'stripe_subscription_id' })
 
         // Update profile tier
         if (tier) {
@@ -138,7 +154,7 @@ export async function POST(request: NextRequest) {
         // Audit log
         await supabase.from('audit_log').insert({
           user_id: profile.id,
-          action: 'update',
+          action: event.type === 'customer.subscription.created' ? 'create' : 'update',
           entity_type: 'subscription',
           entity_id: subscription.id,
           metadata: { tier, status, price_id: priceId },

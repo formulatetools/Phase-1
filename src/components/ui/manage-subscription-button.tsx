@@ -23,7 +23,7 @@ export function ManageSubscriptionButton() {
       disabled={loading}
       className="text-sm font-medium text-accent-600 hover:text-accent-700 disabled:opacity-50"
     >
-      {loading ? 'Loading...' : 'Manage subscription &rarr;'}
+      {loading ? 'Loading...' : 'Manage subscription →'}
     </button>
   )
 }

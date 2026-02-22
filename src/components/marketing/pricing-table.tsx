@@ -25,7 +25,7 @@ const tiers = [
     name: 'Standard',
     description: 'Unlimited access for your practice',
     monthlyPrice: 7.99,
-    annualPrice: 79.99,
+    annualPrice: 76.70,
     features: [
       'Everything in Free',
       'Unlimited worksheet access',
@@ -42,7 +42,7 @@ const tiers = [
     name: 'Professional',
     description: 'Advanced tools for specialist clinicians',
     monthlyPrice: 19.99,
-    annualPrice: 199.99,
+    annualPrice: 191.90,
     features: [
       'Everything in Standard',
       'CPD video training content',

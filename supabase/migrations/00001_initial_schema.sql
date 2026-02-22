@@ -115,7 +115,7 @@ CREATE TABLE audit_log (
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   action audit_action NOT NULL,
   entity_type TEXT NOT NULL,
-  entity_id UUID NOT NULL,
+  entity_id TEXT NOT NULL,
   metadata JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -457,10 +457,14 @@ CREATE POLICY audit_log_select_admin ON audit_log
 -- PROFILE AUTO-CREATION ON SIGNUP
 -- ============================================================================
 
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
-  INSERT INTO profiles (id, email, role, subscription_status, subscription_tier, monthly_download_count, download_count_reset_at)
+  INSERT INTO public.profiles (id, email, role, subscription_status, subscription_tier, monthly_download_count, download_count_reset_at)
   VALUES (
     NEW.id,
     NEW.email,
@@ -472,7 +476,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users

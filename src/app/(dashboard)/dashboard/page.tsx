@@ -89,7 +89,7 @@ export default async function DashboardPage({
                 href="/pricing"
                 className="mt-3 inline-block text-sm font-medium text-accent-600 hover:text-accent-700"
               >
-                Upgrade for unlimited access &rarr;
+                Upgrade for unlimited access →
               </Link>
             </div>
           ) : (
@@ -133,16 +133,16 @@ export default async function DashboardPage({
             Recently Used
           </h2>
           <div className="space-y-2">
-            {recentWorksheets.map((item: { worksheet_id: string; created_at: string; worksheets: { title: string; slug: string }[] }) => {
-              const ws = item.worksheets?.[0]
+            {recentWorksheets.map((item: { worksheet_id: string; created_at: string; worksheets: { title: string; slug: string } | { title: string; slug: string }[] | null }) => {
+              const ws = Array.isArray(item.worksheets) ? item.worksheets[0] : item.worksheets
               return (
               <Link
                 key={item.worksheet_id}
-                href={`/worksheets/${ws?.slug}`}
+                href={`/worksheets/${ws?.slug || ''}`}
                 className="flex items-center justify-between rounded-lg border border-primary-100 bg-white px-4 py-3 transition-colors hover:bg-primary-50"
               >
                 <span className="text-sm font-medium text-primary-700">
-                  {ws?.title}
+                  {ws?.title || 'Untitled worksheet'}
                 </span>
                 <span className="text-xs text-primary-400">
                   {new Date(item.created_at).toLocaleDateString()}
