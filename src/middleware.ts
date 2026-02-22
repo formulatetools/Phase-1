@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // Routes accessible without authentication
-const publicRoutes = ['/', '/login', '/signup', '/pricing', '/auth/callback']
+const publicRoutes = ['/', '/login', '/signup', '/pricing', '/privacy', '/terms', '/auth/callback']
 
 // Routes that are browse-only for unauthenticated users (worksheet library + homework links)
 const browseRoutes = ['/worksheets', '/hw']

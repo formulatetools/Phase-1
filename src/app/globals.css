@@ -60,16 +60,23 @@ select:focus {
 /* Print-friendly worksheet styles */
 @media print {
   body {
-    background: white;
+    background: white !important;
     color: black;
-    font-size: 12pt;
+    font-size: 11pt;
+  }
+
+  /* Page setup — 20mm left for NHS hole-punch */
+  @page {
+    margin: 15mm 15mm 12mm 20mm;
+    size: A4;
   }
 
   /* Hide non-content elements */
   nav,
   header,
   footer,
-  .no-print {
+  .no-print,
+  button {
     display: none !important;
   }
 
@@ -88,7 +95,7 @@ select:focus {
     border: 1px solid #ccc;
     padding: 6px 8px;
     text-align: left;
-    font-size: 10pt;
+    font-size: 9pt;
   }
 
   th {
@@ -105,9 +112,10 @@ select:focus {
     border: 1px solid #ccc !important;
     padding: 4px !important;
     background: white !important;
+    box-shadow: none !important;
   }
 
-  /* Expand textareas */
+  /* Expand textareas for write-in space */
   textarea {
     min-height: 60px;
   }
@@ -119,5 +127,41 @@ select:focus {
 
   h3 {
     page-break-after: avoid;
+  }
+
+  /* Preserve colours for domain coding, computed fields, badges */
+  [style*="background"],
+  [style*="border-color"],
+  .bg-amber-50,
+  .border-amber-400,
+  .bg-red-600,
+  .bg-primary-800,
+  .bg-green-50,
+  .bg-red-50,
+  .bg-blue-50 {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Reduce border radius for print */
+  .rounded-xl,
+  .rounded-2xl {
+    border-radius: 8px !important;
+  }
+
+  .rounded-lg {
+    border-radius: 6px !important;
+  }
+
+  /* Remove shadows */
+  .shadow-sm,
+  .shadow {
+    box-shadow: none !important;
+  }
+
+  /* Formulation diagrams should not split across pages */
+  [class*="grid-cols-3"],
+  [class*="grid-cols-2"] {
+    page-break-inside: avoid;
   }
 }

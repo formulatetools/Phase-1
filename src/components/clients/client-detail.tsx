@@ -16,6 +16,7 @@ import {
   createAssignment,
   lockAssignment,
   markAsReviewed,
+  gdprErase,
 } from '@/app/(dashboard)/clients/actions'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 
@@ -64,6 +65,8 @@ export function ClientDetail({
   const [assignError, setAssignError] = useState<string | null>(null)
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
   const [viewingResponse, setViewingResponse] = useState<string | null>(null)
+  const [showGdprConfirm, setShowGdprConfirm] = useState(false)
+  const [gdprLoading, setGdprLoading] = useState(false)
 
   const canAssign = maxActiveAssignments === Infinity || totalActiveAssignments < maxActiveAssignments
 
@@ -114,6 +117,18 @@ export function ClientDetail({
     await navigator.clipboard.writeText(link)
     setCopiedToken(token)
     setTimeout(() => setCopiedToken(null), 3000)
+  }
+
+  const handleGdprErase = async () => {
+    setGdprLoading(true)
+    const result = await gdprErase(relationship.id)
+    if (result.success) {
+      window.location.href = '/clients'
+    } else {
+      alert(result.error || 'Failed to delete client data')
+      setGdprLoading(false)
+      setShowGdprConfirm(false)
+    }
   }
 
   const isExpired = (a: WorksheetAssignment) => new Date(a.expires_at) < new Date()
@@ -314,6 +329,43 @@ export function ClientDetail({
           </div>
         </div>
       )}
+
+      {/* GDPR Erasure section */}
+      <div className="rounded-2xl border border-red-100 bg-red-50/30 p-5">
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-red-800">Permanently Delete Client Data</h3>
+            <p className="mt-1 text-xs text-red-600/80">
+              This will permanently and irreversibly delete all worksheets, responses, and assignment
+              data for this client. Audit records of the deletion will be retained.
+            </p>
+          </div>
+          {!showGdprConfirm ? (
+            <button
+              onClick={() => setShowGdprConfirm(true)}
+              className="shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+            >
+              Delete all data
+            </button>
+          ) : (
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                onClick={handleGdprErase}
+                disabled={gdprLoading}
+                className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {gdprLoading ? 'Deleting...' : 'Confirm permanent deletion'}
+              </button>
+              <button
+                onClick={() => setShowGdprConfirm(false)}
+                className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Assignments list */}
       <div>

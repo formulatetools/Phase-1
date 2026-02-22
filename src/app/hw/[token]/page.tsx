@@ -40,6 +40,9 @@ export default async function HomeworkPage({ params }: PageProps) {
 
   const typedWorksheet = worksheet as Worksheet
 
+  // Detect if this is a safety plan worksheet
+  const isSafetyPlan = typedWorksheet.schema?.layout === 'safety_plan'
+
   // Fetch existing response (if any)
   const { data: existingResponse } = await supabase
     .from('worksheet_responses')
@@ -109,6 +112,20 @@ export default async function HomeworkPage({ params }: PageProps) {
             </div>
           )}
         </div>
+
+        {/* Safety plan crisis disclaimer */}
+        {isSafetyPlan && (
+          <div className="mb-6 rounded-xl border-l-4 border-amber-400 bg-amber-50 p-4">
+            <p className="text-sm text-primary-700">
+              <strong>Important:</strong> This safety plan is designed to be completed with your therapist.
+              If you are in immediate danger or experiencing a mental health crisis, please contact:{' '}
+              <strong>999</strong> (emergency),{' '}
+              <strong>116 123</strong> (Samaritans, 24/7), or{' '}
+              <strong>0800 689 5555</strong> (SANEline, 4:30pm–10:30pm).
+              This worksheet is not a crisis service.
+            </p>
+          </div>
+        )}
 
         {readOnly && (
           <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-3 text-sm text-primary-600 flex items-center gap-2">

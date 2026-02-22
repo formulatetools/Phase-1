@@ -196,6 +196,78 @@ export async function lockAssignment(assignmentId: string) {
   return { success: true }
 }
 
+// ============================================================================
+// GDPR ERASURE — PERMANENT DELETION
+// ============================================================================
+
+export async function gdprErase(relationshipId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  // Verify ownership
+  const { data: relationship } = await supabase
+    .from('therapeutic_relationships')
+    .select('id, client_label')
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .is('deleted_at', null)
+    .single()
+
+  if (!relationship) return { error: 'Client not found or already deleted' }
+
+  // Count records for audit
+  const { count: responseCount } = await supabase
+    .from('worksheet_responses')
+    .select('*', { count: 'exact', head: true })
+    .eq('relationship_id', relationshipId)
+
+  const { count: assignmentCount } = await supabase
+    .from('worksheet_assignments')
+    .select('*', { count: 'exact', head: true })
+    .eq('relationship_id', relationshipId)
+
+  // Hard-delete all worksheet responses linked to this relationship
+  const { error: respError } = await supabase
+    .from('worksheet_responses')
+    .delete()
+    .eq('relationship_id', relationshipId)
+
+  if (respError) return { error: `Failed to delete responses: ${respError.message}` }
+
+  // Hard-delete all worksheet assignments linked to this relationship
+  const { error: assignError } = await supabase
+    .from('worksheet_assignments')
+    .delete()
+    .eq('relationship_id', relationshipId)
+
+  if (assignError) return { error: `Failed to delete assignments: ${assignError.message}` }
+
+  // Hard-delete the therapeutic relationship
+  const { error: relError } = await supabase
+    .from('therapeutic_relationships')
+    .delete()
+    .eq('id', relationshipId)
+
+  if (relError) return { error: `Failed to delete relationship: ${relError.message}` }
+
+  // Audit log — record the erasure (no PII stored, just counts)
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'gdpr_erasure',
+    entity_type: 'therapeutic_relationship',
+    entity_id: relationshipId,
+    metadata: {
+      responses_deleted: responseCount ?? 0,
+      assignments_deleted: assignmentCount ?? 0,
+    },
+  })
+
+  revalidatePath('/clients')
+  return { success: true, deleted: { responses: responseCount ?? 0, assignments: assignmentCount ?? 0 } }
+}
+
 export async function markAsReviewed(assignmentId: string) {
   const { user } = await getCurrentUser()
   if (!user) return { error: 'Not authenticated' }
