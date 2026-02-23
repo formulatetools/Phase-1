@@ -1,8 +1,8 @@
 import { PricingTable } from '@/components/marketing/pricing-table'
 
 export const metadata = {
-  title: 'Pricing — Formulate',
-  description: 'Professional CBT tools starting free. Unlimited access from £7.99/month.',
+  title: 'Pricing',
+  description: 'Professional CBT tools starting free. Unlimited worksheet access from £4.99/month.',
 }
 
 export default function PricingPage() {

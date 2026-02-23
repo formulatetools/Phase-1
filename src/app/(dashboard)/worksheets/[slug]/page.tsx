@@ -1,9 +1,51 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import { WorksheetDetail } from '@/components/worksheets/worksheet-detail'
+
+// ── Dynamic SEO metadata per worksheet ───────────────────────────────────────
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const supabase = await createClient()
+
+  const { data: worksheet } = await supabase
+    .from('worksheets')
+    .select('title, description, tags, categories(name)')
+    .eq('slug', slug)
+    .eq('is_published', true)
+    .is('deleted_at', null)
+    .single()
+
+  if (!worksheet) return { title: 'Worksheet Not Found' }
+
+  const title = worksheet.title
+  const description =
+    worksheet.description?.slice(0, 160) ||
+    `${worksheet.title} — a professional CBT worksheet for clinical use.`
+
+  return {
+    title,
+    description,
+    keywords: worksheet.tags || [],
+    openGraph: {
+      title: `${worksheet.title} — CBT Worksheet`,
+      description,
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary',
+      title: `${worksheet.title} — CBT Worksheet`,
+      description,
+    },
+  }
+}
 
 export default async function WorksheetPage({
   params,
@@ -51,8 +93,34 @@ export default async function WorksheetPage({
 
   const category = worksheet.categories as { name: string; slug: string } | null
 
+  // ── Structured data (JSON-LD) ─────────────────────────────────────────
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: worksheet.title,
+    description: worksheet.description,
+    applicationCategory: 'HealthApplication',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'GBP' },
+    ...(category
+      ? {
+          breadcrumb: {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Worksheets', item: 'https://formulatetools.co.uk/worksheets' },
+              { '@type': 'ListItem', position: 2, name: category.name, item: `https://formulatetools.co.uk/worksheets/category/${category.slug}` },
+              { '@type': 'ListItem', position: 3, name: worksheet.title },
+            ],
+          },
+        }
+      : {}),
+  }
+
   return (
     <div className="px-4 py-8 sm:px-8 lg:px-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="mx-auto max-w-4xl">
         <div className="mb-2">
           {category && (

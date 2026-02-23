@@ -1,6 +1,12 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Logo } from '@/components/ui/logo'
 import { AuthForm } from '@/components/ui/auth-form'
+
+export const metadata: Metadata = {
+  title: 'Sign In',
+  robots: { index: false, follow: false },
+}
 
 export default async function LoginPage({
   searchParams,

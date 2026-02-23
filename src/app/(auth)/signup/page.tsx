@@ -1,6 +1,13 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Logo } from '@/components/ui/logo'
 import { AuthForm } from '@/components/ui/auth-form'
+
+export const metadata: Metadata = {
+  title: 'Create Account',
+  description:
+    'Sign up free for access to professional CBT worksheets and clinical tools.',
+}
 
 export default function SignupPage() {
   return (
