@@ -19,6 +19,7 @@ import {
   gdprErase,
 } from '@/app/(dashboard)/clients/actions'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
+import { ShareModal } from '@/components/ui/share-modal'
 
 interface ClientDetailProps {
   relationship: TherapeuticRelationship
@@ -67,6 +68,11 @@ export function ClientDetail({
   const [viewingResponse, setViewingResponse] = useState<string | null>(null)
   const [showGdprConfirm, setShowGdprConfirm] = useState(false)
   const [gdprLoading, setGdprLoading] = useState(false)
+  const [shareModal, setShareModal] = useState<{
+    url: string
+    title: string
+    dueDate?: string
+  } | null>(null)
 
   const canAssign = maxActiveAssignments === Infinity || totalActiveAssignments < maxActiveAssignments
 
@@ -99,8 +105,17 @@ export function ClientDetail({
     if (result.error) {
       setAssignError(result.error)
     } else if (result.token) {
-      // Copy link to clipboard
       const link = `${appUrl}/hw/${result.token}`
+      const ws = worksheetMap.get(selectedWorksheet)
+
+      // Show share modal with link, QR, and share options
+      setShareModal({
+        url: link,
+        title: ws?.title || 'Worksheet',
+        dueDate: dueDate || undefined,
+      })
+
+      // Also copy to clipboard automatically
       await navigator.clipboard.writeText(link)
       setCopiedToken(result.token)
       setShowAssign(false)
@@ -112,11 +127,21 @@ export function ClientDetail({
     setAssignLoading(false)
   }
 
-  const handleCopyLink = async (token: string) => {
+  const handleCopyLink = async (token: string, assignmentId?: string) => {
     const link = `${appUrl}/hw/${token}`
     await navigator.clipboard.writeText(link)
     setCopiedToken(token)
     setTimeout(() => setCopiedToken(null), 3000)
+  }
+
+  const handleShareLink = (token: string, worksheetId: string, assignmentDueDate?: string | null) => {
+    const link = `${appUrl}/hw/${token}`
+    const ws = worksheetMap.get(worksheetId)
+    setShareModal({
+      url: link,
+      title: ws?.title || 'Worksheet',
+      dueDate: assignmentDueDate || undefined,
+    })
   }
 
   const handleGdprErase = async () => {
@@ -412,28 +437,17 @@ export function ClientDetail({
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-4">
-                      {/* Copy link */}
+                      {/* Share link */}
                       {!expired && (a.status === 'assigned' || a.status === 'in_progress') && (
                         <button
-                          onClick={() => handleCopyLink(a.token)}
+                          onClick={() => handleShareLink(a.token, a.worksheet_id, a.due_date)}
                           className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors flex items-center gap-1"
-                          title="Copy homework link"
+                          title="Share homework link"
                         >
-                          {copiedToken === a.token ? (
-                            <>
-                              <svg className="h-3.5 w-3.5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                              </svg>
-                              Copied!
-                            </>
-                          ) : (
-                            <>
-                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 6.364L6.002 13.5a4.5 4.5 0 006.364 6.364l4.5-4.5a4.5 4.5 0 001.242-7.244" />
-                              </svg>
-                              Copy link
-                            </>
-                          )}
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+                          </svg>
+                          Share
                         </button>
                       )}
 
@@ -505,6 +519,16 @@ export function ClientDetail({
           </div>
         )}
       </div>
+
+      {/* Share modal */}
+      <ShareModal
+        open={!!shareModal}
+        onClose={() => setShareModal(null)}
+        homeworkUrl={shareModal?.url || ''}
+        worksheetTitle={shareModal?.title || ''}
+        clientLabel={relationship.client_label}
+        dueDate={shareModal?.dueDate}
+      />
     </div>
   )
 }
