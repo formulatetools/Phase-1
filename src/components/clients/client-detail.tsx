@@ -288,11 +288,30 @@ export function ClientDetail({
               className="w-full rounded-lg border border-primary-200 px-3 py-2 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none"
             >
               <option value="">Choose a worksheet…</option>
-              {worksheets.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.title}
-                </option>
-              ))}
+              {(() => {
+                const custom = worksheets.filter((w) => !w.is_curated)
+                const curated = worksheets.filter((w) => w.is_curated)
+                return (
+                  <>
+                    {custom.length > 0 && (
+                      <optgroup label="My Custom Tools">
+                        {custom.map((w) => (
+                          <option key={w.id} value={w.id}>
+                            {w.title}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <optgroup label="Curated Library">
+                      {curated.map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.title}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </>
+                )
+              })()}
             </select>
           </div>
 

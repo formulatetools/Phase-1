@@ -6,7 +6,9 @@ export type SubscriptionStatus = 'free' | 'active' | 'cancelled' | 'past_due'
 export type SubscriptionTier = 'free' | 'standard' | 'professional'
 export type StripeSubscriptionStatus = 'active' | 'cancelled' | 'past_due' | 'trialing'
 export type AccessType = 'view' | 'interact' | 'export'
-export type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'login' | 'logout' | 'assign' | 'share'
+export type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'login' | 'logout' | 'assign' | 'share' | 'fork'
+export type WorksheetVisibility = 'curated' | 'private' | 'organisation' | 'public'
+export type TrackingFrequency = 'daily' | 'weekly' | 'session' | 'custom'
 export type AssignmentStatus = 'assigned' | 'in_progress' | 'completed' | 'reviewed'
 export type ResponseSource = 'manual' | 'assigned' | 'ai_generated'
 export type RelationshipStatus = 'active' | 'discharged' | 'paused'
@@ -68,7 +70,7 @@ export interface Category {
 
 export interface Worksheet {
   id: string
-  category_id: string
+  category_id: string | null
   title: string
   slug: string
   description: string
@@ -79,6 +81,12 @@ export interface Worksheet {
   tags: string[]
   estimated_minutes: number | null
   display_order: number
+  created_by: string | null
+  visibility: WorksheetVisibility
+  is_curated: boolean
+  schema_version: number
+  forked_from: string | null
+  tracking_frequency: TrackingFrequency | null
   deleted_at: string | null
   created_at: string
   updated_at: string

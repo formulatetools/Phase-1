@@ -14,15 +14,18 @@ export const TIER_LIMITS = {
     monthlyUses: 5,
     maxClients: 2,
     maxActiveAssignments: 3,
+    maxCustomWorksheets: 0,
   },
   standard: {
     monthlyUses: Infinity,
     maxClients: Infinity,
     maxActiveAssignments: Infinity,
+    maxCustomWorksheets: 3,
   },
   professional: {
     monthlyUses: Infinity,
     maxClients: Infinity,
     maxActiveAssignments: Infinity,
+    maxCustomWorksheets: 20,
   },
 } as const

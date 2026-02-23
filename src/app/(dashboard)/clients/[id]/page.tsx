@@ -58,10 +58,11 @@ export default async function ClientDetailPage({ params }: PageProps) {
   }
 
   // Fetch worksheets for the picker and response rendering
+  // Include both published curated worksheets AND user's own custom worksheets
   const { data: worksheets } = await supabase
     .from('worksheets')
     .select('*')
-    .eq('is_published', true)
+    .or(`and(is_published.eq.true,is_curated.eq.true),and(created_by.eq.${user.id},is_curated.eq.false)`)
     .is('deleted_at', null)
     .order('title')
 

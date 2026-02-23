@@ -1,5 +1,18 @@
 // JSONB worksheet schema types — defines the structure stored in worksheets.schema
 
+// Field types available in the custom worksheet builder
+export type CustomFieldType =
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'likert'
+  | 'checklist'
+  | 'date'
+  | 'time'
+  | 'select'
+  | 'table'
+  | 'computed'
+
 export type FieldType =
   | 'text'
   | 'textarea'
@@ -90,10 +103,11 @@ export interface TableField extends BaseField {
 
 // Computed field — auto-calculated from other fields
 export interface ComputedFieldComputation {
-  operation: 'difference' | 'average' | 'count' | 'sum'
+  operation: 'difference' | 'average' | 'count' | 'sum' | 'min' | 'max' | 'percentage_change'
   field?: string           // e.g. "activity-table.pleasure"
-  field_a?: string         // for difference: field_a - field_b
+  field_a?: string         // for difference / percentage_change: field_a - field_b
   field_b?: string
+  fields?: string[]        // for sum / average / count / min / max: list of source field IDs
   format?: 'percentage_change' | 'number' | 'integer'
   group_by?: string
 }
