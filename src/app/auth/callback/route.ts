@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
+import { sendEmail } from '@/lib/email'
+import { welcomeEmail } from '@/lib/email-templates'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -28,6 +30,21 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      // Send welcome email on first login (fire-and-forget — don't block redirect)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.email) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed, full_name')
+          .eq('id', user.id)
+          .single()
+
+        if (profile && !profile.onboarding_completed) {
+          const email = welcomeEmail(profile.full_name as string | null)
+          sendEmail({ to: user.email, subject: email.subject, html: email.html })
+        }
+      }
+
       return NextResponse.redirect(`${origin}${redirect}`)
     }
   }
