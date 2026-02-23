@@ -6,7 +6,9 @@ export type SubscriptionStatus = 'free' | 'active' | 'cancelled' | 'past_due'
 export type SubscriptionTier = 'free' | 'standard' | 'professional'
 export type StripeSubscriptionStatus = 'active' | 'cancelled' | 'past_due' | 'trialing'
 export type AccessType = 'view' | 'interact' | 'export'
-export type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'login' | 'logout' | 'assign' | 'share' | 'fork'
+export type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'login' | 'logout' | 'assign' | 'share' | 'fork' | 'upvote' | 'remove_upvote'
+export type FeatureRequestStatus = 'submitted' | 'under_review' | 'planned' | 'shipped' | 'declined'
+export type FeatureRequestCategory = 'new_worksheet_or_tool' | 'new_psychometric_measure' | 'platform_feature' | 'integration' | 'other'
 export type WorksheetVisibility = 'curated' | 'private' | 'organisation' | 'public'
 export type TrackingFrequency = 'daily' | 'weekly' | 'session' | 'custom'
 export type AssignmentStatus = 'assigned' | 'in_progress' | 'completed' | 'reviewed'
@@ -253,6 +255,27 @@ export interface ConsentRecord {
   granted_at: string
   withdrawn_at: string | null
   ip_address: string | null
+  created_at: string
+}
+
+export interface FeatureRequest {
+  id: string
+  user_id: string
+  category: FeatureRequestCategory
+  title: string
+  description: string | null
+  current_tool: string | null
+  status: FeatureRequestStatus
+  admin_notes: string | null
+  shipped_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface FeatureRequestVote {
+  id: string
+  feature_request_id: string
+  user_id: string
   created_at: string
 }
 

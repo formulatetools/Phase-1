@@ -50,6 +50,18 @@ export default async function SettingsPage() {
                 <p className="text-xs text-primary-400">{profile.email}</p>
               </div>
             </div>
+            <div className="flex items-center justify-between rounded-xl bg-primary-50 px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-primary-700">Feature Requests</p>
+                <p className="text-xs text-primary-400">Suggest and vote on new features</p>
+              </div>
+              <a
+                href="/feature-requests"
+                className="text-sm font-medium text-brand hover:text-brand-dark transition-colors"
+              >
+                View &rarr;
+              </a>
+            </div>
           </div>
         </div>
       </div>
