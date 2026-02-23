@@ -23,6 +23,7 @@ export default async function DashboardLayout({
         userEmail={profile.email}
         userName={profile.full_name}
         tier={profile.subscription_tier}
+        role={profile.role}
       />
 
       {/* Main content area — offset by sidebar width on desktop */}
