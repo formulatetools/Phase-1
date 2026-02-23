@@ -8,13 +8,13 @@ type BillingPeriod = 'monthly' | 'annual'
 const tiers = [
   {
     name: 'Free',
-    description: 'Get started with 5 tools per month',
+    description: 'Try it out with 5 tools a month',
     monthlyPrice: 0,
     annualPrice: 0,
     features: [
       'Browse the full worksheet library',
       '5 worksheet uses per month',
-      'Print / PDF export',
+      'PDF export (Formulate branding)',
       'Read all descriptions & instructions',
     ],
     cta: 'Create Free Account',
@@ -22,16 +22,31 @@ const tiers = [
     highlighted: false,
   },
   {
-    name: 'Standard',
-    description: 'Unlimited access for your practice',
-    monthlyPrice: 7.99,
-    annualPrice: 76.70,
+    name: 'Starter',
+    description: 'Unlimited access for solo practitioners',
+    monthlyPrice: 4.99,
+    annualPrice: 47.90,
     features: [
       'Everything in Free',
       'Unlimited worksheet access',
+      'Clean PDF export (no branding)',
       'Bookmark & favourite tools',
-      'Unlimited print / PDF export',
-      'Priority new worksheets',
+    ],
+    cta: 'Get Started',
+    href: '/signup',
+    highlighted: false,
+  },
+  {
+    name: 'Practice',
+    description: 'Client management & custom tools',
+    monthlyPrice: 9.99,
+    annualPrice: 95.90,
+    features: [
+      'Everything in Starter',
+      'Client management dashboard',
+      'Share worksheets with clients',
+      'Custom worksheet builder',
+      'Fork & customise any tool',
     ],
     cta: 'Get Started',
     checkoutTier: 'standard' as const,
@@ -39,12 +54,12 @@ const tiers = [
     badge: 'Most Popular',
   },
   {
-    name: 'Professional',
+    name: 'Specialist',
     description: 'Advanced tools for specialist clinicians',
     monthlyPrice: 19.99,
     annualPrice: 191.90,
     features: [
-      'Everything in Standard',
+      'Everything in Practice',
       'CPD video training content',
       'Early access to new features',
       'AI-assisted formulation (coming soon)',
@@ -91,7 +106,7 @@ export function PricingTable() {
       </div>
 
       {/* Tier cards */}
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {tiers.map((tier) => {
           const price = period === 'monthly' ? tier.monthlyPrice : tier.annualPrice
           const perMonth =
@@ -110,7 +125,7 @@ export function PricingTable() {
             >
               {tier.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-primary-800 px-3 py-1 text-xs font-medium text-white">
+                  <span className="rounded-full bg-primary-800 px-3 py-1 text-xs font-medium text-white whitespace-nowrap">
                     {tier.badge}
                   </span>
                 </div>
