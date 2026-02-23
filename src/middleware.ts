@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 // Routes accessible without authentication
 const publicRoutes = ['/', '/login', '/signup', '/pricing', '/privacy', '/terms', '/auth/callback']
@@ -8,6 +9,45 @@ const publicRoutes = ['/', '/login', '/signup', '/pricing', '/privacy', '/terms'
 const browseRoutes = ['/worksheets', '/hw']
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // ── Rate limiting for API routes ─────────────────────────────────
+  if (pathname.startsWith('/api/')) {
+    const config = RATE_LIMITS[pathname]
+    if (config) {
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'anonymous'
+      const key = `${ip}:${pathname}`
+      const result = checkRateLimit(key, config.limit, config.windowMs)
+
+      if (!result.allowed) {
+        return new NextResponse(
+          JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'X-RateLimit-Limit': String(result.limit),
+              'X-RateLimit-Remaining': '0',
+              'X-RateLimit-Reset': String(result.resetAt),
+              'Retry-After': String(Math.max(1, result.resetAt - Math.floor(Date.now() / 1000))),
+            },
+          }
+        )
+      }
+
+      // Allow request with rate limit headers
+      const response = NextResponse.next()
+      response.headers.set('X-RateLimit-Limit', String(result.limit))
+      response.headers.set('X-RateLimit-Remaining', String(result.remaining))
+      response.headers.set('X-RateLimit-Reset', String(result.resetAt))
+      return response
+    }
+
+    // Non-rate-limited API routes (webhooks, crons, health) pass through
+    return NextResponse.next()
+  }
+
+  // ── Auth middleware for page routes ──────────────────────────────
   let supabaseResponse = NextResponse.next({ request })
 
   // Skip auth checks if Supabase isn't configured yet
@@ -41,8 +81,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { pathname } = request.nextUrl
-
   // Allow public routes
   if (publicRoutes.some((route) => pathname === route)) {
     return supabaseResponse
@@ -73,14 +111,11 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico (favicon)
-     * - public files (svg, png, jpg, etc.)
-     * - api routes (handled separately)
-     */
+    // API routes that need rate limiting
+    '/api/checkout',
+    '/api/portal',
+    '/api/homework',
+    // All non-static, non-API page routes (existing auth pattern)
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api/).*)',
   ],
 }
