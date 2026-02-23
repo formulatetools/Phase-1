@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import { ManageSubscriptionButton } from '@/components/ui/manage-subscription-button'
 import { activityLabel, activityIcon, timeAgo, type ActivityItem } from '@/lib/utils/activity'
+import { WelcomeModal } from '@/components/onboarding/welcome-modal'
+import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist'
 
 export const metadata = {
   title: 'Dashboard — Formulate',
@@ -31,6 +33,7 @@ export default async function DashboardPage({
     { count: completedAssignmentCount },
     { count: pendingReviewCount },
     { data: recentActivity },
+    { count: userExportCount },
   ] = await Promise.all([
     // Recently accessed worksheets
     supabase
@@ -88,6 +91,13 @@ export default async function DashboardPage({
       .in('action', ['create', 'assign', 'read', 'export', 'gdpr_erasure'])
       .order('created_at', { ascending: false })
       .limit(8),
+
+    // User export count (for onboarding checklist)
+    supabase
+      .from('worksheet_access_log')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('access_type', 'export'),
   ])
 
   // Deduplicate recently accessed worksheets
@@ -124,10 +134,21 @@ export default async function DashboardPage({
     return 'Good evening'
   }
 
+  // ── Onboarding checklist status ────────────────────────────────────────
+  const checklistStatus = {
+    browsedWorksheets: (recentAccess && recentAccess.length > 0) || false,
+    addedClient: totalClients > 0,
+    assignedHomework: totalAssignments > 0,
+    exportedWorksheet: (userExportCount ?? 0) > 0,
+  }
+
   // Activity feed helpers imported from @/lib/utils/activity
 
   return (
     <div className="px-4 py-8 sm:px-8 lg:px-12">
+      {/* Welcome modal for first-time users */}
+      {profile.onboarding_completed !== true && <WelcomeModal open={true} />}
+
       {/* Checkout success banner */}
       {params.checkout === 'success' && (
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-brand/20 bg-brand-light px-5 py-4">
@@ -142,6 +163,9 @@ export default async function DashboardPage({
           </div>
         </div>
       )}
+
+      {/* Onboarding checklist for new users */}
+      <OnboardingChecklist status={checklistStatus} />
 
       {/* Header */}
       <div className="mb-8">

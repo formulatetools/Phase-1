@@ -29,6 +29,7 @@ export interface Profile {
   stripe_customer_id: string | null
   monthly_download_count: number
   download_count_reset_at: string | null
+  onboarding_completed: boolean
   deleted_at: string | null
   created_at: string
   updated_at: string
