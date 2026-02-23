@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { TIER_LABELS } from '@/lib/stripe/config'
 import { ProfileForm } from '@/components/ui/profile-form'
+import { PromoCodeInput } from '@/components/ui/promo-code-input'
 
 export const metadata = {
   title: 'Settings — Formulate',
@@ -65,6 +66,14 @@ export default async function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {profile.subscription_tier === 'free' && (
+          <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+            <h2 className="mb-1 text-base font-semibold text-primary-900">Promo Code</h2>
+            <p className="mb-5 text-sm text-primary-400">Have a promo code? Enter it below to unlock features.</p>
+            <PromoCodeInput mode="redeem" />
+          </div>
+        )}
       </div>
     </div>
   )

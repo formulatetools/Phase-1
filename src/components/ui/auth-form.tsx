@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { PromoCodeInput } from '@/components/ui/promo-code-input'
 
 type AuthMode = 'login' | 'signup'
 type AuthMethod = 'password' | 'magic-link'
@@ -19,6 +20,8 @@ export function AuthForm({ mode, redirectTo }: AuthFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [showPromoField, setShowPromoField] = useState(false)
+  const [promoCode, setPromoCode] = useState<string | null>(null)
 
   const supabase = createClient()
 
@@ -33,7 +36,10 @@ export function AuthForm({ mode, redirectTo }: AuthFormProps) {
         email,
         password,
         options: {
-          data: { full_name: fullName },
+          data: {
+            full_name: fullName,
+            ...(promoCode ? { promo_code: promoCode } : {}),
+          },
           emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo || '/dashboard'}`,
         },
       })
@@ -167,6 +173,26 @@ export function AuthForm({ mode, redirectTo }: AuthFormProps) {
               className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-primary-900 placeholder-primary-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
               placeholder="Minimum 8 characters"
             />
+          </div>
+        )}
+
+        {/* Promo code field — signup + password mode only */}
+        {mode === 'signup' && method === 'password' && (
+          <div>
+            {showPromoField ? (
+              <PromoCodeInput
+                mode="validate"
+                onValidated={(code) => setPromoCode(code)}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowPromoField(true)}
+                className="text-sm text-primary-400 hover:text-primary-600 transition-colors"
+              >
+                Have a promo code?
+              </button>
+            )}
           </div>
         )}
 

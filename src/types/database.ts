@@ -6,7 +6,7 @@ export type SubscriptionStatus = 'free' | 'active' | 'cancelled' | 'past_due'
 export type SubscriptionTier = 'free' | 'starter' | 'standard' | 'professional'
 export type StripeSubscriptionStatus = 'active' | 'cancelled' | 'past_due' | 'trialing'
 export type AccessType = 'view' | 'interact' | 'export'
-export type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'login' | 'logout' | 'assign' | 'share' | 'fork' | 'upvote' | 'remove_upvote'
+export type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'login' | 'logout' | 'assign' | 'share' | 'fork' | 'upvote' | 'remove_upvote' | 'redeem'
 export type FeatureRequestStatus = 'submitted' | 'under_review' | 'planned' | 'shipped' | 'declined'
 export type FeatureRequestCategory = 'new_worksheet_or_tool' | 'new_psychometric_measure' | 'platform_feature' | 'integration' | 'other'
 export type WorksheetVisibility = 'curated' | 'private' | 'organisation' | 'public'
@@ -277,6 +277,26 @@ export interface FeatureRequestVote {
   feature_request_id: string
   user_id: string
   created_at: string
+}
+
+export interface PromoCode {
+  id: string
+  code: string
+  tier: SubscriptionTier
+  duration_days: number
+  max_redemptions: number | null
+  redemption_count: number
+  is_active: boolean
+  expires_at: string | null
+  created_at: string
+}
+
+export interface PromoRedemption {
+  id: string
+  promo_code_id: string
+  user_id: string
+  redeemed_at: string
+  access_expires_at: string
 }
 
 // Note: We use untyped Supabase clients and cast query results to our

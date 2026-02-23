@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 
-type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'login' | 'logout' | 'assign' | 'share'
+type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'login' | 'logout' | 'assign' | 'share' | 'redeem'
 
 /**
  * Server-side audit log helper.

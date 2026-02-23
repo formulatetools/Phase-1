@@ -280,12 +280,20 @@ export default async function AdminPage() {
             Platform overview and analytics
           </p>
         </div>
-        <Link
-          href="/admin/worksheets/new"
-          className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900"
-        >
-          New Worksheet
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/promo-codes"
+            className="rounded-lg border border-primary-200 px-4 py-2 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
+          >
+            Promo Codes
+          </Link>
+          <Link
+            href="/admin/worksheets/new"
+            className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900"
+          >
+            New Worksheet
+          </Link>
+        </div>
       </div>
 
       {/* ── Stat cards ────────────────────────────────────────────────── */}

@@ -15,11 +15,37 @@ export async function getCurrentUser(): Promise<{
     return { user: null, profile: null }
   }
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
+
+  // ── Lazy promo expiry check ────────────────────────────────────────────
+  // A promo user has subscription_status='free' but subscription_tier!='free'.
+  // If their latest redemption has expired, revert them to the free tier.
+  if (
+    profile &&
+    profile.subscription_status === 'free' &&
+    profile.subscription_tier !== 'free'
+  ) {
+    const { data: latest } = await supabase
+      .from('promo_redemptions')
+      .select('access_expires_at')
+      .eq('user_id', user.id)
+      .order('access_expires_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (latest && new Date(latest.access_expires_at) < new Date()) {
+      await supabase
+        .from('profiles')
+        .update({ subscription_tier: 'free' })
+        .eq('id', user.id)
+
+      profile = { ...profile, subscription_tier: 'free' } as Profile
+    }
+  }
 
   return { user, profile: profile as Profile | null }
 }

@@ -7,6 +7,7 @@ import { ManageSubscriptionButton } from '@/components/ui/manage-subscription-bu
 import { activityLabel, activityIcon, timeAgo, type ActivityItem } from '@/lib/utils/activity'
 import { WelcomeModal } from '@/components/onboarding/welcome-modal'
 import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist'
+import { PromoAutoRedeem } from '@/components/ui/promo-auto-redeem'
 
 export const metadata = {
   title: 'Dashboard — Formulate',
@@ -34,6 +35,7 @@ export default async function DashboardPage({
     { count: pendingReviewCount },
     { data: recentActivity },
     { count: userExportCount },
+    { data: latestRedemption },
   ] = await Promise.all([
     // Recently accessed worksheets
     supabase
@@ -98,6 +100,15 @@ export default async function DashboardPage({
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .eq('access_type', 'export'),
+
+    // Latest promo redemption (for expired trial banner)
+    supabase
+      .from('promo_redemptions')
+      .select('access_expires_at, promo_codes(tier)')
+      .eq('user_id', user.id)
+      .order('access_expires_at', { ascending: false })
+      .limit(1)
+      .single(),
   ])
 
   // Deduplicate recently accessed worksheets
@@ -159,6 +170,41 @@ export default async function DashboardPage({
           </div>
         </div>
       )}
+
+      {/* Auto-redeem promo code from signup */}
+      <PromoAutoRedeem
+        promoCode={(user.user_metadata?.promo_code as string) || null}
+        isFree={profile.subscription_tier === 'free'}
+      />
+
+      {/* Expired trial banner */}
+      {(() => {
+        if (!isFreeTier || !latestRedemption) return null
+        const redemption = latestRedemption as { access_expires_at: string; promo_codes: { tier: string } | { tier: string }[] | null }
+        if (new Date(redemption.access_expires_at) >= new Date()) return null
+        const promoTier = Array.isArray(redemption.promo_codes) ? redemption.promo_codes[0]?.tier : redemption.promo_codes?.tier
+        return (
+          <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-primary-900">Your free trial has ended</p>
+              <p className="text-sm text-primary-600">
+                Upgrade from &pound;4.99/mo to keep your {promoTier ? tierLabels[promoTier] : 'premium'} features.
+              </p>
+            </div>
+            <Link
+              href="/pricing"
+              className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900"
+            >
+              View plans
+            </Link>
+          </div>
+        )
+      })()}
 
       {/* Onboarding checklist for new users */}
       <OnboardingChecklist status={checklistStatus} />
