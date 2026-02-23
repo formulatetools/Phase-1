@@ -16,13 +16,8 @@ export function CookieBanner() {
     }
   }, [])
 
-  const accept = () => {
-    localStorage.setItem(COOKIE_KEY, 'accepted')
-    setVisible(false)
-  }
-
-  const decline = () => {
-    localStorage.setItem(COOKIE_KEY, 'declined')
+  const dismiss = () => {
+    localStorage.setItem(COOKIE_KEY, 'acknowledged')
     setVisible(false)
   }
 
@@ -32,24 +27,18 @@ export function CookieBanner() {
     <div className="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-6 pointer-events-none">
       <div className="mx-auto max-w-lg rounded-2xl border border-primary-200 bg-white p-4 shadow-lg pointer-events-auto">
         <p className="text-sm text-primary-700">
-          We use essential cookies to keep you signed in and functional cookies to improve your experience.
-          No advertising or tracking cookies are used.{' '}
+          We use essential cookies to keep you signed in. No tracking, advertising, or third-party cookies are used.
+          Analytics are fully cookieless.{' '}
           <Link href="/privacy" className="font-medium underline underline-offset-2 hover:text-primary-900">
             Privacy Policy
           </Link>
         </p>
-        <div className="mt-3 flex items-center gap-3">
+        <div className="mt-3">
           <button
-            onClick={accept}
+            onClick={dismiss}
             className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 transition-colors"
           >
-            Accept all
-          </button>
-          <button
-            onClick={decline}
-            className="rounded-lg border border-primary-200 px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
-          >
-            Essential only
+            Got it
           </button>
         </div>
       </div>
