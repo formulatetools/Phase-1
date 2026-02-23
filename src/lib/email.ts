@@ -8,10 +8,12 @@ export async function sendEmail({
   to,
   subject,
   html,
+  emailType,
 }: {
   to: string
   subject: string
   html: string
+  emailType?: string
 }) {
   try {
     const { error } = await resend.emails.send({
@@ -19,6 +21,7 @@ export async function sendEmail({
       to,
       subject,
       html,
+      ...(emailType ? { tags: [{ name: 'email_type', value: emailType }] } : {}),
     })
     if (error) {
       console.error('[email] Resend error:', error)

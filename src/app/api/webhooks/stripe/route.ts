@@ -296,7 +296,7 @@ export async function POST(request: NextRequest) {
         // Send recovery email (fire-and-forget)
         const tierLabel = TIER_LABELS[tier] || 'Starter'
         const email = abandonedCheckoutEmail(expiredProfile.full_name, tierLabel)
-        sendEmail({ to: expiredProfile.email, subject: email.subject, html: email.html })
+        sendEmail({ to: expiredProfile.email, subject: email.subject, html: email.html, emailType: 'abandoned_checkout' })
 
         // Log for dedup
         await supabase.from('audit_log').insert({

@@ -46,6 +46,15 @@ export async function POST(request: NextRequest) {
     const priceId = STRIPE_PRICES[tier][period]
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
+    // Track checkout started for conversion funnel analytics
+    await supabase.from('audit_log').insert({
+      user_id: user.id,
+      action: 'create',
+      entity_type: 'checkout',
+      entity_id: `${tier}_${period}`,
+      metadata: { tier, period, price_id: priceId },
+    })
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',

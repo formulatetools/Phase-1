@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/auth'
 import { WorksheetSearch } from '@/components/worksheets/worksheet-search'
 
 export const metadata = {
@@ -57,6 +58,20 @@ export default async function WorksheetsPage({
         return matchesQuery && matchesTag
       }
     )
+
+    // Track search for analytics (fire-and-forget)
+    if (q) {
+      const { user } = await getCurrentUser()
+      if (user) {
+        supabase.from('audit_log').insert({
+          user_id: user.id,
+          action: 'read',
+          entity_type: 'search',
+          entity_id: 'worksheet_search',
+          metadata: { query: q, tag: tag || null, results_count: searchResults.length },
+        }).then(() => {})
+      }
+    }
   }
 
   const categoryIcons: Record<string, string> = {

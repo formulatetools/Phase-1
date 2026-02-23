@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { activityLabel, activityIcon, timeAgo, type ActivityItem } from '@/lib/utils/activity'
+import { TIER_PRICES, TIER_LABELS } from '@/lib/stripe/config'
+import { AdminTabs } from '@/components/admin/admin-tabs'
 import { SignupChart } from '@/components/admin/signup-chart'
 import { AssignmentChart } from '@/components/admin/assignment-chart'
 import { PopularWorksheetsChart } from '@/components/admin/popular-worksheets-chart'
@@ -82,6 +84,25 @@ function rankWorksheets(
     .sort((a, b) => b.total - a.total)
 }
 
+/** Calculate MRR from active subscriptions */
+function calculateMRR(
+  subscriptions: { stripe_price_id: string; status: string }[],
+  stripePrices: Record<string, { monthly: string; annual: string }>,
+): number {
+  let mrr = 0
+  for (const sub of subscriptions) {
+    if (sub.status !== 'active') continue
+    for (const [tier, prices] of Object.entries(stripePrices)) {
+      if (sub.stripe_price_id === prices.monthly) {
+        mrr += TIER_PRICES[tier as keyof typeof TIER_PRICES]?.monthly ?? 0
+      } else if (sub.stripe_price_id === prices.annual) {
+        mrr += (TIER_PRICES[tier as keyof typeof TIER_PRICES]?.annual ?? 0) / 12
+      }
+    }
+  }
+  return Math.round(mrr * 100) / 100
+}
+
 /* ─── Page ───────────────────────────────────────────────────────────── */
 
 export default async function AdminPage() {
@@ -112,6 +133,9 @@ export default async function AdminPage() {
     { data: assignmentDates },
     { data: recentUsers },
     { data: activityData },
+    { data: activeSubscriptions },
+    { count: cancelledLast30d },
+    { count: newUsersLast30d },
   ] = await Promise.all([
     // 1. Total therapists
     supabase
@@ -202,6 +226,25 @@ export default async function AdminPage() {
       .select('*')
       .order('created_at', { ascending: false })
       .limit(20),
+
+    // 15. Active subscriptions (for MRR)
+    supabase
+      .from('subscriptions')
+      .select('stripe_price_id, status')
+      .eq('status', 'active'),
+
+    // 16. Cancelled subscriptions in last 30 days
+    supabase
+      .from('subscriptions')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'cancelled')
+      .gte('updated_at', thirtyDaysAgo),
+
+    // 17. New users last 30 days
+    supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', thirtyDaysAgo),
   ])
 
   // ── Computed stats ─────────────────────────────────────────────────
@@ -231,6 +274,31 @@ export default async function AdminPage() {
     (worksheetDetails || []) as WorksheetInfo[],
   )
 
+  // Revenue metrics
+  const STRIPE_PRICE_IDS = {
+    starter: {
+      monthly: process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY_PRICE_ID!,
+      annual: process.env.NEXT_PUBLIC_STRIPE_STARTER_ANNUAL_PRICE_ID!,
+    },
+    standard: {
+      monthly: process.env.NEXT_PUBLIC_STRIPE_STANDARD_MONTHLY_PRICE_ID!,
+      annual: process.env.NEXT_PUBLIC_STRIPE_STANDARD_ANNUAL_PRICE_ID!,
+    },
+    professional: {
+      monthly: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_MONTHLY_PRICE_ID!,
+      annual: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_ANNUAL_PRICE_ID!,
+    },
+  }
+
+  const mrr = calculateMRR(
+    (activeSubscriptions || []) as { stripe_price_id: string; status: string }[],
+    STRIPE_PRICE_IDS,
+  )
+  const totalPaid = (activeSubscriptions || []).length
+  const conversionRate = (therapistCount ?? 0) > 0
+    ? Math.round((totalPaid / (therapistCount ?? 1)) * 100)
+    : 0
+
   // Activity feed: fetch profile info for user IDs
   const activityUserIds = [
     ...new Set(
@@ -259,8 +327,9 @@ export default async function AdminPage() {
   // Tier badge colours
   const tierColors: Record<string, string> = {
     free: 'bg-primary-100 text-primary-600',
+    starter: 'bg-amber-50 text-amber-700',
     standard: 'bg-brand/10 text-brand-dark',
-    professional: 'bg-brand/10 text-brand-dark',
+    professional: 'bg-purple-50 text-purple-700',
   }
   const roleColors: Record<string, string> = {
     therapist: 'bg-brand/10 text-brand-dark',
@@ -271,7 +340,7 @@ export default async function AdminPage() {
   return (
     <div className="px-4 py-8 sm:px-8 lg:px-12">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-primary-900 sm:text-3xl">
             Admin Dashboard
@@ -296,8 +365,22 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      {/* ── Stat cards ────────────────────────────────────────────────── */}
-      <div className="mb-8 grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      {/* Tab navigation */}
+      <AdminTabs />
+
+      {/* ── Key metrics (top row) ─────────────────────────────────────── */}
+      <div className="mb-8 grid gap-4 grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
+        {/* MRR */}
+        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50">
+            <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="mt-3 text-3xl font-bold text-primary-900">£{mrr.toFixed(0)}</p>
+          <p className="mt-0.5 text-sm text-primary-400">MRR</p>
+        </div>
+
         {/* Total Therapists */}
         <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
@@ -317,7 +400,21 @@ export default async function AdminPage() {
             </svg>
           </div>
           <p className="mt-3 text-3xl font-bold text-primary-900">{activeUsers}</p>
-          <p className="mt-0.5 text-sm text-primary-400">Active (30 days)</p>
+          <p className="mt-0.5 text-sm text-primary-400">Active (30d)</p>
+        </div>
+
+        {/* Conversion Rate */}
+        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+            <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+            </svg>
+          </div>
+          <p className="mt-3 text-3xl font-bold text-primary-900">{conversionRate}%</p>
+          <p className="mt-0.5 text-sm text-primary-400">
+            Conversion
+            <span className="text-primary-300"> · {totalPaid} paid</span>
+          </p>
         </div>
 
         {/* Worksheets */}
@@ -330,7 +427,7 @@ export default async function AdminPage() {
           <p className="mt-3 text-3xl font-bold text-primary-900">{totalWorksheetCount ?? 0}</p>
           <p className="mt-0.5 text-sm text-primary-400">
             Worksheets
-            <span className="text-primary-300"> · {publishedWorksheetCount ?? 0} published</span>
+            <span className="text-primary-300"> · {publishedWorksheetCount ?? 0} live</span>
           </p>
         </div>
 
@@ -355,11 +452,7 @@ export default async function AdminPage() {
           <p className="mt-3 text-3xl font-bold text-primary-900">
             {(totalAssignmentCount ?? 0) > 0 ? `${completionRate}%` : '—'}
           </p>
-          <p className="mt-0.5 text-sm text-primary-400">
-            {(totalAssignmentCount ?? 0) > 0
-              ? `${completedAssignmentCount ?? 0} of ${totalAssignmentCount} completed`
-              : 'Completion rate'}
-          </p>
+          <p className="mt-0.5 text-sm text-primary-400">Completion</p>
         </div>
 
         {/* PDF Exports */}
@@ -518,7 +611,7 @@ export default async function AdminPage() {
                               tierColors[u.subscription_tier] || tierColors.free
                             }`}
                           >
-                            {u.subscription_tier}
+                            {TIER_LABELS[u.subscription_tier] || u.subscription_tier}
                           </span>
                         </td>
                         <td className="px-6 py-3 text-primary-500">

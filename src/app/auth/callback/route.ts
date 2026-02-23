@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
         if (profile && !profile.onboarding_completed) {
           const email = welcomeEmail(profile.full_name as string | null)
-          sendEmail({ to: user.email, subject: email.subject, html: email.html })
+          sendEmail({ to: user.email, subject: email.subject, html: email.html, emailType: 'welcome' })
 
           // Track referral if user signed up via referral link (fire-and-forget)
           const referralCode = user.user_metadata?.referral_code as string | undefined

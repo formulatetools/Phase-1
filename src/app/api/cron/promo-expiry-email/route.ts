@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       tierLabel,
       redemption.access_expires_at
     )
-    sendEmail({ to: profile.email, subject: email.subject, html: email.html })
+    sendEmail({ to: profile.email, subject: email.subject, html: email.html, emailType: 'promo_expiry' })
 
     // Log to audit_log for dedup
     await supabase.from('audit_log').insert({

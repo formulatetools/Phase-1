@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     // Send engagement email
     const email = engagementEmail(user.full_name as string | null)
-    sendEmail({ to: user.email, subject: email.subject, html: email.html })
+    sendEmail({ to: user.email, subject: email.subject, html: email.html, emailType: 'engagement' })
 
     // Log to audit_log for dedup
     await supabase.from('audit_log').insert({
