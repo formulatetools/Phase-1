@@ -21,21 +21,88 @@ export default async function DashboardPage({
 
   const supabase = await createClient()
 
-  // Fetch recently accessed worksheets
-  const { data: recentAccess } = await supabase
-    .from('worksheet_access_log')
-    .select('worksheet_id, created_at, worksheets(title, slug)')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(5)
+  // ── Parallel data fetches ──────────────────────────────────────────────
+  const [
+    { data: recentAccess },
+    { count: activeClientCount },
+    { count: dischargedClientCount },
+    { count: activeAssignmentCount },
+    { count: completedAssignmentCount },
+    { count: pendingReviewCount },
+    { data: recentActivity },
+  ] = await Promise.all([
+    // Recently accessed worksheets
+    supabase
+      .from('worksheet_access_log')
+      .select('worksheet_id, created_at, worksheets(title, slug)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5),
 
-  // Deduplicate by worksheet_id
+    // Active clients count
+    supabase
+      .from('therapeutic_relationships')
+      .select('*', { count: 'exact', head: true })
+      .eq('therapist_id', user.id)
+      .eq('status', 'active')
+      .is('deleted_at', null),
+
+    // Discharged clients count
+    supabase
+      .from('therapeutic_relationships')
+      .select('*', { count: 'exact', head: true })
+      .eq('therapist_id', user.id)
+      .eq('status', 'discharged')
+      .is('deleted_at', null),
+
+    // Active assignments (assigned or in_progress)
+    supabase
+      .from('worksheet_assignments')
+      .select('*', { count: 'exact', head: true })
+      .eq('therapist_id', user.id)
+      .in('status', ['assigned', 'in_progress'])
+      .is('deleted_at', null),
+
+    // Completed assignments (all time)
+    supabase
+      .from('worksheet_assignments')
+      .select('*', { count: 'exact', head: true })
+      .eq('therapist_id', user.id)
+      .in('status', ['completed', 'reviewed'])
+      .is('deleted_at', null),
+
+    // Pending review (completed but not yet reviewed)
+    supabase
+      .from('worksheet_assignments')
+      .select('*', { count: 'exact', head: true })
+      .eq('therapist_id', user.id)
+      .eq('status', 'completed')
+      .is('deleted_at', null),
+
+    // Recent activity from audit log
+    supabase
+      .from('audit_log')
+      .select('*')
+      .eq('user_id', user.id)
+      .in('action', ['create', 'assign', 'read', 'export', 'gdpr_erasure'])
+      .order('created_at', { ascending: false })
+      .limit(8),
+  ])
+
+  // Deduplicate recently accessed worksheets
   const seen = new Set<string>()
   const recentWorksheets = (recentAccess || []).filter((item: { worksheet_id: string }) => {
     if (seen.has(item.worksheet_id)) return false
     seen.add(item.worksheet_id)
     return true
   })
+
+  // ── Computed stats ─────────────────────────────────────────────────────
+  const totalClients = (activeClientCount ?? 0) + (dischargedClientCount ?? 0)
+  const totalAssignments = (activeAssignmentCount ?? 0) + (completedAssignmentCount ?? 0)
+  const completionRate = totalAssignments > 0
+    ? Math.round(((completedAssignmentCount ?? 0) / totalAssignments) * 100)
+    : 0
 
   const isFreeTier = profile.subscription_tier === 'free'
   const usesRemaining = isFreeTier
@@ -56,6 +123,101 @@ export default async function DashboardPage({
     return 'Good evening'
   }
 
+  // ── Activity feed helper ───────────────────────────────────────────────
+  interface ActivityItem {
+    action: string
+    entity_type: string
+    metadata: Record<string, unknown> | null
+    created_at: string
+  }
+
+  const activityLabel = (item: ActivityItem) => {
+    const meta = item.metadata || {}
+    switch (item.action) {
+      case 'create':
+        if (item.entity_type === 'therapeutic_relationship')
+          return `Added client "${meta.client_label || 'Unknown'}"`
+        return `Created ${item.entity_type.replace(/_/g, ' ')}`
+      case 'assign':
+        return 'Assigned homework'
+      case 'read':
+        if (meta.action === 'marked_as_reviewed') return 'Reviewed homework submission'
+        return 'Viewed record'
+      case 'export':
+        return 'Exported worksheet'
+      case 'gdpr_erasure':
+        return `Erased client data (${meta.responses_deleted ?? 0} responses)`
+      default:
+        return item.action.replace(/_/g, ' ')
+    }
+  }
+
+  const activityIcon = (action: string) => {
+    switch (action) {
+      case 'create':
+        return (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-50">
+            <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </div>
+        )
+      case 'assign':
+        return (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-light">
+            <svg className="h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+            </svg>
+          </div>
+        )
+      case 'read':
+        return (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50">
+            <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+        )
+      case 'export':
+        return (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-50">
+            <svg className="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+          </div>
+        )
+      case 'gdpr_erasure':
+        return (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-50">
+            <svg className="h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+            </svg>
+          </div>
+        )
+      default:
+        return (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-50">
+            <svg className="h-4 w-4 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        )
+    }
+  }
+
+  const timeAgo = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1) return 'Just now'
+    if (mins < 60) return `${mins}m ago`
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) return `${hours}h ago`
+    const days = Math.floor(hours / 24)
+    if (days < 7) return `${days}d ago`
+    return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  }
+
   return (
     <div className="px-4 py-8 sm:px-8 lg:px-12">
       {/* Checkout success banner */}
@@ -74,7 +236,7 @@ export default async function DashboardPage({
       )}
 
       {/* Header */}
-      <div className="mb-10">
+      <div className="mb-8">
         <h1 className="text-2xl font-bold text-primary-900 sm:text-3xl">
           {greeting()}{profile.full_name ? `, ${profile.full_name}` : ''}
         </h1>
@@ -83,7 +245,84 @@ export default async function DashboardPage({
         </p>
       </div>
 
-      {/* Stats row */}
+      {/* ── Analytics stat cards ─────────────────────────────────────────── */}
+      <div className="mb-8 grid gap-4 grid-cols-2 lg:grid-cols-4">
+        {/* Active Clients */}
+        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
+              <svg className="h-5 w-5 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+              </svg>
+            </div>
+          </div>
+          <p className="mt-3 text-3xl font-bold text-primary-900">{activeClientCount ?? 0}</p>
+          <p className="mt-0.5 text-sm text-primary-400">
+            Active client{(activeClientCount ?? 0) !== 1 ? 's' : ''}
+            {(dischargedClientCount ?? 0) > 0 && (
+              <span className="text-primary-300"> · {dischargedClientCount} discharged</span>
+            )}
+          </p>
+        </div>
+
+        {/* Active Assignments */}
+        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+              <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+              </svg>
+            </div>
+          </div>
+          <p className="mt-3 text-3xl font-bold text-primary-900">{activeAssignmentCount ?? 0}</p>
+          <p className="mt-0.5 text-sm text-primary-400">
+            Active assignment{(activeAssignmentCount ?? 0) !== 1 ? 's' : ''}
+          </p>
+        </div>
+
+        {/* Pending Review */}
+        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${(pendingReviewCount ?? 0) > 0 ? 'bg-amber-50' : 'bg-green-50'}`}>
+              {(pendingReviewCount ?? 0) > 0 ? (
+                <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+            </div>
+          </div>
+          <p className="mt-3 text-3xl font-bold text-primary-900">{pendingReviewCount ?? 0}</p>
+          <p className="mt-0.5 text-sm text-primary-400">
+            {(pendingReviewCount ?? 0) > 0 ? 'Pending review' : 'All reviewed'}
+          </p>
+        </div>
+
+        {/* Completion Rate */}
+        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50">
+              <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+              </svg>
+            </div>
+          </div>
+          <p className="mt-3 text-3xl font-bold text-primary-900">
+            {totalAssignments > 0 ? `${completionRate}%` : '—'}
+          </p>
+          <p className="mt-0.5 text-sm text-primary-400">
+            {totalAssignments > 0
+              ? `${completedAssignmentCount ?? 0} of ${totalAssignments} completed`
+              : 'No assignments yet'
+            }
+          </p>
+        </div>
+      </div>
+
+      {/* ── Second row: Plan card + Quick Actions + Activity ─────────────── */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Plan card */}
         <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
@@ -149,6 +388,17 @@ export default async function DashboardPage({
               Browse worksheets
             </Link>
             <Link
+              href="/clients"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
+                <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                </svg>
+              </div>
+              Manage clients
+            </Link>
+            <Link
               href="/settings"
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
             >
@@ -175,27 +425,36 @@ export default async function DashboardPage({
           </div>
         </div>
 
-        {/* Getting Started / Tips card */}
+        {/* Recent Activity Feed */}
         <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm sm:col-span-2 lg:col-span-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Getting Started</p>
-          <div className="mt-4 space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-800 text-[10px] font-bold text-white">1</div>
-              <p className="text-sm text-primary-600">Browse the <Link href="/worksheets" className="font-medium text-brand hover:text-brand-dark">worksheet library</Link> to find the right tool</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Recent Activity</p>
+          {(recentActivity && recentActivity.length > 0) ? (
+            <div className="mt-4 space-y-3">
+              {(recentActivity as ActivityItem[]).slice(0, 5).map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  {activityIcon(item.action)}
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-sm text-primary-700">{activityLabel(item)}</p>
+                    <p className="text-xs text-primary-400">{timeAgo(item.created_at)}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-800 text-[10px] font-bold text-white">2</div>
-              <p className="text-sm text-primary-600">Complete worksheets interactively in your browser</p>
+          ) : (
+            <div className="mt-4 flex flex-col items-center justify-center py-6 text-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-50">
+                <svg className="h-5 w-5 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="mt-2 text-sm text-primary-400">No activity yet</p>
+              <p className="text-xs text-primary-300">Your actions will appear here</p>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-800 text-[10px] font-bold text-white">3</div>
-              <p className="text-sm text-primary-600">Print or export as PDF for client sessions</p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Recently accessed worksheets */}
+      {/* ── Recently accessed worksheets ─────────────────────────────────── */}
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-primary-900">
