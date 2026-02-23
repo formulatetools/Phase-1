@@ -68,6 +68,10 @@ export async function updateClientLabel(relationshipId: string, label: string) {
   const { user } = await getCurrentUser()
   if (!user) return { error: 'Not authenticated' }
 
+  // PII validation — reject obvious identifiable information
+  const validation = validateClientLabel(label)
+  if (!validation.valid) return { error: validation.error! }
+
   const supabase = await createClient()
 
   const { error } = await supabase

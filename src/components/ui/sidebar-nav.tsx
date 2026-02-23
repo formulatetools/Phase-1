@@ -101,6 +101,16 @@ export function SidebarNav({ userEmail, userName, tier }: SidebarNavProps) {
         ))}
       </nav>
 
+      {/* Legal links */}
+      <div className="px-3 pb-2 flex gap-3">
+        <Link href="/privacy" className="text-[11px] text-primary-400 hover:text-primary-600 transition-colors">
+          Privacy
+        </Link>
+        <Link href="/terms" className="text-[11px] text-primary-400 hover:text-primary-600 transition-colors">
+          Terms
+        </Link>
+      </div>
+
       {/* User section */}
       <div className="border-t border-primary-100 p-4">
         <div className="flex items-center gap-3">
