@@ -118,7 +118,7 @@ export function WorksheetDetail({ worksheet, accessState, usesRemaining }: Props
         </div>
       </div>
 
-      <div className="rounded-xl border border-primary-100 bg-white p-6 shadow-sm">
+      <div data-worksheet-content className="rounded-xl border border-primary-100 bg-white p-6 shadow-sm">
         <WorksheetRenderer schema={worksheet.schema as unknown as WorksheetSchema} />
       </div>
     </div>
