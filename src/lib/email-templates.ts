@@ -1,26 +1,30 @@
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
+const LOGO_URL = `${APP_URL}/logo.png`
 
-// Shared email wrapper — navy header, clean body, muted footer
+// Shared email wrapper — branded header with logo, clean body, muted footer
 function wrap(body: string) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#f5f5f3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<body style="margin:0;padding:0;background:#f5f5f3;font-family:'DM Sans',Arial,Helvetica,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f3;padding:32px 16px;">
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
         <!-- Header -->
-        <tr><td style="background:#1a1a1a;padding:24px 32px;border-radius:12px 12px 0 0;">
-          <span style="color:#e4a930;font-size:20px;font-weight:700;letter-spacing:-0.3px;">formulate</span>
+        <tr><td style="padding:32px 32px 24px;">
+          <img src="${LOGO_URL}" alt="Formulate" height="32" style="height:32px;border:0;" />
         </td></tr>
         <!-- Body -->
-        <tr><td style="background:#ffffff;padding:32px;border-radius:0 0 12px 12px;">
+        <tr><td style="background:#ffffff;padding:32px;border-radius:12px;">
           ${body}
         </td></tr>
         <!-- Footer -->
-        <tr><td style="padding:20px 32px;text-align:center;">
+        <tr><td style="padding:24px 32px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:12px;color:#999;">
+            Formulate — Professional CBT tools for clinicians
+          </p>
           <p style="margin:0;font-size:12px;color:#999;">
-            You received this email because you have an account at
+            You received this email because you created an account at
             <a href="${APP_URL}" style="color:#999;">formulatetools.co.uk</a>.
           </p>
         </td></tr>
@@ -33,8 +37,16 @@ function wrap(body: string) {
 
 function button(text: string, href: string) {
   return `<table cellpadding="0" cellspacing="0" style="margin:24px 0;">
-    <tr><td style="background:#1a1a1a;border-radius:8px;padding:12px 28px;">
-      <a href="${href}" style="color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;">${text}</a>
+    <tr><td style="background:#2d2d2d;border-radius:6px;padding:12px 28px;">
+      <a href="${href}" style="color:#ffffff;font-size:15px;font-weight:500;text-decoration:none;display:inline-block;">${text}</a>
+    </td></tr>
+  </table>`
+}
+
+function buttonSecondary(text: string, href: string) {
+  return `<table cellpadding="0" cellspacing="0" style="margin:8px 0;">
+    <tr><td style="border:1.5px solid #ddd;border-radius:6px;padding:10px 24px;">
+      <a href="${href}" style="color:#2d2d2d;font-size:14px;font-weight:500;text-decoration:none;display:inline-block;">${text}</a>
     </td></tr>
   </table>`
 }
@@ -45,24 +57,36 @@ export function welcomeEmail(name: string | null): { subject: string; html: stri
   const greeting = name ? `Hi ${name},` : 'Hi there,'
 
   return {
-    subject: 'Welcome to Formulate',
+    subject: 'Welcome to Formulate — your toolkit is ready',
     html: wrap(`
-      <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#1a1a1a;">Welcome to Formulate</h1>
-      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Welcome to Formulate</h2>
+      <p style="margin:0 0 16px;font-size:15px;color:#444;line-height:1.6;">
         ${greeting}
       </p>
-      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        Thanks for creating your account. Formulate gives you access to a curated library of
-        evidence-based CBT worksheets — ready to use in sessions and export as clean PDFs.
+      <p style="margin:0 0 16px;font-size:15px;color:#444;line-height:1.6;">
+        Your account is set up and your toolkit is ready.
       </p>
+      <p style="margin:0 0 8px;font-size:15px;color:#444;line-height:1.6;">
+        Your free plan includes:
+      </p>
+      <ul style="margin:0 0 16px;padding-left:20px;font-size:15px;color:#444;line-height:1.8;">
+        <li>5 interactive worksheet uses per month</li>
+        <li>PDF export on every tool</li>
+        <li>1 client for homework links — assign a worksheet, share a link, review their response</li>
+      </ul>
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
-        Your free plan includes <strong>5 worksheet uses per month</strong> to get started.
+        The quickest way to see what Formulate can do: pick a worksheet, assign it to a client, and share the link.
       </p>
-      ${button('Browse Worksheets', `${APP_URL}/worksheets`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
-        Need more? You can upgrade anytime from the
-        <a href="${APP_URL}/pricing" style="color:#c48d1e;text-decoration:underline;">pricing page</a>.
+      ${button('Assign Your First Homework →', `${APP_URL}/dashboard`)}
+      <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
+        Want to explore first? Browse the full library — every tool is free to preview.
       </p>
+      ${buttonSecondary('Browse Worksheets →', `${APP_URL}/worksheets`)}
+      <p style="margin:16px 0 0;font-size:13px;color:#888;line-height:1.5;">
+        Need more than 5 tools a month?
+        <a href="${APP_URL}/pricing" style="color:#c48d1e;text-decoration:underline;">Upgrade anytime</a> from £4.99/month.
+      </p>
+      <p style="margin:24px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
     `),
   }
 }
@@ -75,7 +99,7 @@ export function engagementEmail(name: string | null): { subject: string; html: s
   return {
     subject: 'Your CBT toolkit is ready',
     html: wrap(`
-      <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#1a1a1a;">Your toolkit is waiting</h1>
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Your toolkit is waiting</h2>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
         ${greeting}
       </p>
@@ -110,7 +134,7 @@ export function abandonedCheckoutEmail(
   return {
     subject: 'You left something behind',
     html: wrap(`
-      <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#1a1a1a;">Your upgrade is waiting</h1>
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Your upgrade is waiting</h2>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
         ${greeting}
       </p>
@@ -147,7 +171,7 @@ export function promoExpiryEmail(
   return {
     subject: `Your ${tierLabel} access expires in 3 days`,
     html: wrap(`
-      <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#1a1a1a;">Your promo access is ending soon</h1>
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Your promo access is ending soon</h2>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
         ${greeting}
       </p>
