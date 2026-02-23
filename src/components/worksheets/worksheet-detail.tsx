@@ -79,15 +79,15 @@ export function WorksheetDetail({ worksheet, accessState, usesRemaining }: Props
           <div className="mt-6 rounded-lg bg-white p-4 text-left shadow-sm ring-1 ring-primary-100">
             <div className="flex items-baseline justify-between">
               <div>
-                <p className="font-semibold text-primary-900">Standard</p>
+                <p className="font-semibold text-primary-900">Starter</p>
                 <p className="text-sm text-primary-500">Unlimited worksheets</p>
               </div>
               <p className="text-lg font-bold text-primary-900">
-                £7.99<span className="text-sm font-normal text-primary-500">/mo</span>
+                £4.99<span className="text-sm font-normal text-primary-500">/mo</span>
               </p>
             </div>
             <p className="mt-2 text-xs text-primary-400">
-              Professional tools at a fraction of the cost
+              Unlimited access from less than £1 per week
             </p>
           </div>
           <Link
@@ -125,6 +125,7 @@ export function WorksheetDetail({ worksheet, accessState, usesRemaining }: Props
           <WorksheetExport
             worksheetTitle={worksheet.title}
             onExport={handleExport}
+            showBranding={accessState === 'free_available'}
           />
         </div>
       </div>

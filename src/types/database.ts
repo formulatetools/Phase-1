@@ -3,7 +3,7 @@ import type { WorksheetSchema } from './worksheet'
 // Enum types matching the database
 export type UserRole = 'therapist' | 'client' | 'admin'
 export type SubscriptionStatus = 'free' | 'active' | 'cancelled' | 'past_due'
-export type SubscriptionTier = 'free' | 'standard' | 'professional'
+export type SubscriptionTier = 'free' | 'starter' | 'standard' | 'professional'
 export type StripeSubscriptionStatus = 'active' | 'cancelled' | 'past_due' | 'trialing'
 export type AccessType = 'view' | 'interact' | 'export'
 export type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'login' | 'logout' | 'assign' | 'share' | 'fork' | 'upvote' | 'remove_upvote'

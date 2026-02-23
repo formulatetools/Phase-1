@@ -6,10 +6,10 @@ import { createClient } from '@/lib/supabase/server'
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const tier = formData.get('tier') as 'standard' | 'professional'
+    const tier = formData.get('tier') as 'starter' | 'standard' | 'professional'
     const period = formData.get('period') as 'monthly' | 'annual'
 
-    if (!tier || !period || !['standard', 'professional'].includes(tier) || !['monthly', 'annual'].includes(period)) {
+    if (!tier || !period || !['starter', 'standard', 'professional'].includes(tier) || !['monthly', 'annual'].includes(period)) {
       return NextResponse.json({ error: 'Invalid tier or period' }, { status: 400 })
     }
 

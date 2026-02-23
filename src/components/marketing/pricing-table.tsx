@@ -33,7 +33,7 @@ const tiers = [
       'Bookmark & favourite tools',
     ],
     cta: 'Get Started',
-    href: '/signup',
+    checkoutTier: 'starter' as const,
     highlighted: false,
   },
   {

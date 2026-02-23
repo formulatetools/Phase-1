@@ -30,7 +30,7 @@ export default async function WorksheetPage({
 
   if (!user || !profile) {
     accessState = 'unauthenticated'
-  } else if (profile.subscription_tier === 'standard' || profile.subscription_tier === 'professional') {
+  } else if (profile.subscription_tier !== 'free') {
     accessState = 'subscribed'
   } else {
     // Free tier — check usage

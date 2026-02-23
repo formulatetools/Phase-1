@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
-import { TIER_LIMITS } from '@/lib/stripe/config'
+import { TIER_LIMITS, TIER_LABELS } from '@/lib/stripe/config'
 import { ManageSubscriptionButton } from '@/components/ui/manage-subscription-button'
 import { activityLabel, activityIcon, timeAgo, type ActivityItem } from '@/lib/utils/activity'
 import { WelcomeModal } from '@/components/onboarding/welcome-modal'
@@ -121,11 +121,7 @@ export default async function DashboardPage({
     : null
   const usesUsed = isFreeTier ? TIER_LIMITS.free.monthlyUses - (usesRemaining ?? 0) : 0
 
-  const tierLabels: Record<string, string> = {
-    free: 'Free',
-    standard: 'Standard',
-    professional: 'Professional',
-  }
+  const tierLabels = TIER_LABELS
 
   const greeting = () => {
     const hour = new Date().getHours()

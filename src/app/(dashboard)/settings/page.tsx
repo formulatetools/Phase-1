@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
+import { TIER_LABELS } from '@/lib/stripe/config'
 import { ProfileForm } from '@/components/ui/profile-form'
 
 export const metadata = {
@@ -35,7 +36,7 @@ export default async function SettingsPage() {
             <div className="flex items-center justify-between rounded-xl bg-primary-50 px-4 py-3">
               <div>
                 <p className="text-sm font-medium text-primary-700">Subscription</p>
-                <p className="text-xs text-primary-400 capitalize">{profile.subscription_tier} plan</p>
+                <p className="text-xs text-primary-400">{TIER_LABELS[profile.subscription_tier] || profile.subscription_tier} plan</p>
               </div>
               <a
                 href="/pricing"

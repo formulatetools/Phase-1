@@ -99,8 +99,16 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
 
   const tierColors: Record<string, string> = {
     free: 'bg-primary-100 text-primary-600',
+    starter: 'bg-brand/10 text-brand-dark',
     standard: 'bg-brand/10 text-brand-dark',
     professional: 'bg-brand/10 text-brand-dark',
+  }
+
+  const tierLabels: Record<string, string> = {
+    free: 'Free',
+    starter: 'Starter',
+    standard: 'Practice',
+    professional: 'Specialist',
   }
 
   const isActive = (href: string) => {
@@ -159,7 +167,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
             <p className="truncate text-xs text-primary-400">{userEmail}</p>
           </div>
           <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tierColors[tier] || tierColors.free}`}>
-            {tier}
+            {tierLabels[tier] || tier}
           </span>
         </div>
         <button

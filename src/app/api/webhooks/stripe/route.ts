@@ -5,8 +5,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { STRIPE_PRICES } from '@/lib/stripe/config'
 
 // Determine subscription tier from the Stripe price ID
-function getTierFromPriceId(priceId: string): 'standard' | 'professional' | null {
-  const { standard, professional } = STRIPE_PRICES
+function getTierFromPriceId(priceId: string): 'starter' | 'standard' | 'professional' | null {
+  const { starter, standard, professional } = STRIPE_PRICES
+  if (priceId === starter.monthly || priceId === starter.annual) return 'starter'
   if (priceId === standard.monthly || priceId === standard.annual) return 'standard'
   if (priceId === professional.monthly || priceId === professional.annual) return 'professional'
   return null
