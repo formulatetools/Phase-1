@@ -96,7 +96,7 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
           onClick={() => setMethod('password')}
           className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
             method === 'password'
-              ? 'bg-white text-primary-900 shadow-sm'
+              ? 'bg-surface text-primary-900 shadow-sm'
               : 'text-primary-500 hover:text-primary-700'
           }`}
         >
@@ -107,7 +107,7 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
           onClick={() => setMethod('magic-link')}
           className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
             method === 'magic-link'
-              ? 'bg-white text-primary-900 shadow-sm'
+              ? 'bg-surface text-primary-900 shadow-sm'
               : 'text-primary-500 hover:text-primary-700'
           }`}
         >

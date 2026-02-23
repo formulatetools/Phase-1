@@ -85,8 +85,8 @@ export default async function AdminReferralsPage() {
       <AdminTabs />
 
       {/* ── Stat cards ──────────────────────────────────────────────── */}
-      <div className="mb-8 grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+      <div className="mb-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
             <svg className="h-5 w-5 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
@@ -96,7 +96,7 @@ export default async function AdminReferralsPage() {
           <p className="mt-0.5 text-sm text-primary-400">Referral Codes</p>
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
             <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
@@ -106,7 +106,7 @@ export default async function AdminReferralsPage() {
           <p className="mt-0.5 text-sm text-primary-400">Total Referrals</p>
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50">
             <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -119,7 +119,7 @@ export default async function AdminReferralsPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50">
             <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M18.75 4.236c.982.143 1.954.317 2.916.52A6.003 6.003 0 0016.27 9.728M18.75 4.236V4.5c0 2.108-.966 3.99-2.48 5.228m0 0a6.003 6.003 0 01-5.54 0" />
@@ -134,7 +134,7 @@ export default async function AdminReferralsPage() {
       </div>
 
       {/* ── Referral Leaderboard ─────────────────────────────────────── */}
-      <div className="rounded-2xl border border-primary-100 bg-white shadow-sm">
+      <div className="rounded-2xl border border-primary-100 bg-surface shadow-sm">
         <div className="border-b border-primary-100 px-6 py-4">
           <h3 className="text-sm font-semibold text-primary-900">Referral Leaderboard</h3>
         </div>
@@ -142,13 +142,13 @@ export default async function AdminReferralsPage() {
           <table className="w-full text-left text-sm">
             <thead className="border-b border-primary-50 bg-primary-50/50">
               <tr>
-                <th className="px-6 py-3 font-medium text-primary-500">#</th>
-                <th className="px-6 py-3 font-medium text-primary-500">Referrer</th>
-                <th className="px-6 py-3 font-medium text-primary-500">Code</th>
-                <th className="px-6 py-3 font-medium text-primary-500 text-right">Referred</th>
-                <th className="px-6 py-3 font-medium text-primary-500 text-right">Converted</th>
-                <th className="px-6 py-3 font-medium text-primary-500 text-right">Rate</th>
-                <th className="px-6 py-3 font-medium text-primary-500">Created</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-primary-500">#</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-primary-500">Referrer</th>
+                <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-primary-500">Code</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-primary-500 text-right">Referred</th>
+                <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-primary-500 text-right">Converted</th>
+                <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-primary-500 text-right">Rate</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-primary-500">Created</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-primary-50">
@@ -160,21 +160,21 @@ export default async function AdminReferralsPage() {
                   const rate = stats.total > 0 ? Math.round((stats.converted / stats.total) * 100) : 0
                   return (
                     <tr key={code.id} className="hover:bg-primary-50/50 transition-colors">
-                      <td className="px-6 py-3 text-primary-400">{i + 1}</td>
-                      <td className="px-6 py-3">
+                      <td className="px-3 sm:px-6 py-3 text-primary-400">{i + 1}</td>
+                      <td className="px-3 sm:px-6 py-3">
                         <div>
                           <p className="font-medium text-primary-900">{p?.full_name || 'No name'}</p>
                           <p className="text-xs text-primary-400">{p?.email || '—'}</p>
                         </div>
                       </td>
-                      <td className="px-6 py-3">
+                      <td className="hidden sm:table-cell px-3 sm:px-6 py-3">
                         <code className="rounded bg-primary-50 px-2 py-0.5 text-xs font-mono text-primary-700">
                           {code.code}
                         </code>
                       </td>
-                      <td className="px-6 py-3 text-right font-medium text-primary-900">{stats.total}</td>
-                      <td className="px-6 py-3 text-right text-primary-600">{stats.converted}</td>
-                      <td className="px-6 py-3 text-right">
+                      <td className="px-3 sm:px-6 py-3 text-right font-medium text-primary-900">{stats.total}</td>
+                      <td className="hidden sm:table-cell px-3 sm:px-6 py-3 text-right text-primary-600">{stats.converted}</td>
+                      <td className="hidden sm:table-cell px-3 sm:px-6 py-3 text-right">
                         {stats.total > 0 ? (
                           <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                             rate >= 50 ? 'bg-green-50 text-green-700' :
@@ -187,7 +187,7 @@ export default async function AdminReferralsPage() {
                           <span className="text-primary-400">—</span>
                         )}
                       </td>
-                      <td className="px-6 py-3 text-primary-500">
+                      <td className="px-3 sm:px-6 py-3 text-primary-500">
                         {new Date(code.created_at).toLocaleDateString('en-GB', {
                           day: 'numeric', month: 'short', year: 'numeric',
                         })}

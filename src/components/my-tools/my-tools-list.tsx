@@ -35,7 +35,7 @@ export function MyToolsList({ worksheets }: MyToolsListProps) {
 
   if (worksheets.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-primary-200 bg-white p-10 text-center">
+      <div className="rounded-2xl border border-dashed border-primary-200 bg-surface p-10 text-center">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
           <svg className="h-6 w-6 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -70,7 +70,7 @@ export function MyToolsList({ worksheets }: MyToolsListProps) {
         {worksheets.map((ws) => (
           <div
             key={ws.id}
-            className="group relative rounded-2xl border border-primary-100 bg-white p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
+            className="group relative rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
           >
             {/* Header */}
             <div className="flex items-start justify-between">
@@ -139,7 +139,7 @@ export function MyToolsList({ worksheets }: MyToolsListProps) {
       {confirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setConfirmId(null)} />
-          <div className="relative w-full max-w-sm rounded-2xl border border-primary-100 bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-sm rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
             <h3 className="text-lg font-bold text-primary-900">Delete worksheet?</h3>
             <p className="mt-2 text-sm text-primary-500">
               This will remove the worksheet from your tools. Any existing homework assignments using this worksheet will still be accessible.

@@ -33,7 +33,7 @@ export default async function SettingsPage() {
       </div>
 
       <div className="max-w-xl space-y-6">
-        <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
           <h2 className="mb-1 text-base font-semibold text-primary-900">Profile</h2>
           <p className="mb-5 text-sm text-primary-400">Update your personal information</p>
           <ProfileForm
@@ -42,13 +42,13 @@ export default async function SettingsPage() {
           />
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
           <h2 className="mb-1 text-base font-semibold text-primary-900">Subscription</h2>
           <p className="mb-5 text-sm text-primary-400">Manage your plan and billing</p>
           <SubscriptionDetails profile={profile} subscription={subscription} />
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
           <h2 className="mb-1 text-base font-semibold text-primary-900">Account</h2>
           <p className="mb-5 text-sm text-primary-400">Your account details and preferences</p>
           <div className="space-y-4">
@@ -74,7 +74,7 @@ export default async function SettingsPage() {
         </div>
 
         {profile.subscription_tier === 'free' && (
-          <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
             <h2 className="mb-1 text-base font-semibold text-primary-900">Promo Code</h2>
             <p className="mb-5 text-sm text-primary-400">Have a promo code? Enter it below to unlock features.</p>
             <PromoCodeInput mode="redeem" />

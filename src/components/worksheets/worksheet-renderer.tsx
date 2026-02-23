@@ -311,7 +311,7 @@ export function WorksheetRenderer({
                   return (
                     <div
                       key={i}
-                      className="flex items-center gap-3 rounded-lg border border-primary-100 bg-white p-2.5"
+                      className="flex items-center gap-3 rounded-lg border border-primary-100 bg-surface p-2.5"
                     >
                       {numericCol && (
                         <span className="w-10 text-center text-sm font-semibold text-primary-800">

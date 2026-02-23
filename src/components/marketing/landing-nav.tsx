@@ -8,7 +8,7 @@ export function LandingNav() {
   const [open, setOpen] = useState(false)
 
   return (
-    <nav className="border-b border-primary-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+    <nav className="border-b border-primary-100 bg-surface/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/">
           <Logo size="md" />
@@ -63,7 +63,7 @@ export function LandingNav() {
 
       {/* Mobile dropdown */}
       {open && (
-        <div className="border-t border-primary-100 bg-white px-4 pb-4 sm:hidden">
+        <div className="border-t border-primary-100 bg-surface px-4 pb-4 sm:hidden">
           <div className="flex flex-col gap-3 pt-3">
             <Link
               href="/worksheets"

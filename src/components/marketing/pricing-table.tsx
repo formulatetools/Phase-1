@@ -84,7 +84,7 @@ export function PricingTable() {
             onClick={() => setPeriod('monthly')}
             className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
               period === 'monthly'
-                ? 'bg-white text-primary-900 shadow-sm'
+                ? 'bg-surface text-primary-900 shadow-sm'
                 : 'text-primary-500 hover:text-primary-700'
             }`}
           >
@@ -95,7 +95,7 @@ export function PricingTable() {
             onClick={() => setPeriod('annual')}
             className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
               period === 'annual'
-                ? 'bg-white text-primary-900 shadow-sm'
+                ? 'bg-surface text-primary-900 shadow-sm'
                 : 'text-primary-500 hover:text-primary-700'
             }`}
           >
@@ -119,8 +119,8 @@ export function PricingTable() {
               key={tier.name}
               className={`relative rounded-2xl border p-6 ${
                 tier.highlighted
-                  ? 'border-brand/30 bg-white shadow-lg ring-1 ring-brand/20'
-                  : 'border-primary-200 bg-white shadow-sm'
+                  ? 'border-brand/30 bg-surface shadow-lg ring-1 ring-brand/20'
+                  : 'border-primary-200 bg-surface shadow-sm'
               }`}
             >
               {tier.badge && (
@@ -185,7 +185,7 @@ export function PricingTable() {
                     className={`w-full rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
                       tier.highlighted
                         ? 'bg-primary-800 text-white hover:bg-primary-900'
-                        : 'border border-primary-200 bg-white text-primary-700 hover:bg-primary-50'
+                        : 'border border-primary-200 bg-surface text-primary-700 hover:bg-primary-50'
                     }`}
                   >
                     {tier.cta}
@@ -194,7 +194,7 @@ export function PricingTable() {
               ) : (
                 <Link
                   href={tier.href || '/signup'}
-                  className="block w-full rounded-lg border border-primary-200 bg-white px-4 py-2.5 text-center text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
+                  className="block w-full rounded-lg border border-primary-200 bg-surface px-4 py-2.5 text-center text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
                 >
                   {tier.cta}
                 </Link>

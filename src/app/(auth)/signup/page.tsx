@@ -43,7 +43,7 @@ export default async function SignupPage({
           </div>
         )}
 
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-primary-100">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-primary-100">
           <AuthForm mode="signup" referralCode={referralCode} />
         </div>
 

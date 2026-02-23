@@ -112,7 +112,7 @@ export function FeatureRequestList({
     return (
       <div
         key={request.id}
-        className="flex items-start gap-3 rounded-xl border border-primary-100 bg-white p-4 shadow-sm transition-colors"
+        className="flex items-start gap-3 rounded-xl border border-primary-100 bg-surface p-4 shadow-sm transition-colors"
       >
         {/* Upvote button */}
         <button

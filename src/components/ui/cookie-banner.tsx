@@ -25,7 +25,7 @@ export function CookieBanner() {
 
   return (
     <div className="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-6 pointer-events-none">
-      <div className="mx-auto max-w-lg rounded-2xl border border-primary-200 bg-white p-4 shadow-lg pointer-events-auto">
+      <div className="mx-auto max-w-lg rounded-2xl border border-primary-200 bg-surface p-4 shadow-lg pointer-events-auto">
         <p className="text-sm text-primary-700">
           We use essential cookies to keep you signed in. No tracking, advertising, or third-party cookies are used.
           Analytics are fully cookieless.{' '}

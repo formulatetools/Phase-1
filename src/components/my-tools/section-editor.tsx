@@ -107,7 +107,7 @@ export function SectionEditor({
   return (
     <div className="rounded-2xl border border-primary-200 bg-primary-25 overflow-hidden">
       {/* Section header */}
-      <div className="flex items-center gap-2 border-b border-primary-100 bg-white px-4 py-3">
+      <div className="flex items-center gap-2 border-b border-primary-100 bg-surface px-4 py-3">
         <button onClick={() => setCollapsed(!collapsed)} className="text-primary-400 hover:text-primary-600">
           <svg className={`h-4 w-4 transition-transform ${collapsed ? '' : 'rotate-90'}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -141,7 +141,7 @@ export function SectionEditor({
             type="text"
             value={section.description || ''}
             onChange={(e) => onUpdate({ ...section, description: e.target.value })}
-            className="w-full rounded-lg border border-primary-200 bg-white px-3 py-1.5 text-sm text-primary-600 placeholder:text-primary-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            className="w-full rounded-lg border border-primary-200 bg-surface px-3 py-1.5 text-sm text-primary-600 placeholder:text-primary-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             placeholder="Section description (optional)"
           />
 
@@ -164,7 +164,7 @@ export function SectionEditor({
 
           {/* Add field */}
           {showFieldPicker ? (
-            <div className="rounded-xl border border-brand/20 bg-white p-3">
+            <div className="rounded-xl border border-brand/20 bg-surface p-3">
               <p className="mb-2 text-xs font-semibold text-primary-500">Choose field type</p>
               <div className="grid grid-cols-2 gap-1.5">
                 {FIELD_TYPES.map((ft) => (
@@ -183,7 +183,7 @@ export function SectionEditor({
           ) : (
             <button
               onClick={() => setShowFieldPicker(true)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-primary-200 bg-white py-2.5 text-xs font-medium text-primary-400 transition-colors hover:border-brand/30 hover:text-brand"
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-primary-200 bg-surface py-2.5 text-xs font-medium text-primary-400 transition-colors hover:border-brand/30 hover:text-brand"
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

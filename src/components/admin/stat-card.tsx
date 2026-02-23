@@ -23,7 +23,7 @@ export function StatCard({
   trend,
 }: StatCardProps) {
   return (
-    <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
       <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconBg}`}>
         <div className={`h-5 w-5 ${iconColor}`}>{icon}</div>
       </div>

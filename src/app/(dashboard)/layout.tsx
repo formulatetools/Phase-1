@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { SidebarNav } from '@/components/ui/sidebar-nav'
+import { KeyboardShortcutsProvider } from '@/components/providers/keyboard-shortcuts-provider'
 
 export default async function DashboardLayout({
   children,
@@ -18,20 +19,22 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-primary-50/50">
-      <SidebarNav
-        userEmail={profile.email}
-        userName={profile.full_name}
-        tier={profile.subscription_tier}
-        role={profile.role}
-      />
+    <KeyboardShortcutsProvider>
+      <div className="min-h-screen bg-primary-50/50">
+        <SidebarNav
+          userEmail={profile.email}
+          userName={profile.full_name}
+          tier={profile.subscription_tier}
+          role={profile.role}
+        />
 
-      {/* Main content area — offset by sidebar width on desktop */}
-      <div className="lg:pl-64">
-        <main className="min-h-screen">
-          {children}
-        </main>
+        {/* Main content area — offset by sidebar width on desktop */}
+        <div className="md:pl-64">
+          <main className="min-h-screen">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </KeyboardShortcutsProvider>
   )
 }

@@ -54,7 +54,7 @@ export function WorksheetDetail({ worksheet, accessState, usesRemaining }: Props
             </Link>
             <Link
               href="/login"
-              className="rounded-lg border border-primary-200 bg-white px-5 py-2.5 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
+              className="rounded-lg border border-primary-200 bg-surface px-5 py-2.5 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
             >
               Sign In
             </Link>
@@ -76,7 +76,7 @@ export function WorksheetDetail({ worksheet, accessState, usesRemaining }: Props
             You&apos;ve used all 5 free worksheet accesses this month.
             Upgrade for unlimited access to every tool in the library.
           </p>
-          <div className="mt-6 rounded-lg bg-white p-4 text-left shadow-sm ring-1 ring-primary-100">
+          <div className="mt-6 rounded-lg bg-surface p-4 text-left shadow-sm ring-1 ring-primary-100">
             <div className="flex items-baseline justify-between">
               <div>
                 <p className="font-semibold text-primary-900">Starter</p>
@@ -130,7 +130,7 @@ export function WorksheetDetail({ worksheet, accessState, usesRemaining }: Props
         </div>
       </div>
 
-      <div data-worksheet-content className="rounded-xl border border-primary-100 bg-white p-6 shadow-sm">
+      <div data-worksheet-content className="rounded-xl border border-primary-100 bg-surface p-6 shadow-sm">
         <WorksheetRenderer schema={worksheet.schema as unknown as WorksheetSchema} />
       </div>
     </div>

@@ -128,7 +128,7 @@ export default async function WorksheetsPage({
                     <Link
                       key={worksheet.id}
                       href={`/worksheets/${worksheet.slug}`}
-                      className="group rounded-2xl border border-primary-100 bg-white p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
+                      className="group rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
                     >
                       <div className="flex items-start justify-between">
                         <h3 className="font-semibold text-primary-900 group-hover:text-brand-dark">
@@ -187,7 +187,7 @@ export default async function WorksheetsPage({
               )}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-primary-200 bg-white p-10 text-center">
+            <div className="rounded-2xl border border-dashed border-primary-200 bg-surface p-10 text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
                 <svg
                   className="h-6 w-6 text-primary-300"
@@ -215,7 +215,7 @@ export default async function WorksheetsPage({
             <Link
               key={category.id}
               href={`/worksheets/category/${category.slug}`}
-              className="group rounded-2xl border border-primary-100 bg-white p-6 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
+              className="group rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
             >
               <div className="flex items-center justify-between">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-2xl transition-colors group-hover:bg-brand/10">

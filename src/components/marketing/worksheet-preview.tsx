@@ -95,7 +95,7 @@ export function WorksheetPreview() {
   return (
     <div className="mx-auto max-w-3xl">
       {/* Browser-chrome wrapper */}
-      <div className="rounded-2xl border border-primary-200 bg-white shadow-xl overflow-hidden">
+      <div className="rounded-2xl border border-primary-200 bg-surface shadow-xl overflow-hidden">
         {/* Title bar */}
         <div className="flex items-center gap-3 border-b border-primary-100 bg-primary-50/50 px-4 py-3">
           <div className="flex gap-1.5">

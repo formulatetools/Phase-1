@@ -16,7 +16,7 @@ export function AdminTabs() {
 
   return (
     <div className="mb-8 border-b border-primary-100">
-      <nav className="-mb-px flex gap-6 overflow-x-auto" aria-label="Admin tabs">
+      <nav className="-mb-px flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide" aria-label="Admin tabs">
         {tabs.map((tab) => {
           const isActive =
             tab.href === '/admin'

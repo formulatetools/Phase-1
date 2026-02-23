@@ -6,7 +6,7 @@ import { TIER_LIMITS, TIER_LABELS } from '@/lib/stripe/config'
 import { ManageSubscriptionButton } from '@/components/ui/manage-subscription-button'
 import { AnnualUpgradeBanner } from '@/components/ui/annual-upgrade-banner'
 import { activityLabel, activityIcon, timeAgo, type ActivityItem } from '@/lib/utils/activity'
-import { WelcomeModal } from '@/components/onboarding/welcome-modal'
+import { DashboardTour } from '@/components/onboarding/dashboard-tour'
 import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist'
 import { PromoAutoRedeem } from '@/components/ui/promo-auto-redeem'
 
@@ -160,8 +160,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="px-4 py-8 sm:px-8 lg:px-12">
-      {/* Welcome modal for first-time users */}
-      {profile.onboarding_completed !== true && <WelcomeModal open={true} />}
+      {/* Welcome modal + guided tour for first-time users */}
+      <DashboardTour showWelcome={profile.onboarding_completed !== true} />
 
       {/* Auto-redeem promo code from signup */}
       <PromoAutoRedeem
@@ -220,9 +220,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Analytics stat cards ─────────────────────────────────────────── */}
-      <div className="mb-8 grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {/* Active Clients */}
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
               <svg className="h-5 w-5 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -240,7 +240,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Active Assignments */}
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
               <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -255,7 +255,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Pending Review */}
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${(pendingReviewCount ?? 0) > 0 ? 'bg-amber-50' : 'bg-green-50'}`}>
               {(pendingReviewCount ?? 0) > 0 ? (
@@ -276,7 +276,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Completion Rate */}
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50">
               <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -299,7 +299,7 @@ export default async function DashboardPage() {
       {/* ── Second row: Plan card + Quick Actions + Activity ─────────────── */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Plan card */}
-        <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Your Plan</p>
             <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
@@ -347,7 +347,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Quick Actions card */}
-        <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Quick Actions</p>
           <div className="mt-4 space-y-1">
             <Link
@@ -387,7 +387,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Recent Activity Feed */}
-        <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm sm:col-span-2 lg:col-span-1">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm sm:col-span-2 lg:col-span-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Recent Activity</p>
           {(recentActivity && recentActivity.length > 0) ? (
             <div className="mt-4 space-y-3">
@@ -439,7 +439,7 @@ export default async function DashboardPage() {
                 <Link
                   key={item.worksheet_id}
                   href={`/worksheets/${ws?.slug || ''}`}
-                  className="group rounded-2xl border border-primary-100 bg-white p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
+                  className="group rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand transition-colors group-hover:bg-brand group-hover:text-white">
@@ -459,7 +459,7 @@ export default async function DashboardPage() {
             })}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-primary-200 bg-white p-10 text-center">
+          <div className="rounded-2xl border border-dashed border-primary-200 bg-surface p-10 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
               <svg className="h-6 w-6 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />

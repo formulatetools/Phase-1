@@ -276,7 +276,7 @@ export function ClientDetail({
 
       {/* Assign workflow */}
       {showAssign && (
-        <div className="rounded-2xl border border-primary-200 bg-white p-6 shadow-sm space-y-4">
+        <div className="rounded-2xl border border-primary-200 bg-surface p-6 shadow-sm space-y-4">
           <h3 className="text-lg font-semibold text-primary-900">Assign a worksheet</h3>
 
           {/* Worksheet picker */}
@@ -432,7 +432,7 @@ export function ClientDetail({
               return (
                 <div
                   key={a.id}
-                  className="rounded-2xl border border-primary-100 bg-white shadow-sm overflow-hidden"
+                  className="rounded-2xl border border-primary-100 bg-surface shadow-sm overflow-hidden"
                 >
                   <div className="flex items-center justify-between p-4">
                     <div className="flex-1 min-w-0">
@@ -523,7 +523,7 @@ export function ClientDetail({
                           )}
                         </div>
                       </div>
-                      <div className="rounded-xl border border-primary-200 bg-white p-6">
+                      <div className="rounded-xl border border-primary-200 bg-surface p-6">
                         <WorksheetRenderer
                           schema={worksheet.schema}
                           readOnly={true}

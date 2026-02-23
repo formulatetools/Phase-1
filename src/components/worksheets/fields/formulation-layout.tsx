@@ -185,7 +185,7 @@ function ViciousFlowerLayout({
             }
             placeholder={centreSection.fields[0]?.placeholder || 'Central problem'}
             rows={3}
-            className="w-full resize-none rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-primary-900 placeholder-primary-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/30"
+            className="w-full resize-none rounded-lg border border-amber-200 bg-surface px-3 py-2 text-sm text-primary-900 placeholder-primary-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/30"
           />
         </div>
       )}
@@ -241,7 +241,7 @@ function ViciousFlowerLayout({
                 }
                 placeholder="How does this maintain the problem?"
                 rows={3}
-                className="w-full resize-none rounded border border-primary-200/50 bg-white/80 px-2 py-1.5 text-sm text-primary-800 placeholder-primary-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/30"
+                className="w-full resize-none rounded border border-primary-200/50 bg-surface/80 px-2 py-1.5 text-sm text-primary-800 placeholder-primary-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/30"
               />
             </div>
           )
@@ -284,7 +284,7 @@ function LongitudinalLayout({
         const sectionLabel = section.title || section.label
 
         let borderClass = 'border-primary-200'
-        let bgClass = 'bg-white'
+        let bgClass = 'bg-surface'
 
         if (isAmber) {
           borderClass = 'border-amber-300'
@@ -490,7 +490,7 @@ function LongitudinalReadOnly({
         const isFourQuadrant = section.layout === 'four_quadrant'
         const sectionLabel = section.title || section.label
         let borderClass = 'border-primary-200'
-        let bgClass = 'bg-white'
+        let bgClass = 'bg-surface'
         if (isAmber) { borderClass = 'border-amber-300'; bgClass = 'bg-amber-50/50' }
         else if (isRedDashed) { borderClass = 'border-red-300 border-dashed'; bgClass = 'bg-red-50/30' }
 

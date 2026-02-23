@@ -44,7 +44,7 @@ export function ReferralLinkCard({
       </div>
 
       <div className="mt-4 flex items-center gap-2">
-        <div className="flex-1 rounded-lg border border-primary-200 bg-white px-3 py-2.5">
+        <div className="flex-1 rounded-lg border border-primary-200 bg-surface px-3 py-2.5">
           <p className="truncate text-sm font-mono text-primary-700">{referralLink}</p>
         </div>
         <button

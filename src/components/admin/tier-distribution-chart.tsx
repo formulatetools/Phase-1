@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts'
+import { useChartColors } from '@/hooks/use-chart-colors'
 
 interface TierDistributionChartProps {
   data: { tier: string; count: number }[]
@@ -23,8 +24,9 @@ const TIER_COLORS: Record<string, string> = {
 }
 
 export function TierDistributionChart({ data }: TierDistributionChartProps) {
+  const cc = useChartColors()
   return (
-    <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
       <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-primary-400">
         Tier Distribution
       </h3>
@@ -35,11 +37,11 @@ export function TierDistributionChart({ data }: TierDistributionChartProps) {
             layout="vertical"
             margin={{ top: 4, right: 20, bottom: 4, left: 10 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f0ee" horizontal={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} horizontal={false} />
             <XAxis
               type="number"
               allowDecimals={false}
-              tick={{ fontSize: 11, fill: '#888' }}
+              tick={{ fontSize: 11, fill: cc.tick }}
               axisLine={false}
               tickLine={false}
             />
@@ -47,14 +49,15 @@ export function TierDistributionChart({ data }: TierDistributionChartProps) {
               type="category"
               dataKey="tier"
               width={80}
-              tick={{ fontSize: 12, fill: '#555' }}
+              tick={{ fontSize: 12, fill: cc.label }}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip
               contentStyle={{
                 borderRadius: '12px',
-                border: '1px solid #f1f0ee',
+                border: `1px solid ${cc.tooltipBorder}`,
+                background: cc.tooltipBg,
                 fontSize: '13px',
                 boxShadow: '0 4px 12px rgba(0,0,0,.06)',
               }}

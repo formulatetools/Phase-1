@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --color-background: #fafaf8;
   --color-foreground: #2d2d2d;
+  --color-surface: #ffffff;
 
   /* Warm charcoal UI primary palette */
   --color-primary-50: #fafaf8;
@@ -43,9 +46,59 @@
   --font-sans: var(--font-dm-sans);
 }
 
+/* ── Dark mode variable overrides ─────────────────────────── */
+.dark {
+  --color-background: #1a1a1a;
+  --color-foreground: #e2e8f0;
+  --color-surface: #1e293b;
+
+  /* Inverted primary scale — warm slate tones */
+  --color-primary-50: #1e293b;
+  --color-primary-100: #253349;
+  --color-primary-200: #334155;
+  --color-primary-300: #475569;
+  --color-primary-400: #94a3b8;
+  --color-primary-500: #94a3b8;
+  --color-primary-600: #cbd5e1;
+  --color-primary-700: #e2e8f0;
+  --color-primary-800: #e2e8f0;
+  --color-primary-900: #f1f5f9;
+  --color-primary-950: #f8fafc;
+
+  /* Accent — lighter greens for dark contrast */
+  --color-accent-50: #0d3b10;
+  --color-accent-100: #145218;
+  --color-accent-200: #1b5e20;
+  --color-accent-300: #2e7d32;
+  --color-accent-400: #4ade80;
+  --color-accent-500: #4ade80;
+  --color-accent-600: #86efac;
+  --color-accent-700: #bbf7d0;
+
+  /* Brand amber stays vibrant — 7.3:1 on slate = AAA */
+  --color-brand: #e4a930;
+  --color-brand-light: #253349;
+  --color-brand-dark: #fbbf24;
+  --color-brand-text: #fbbf24;
+
+  /* Semantic — lighter for dark backgrounds */
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-foreground);
+}
+
+/* Hide scrollbar for cleaner mobile tab scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* Focus ring utility — amber at low opacity */
@@ -57,8 +110,19 @@ select:focus {
   outline: none !important;
 }
 
-/* Print-friendly worksheet styles */
+/* Force light mode for print */
 @media print {
+  :root {
+    --color-background: #fafaf8 !important;
+    --color-foreground: #2d2d2d !important;
+    --color-surface: #ffffff !important;
+    --color-primary-50: #fafaf8 !important;
+    --color-primary-100: #f1f0ee !important;
+    --color-primary-200: #e8e8e6 !important;
+    --color-primary-800: #2d2d2d !important;
+    --color-primary-900: #1a1a1a !important;
+  }
+
   body {
     background: white !important;
     color: black;

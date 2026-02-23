@@ -79,7 +79,7 @@ export default async function CategoryPage({
             <Link
               key={worksheet.id}
               href={`/worksheets/${worksheet.slug}`}
-              className="group rounded-2xl border border-primary-100 bg-white p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
+              className="group rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
             >
               <h3 className="font-semibold text-primary-900 group-hover:text-brand-dark">
                 {worksheet.title}
@@ -111,7 +111,7 @@ export default async function CategoryPage({
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-primary-200 bg-white p-10 text-center">
+        <div className="rounded-2xl border border-dashed border-primary-200 bg-surface p-10 text-center">
           <p className="text-sm text-primary-500">No worksheets in this category yet. Check back soon.</p>
         </div>
       )}

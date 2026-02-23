@@ -87,7 +87,7 @@ export default async function CheckoutSuccessPage({
         </p>
 
         {/* Features card */}
-        <div className="mt-8 rounded-2xl border border-primary-100 bg-white p-6 text-left shadow-sm">
+        <div className="mt-8 rounded-2xl border border-primary-100 bg-surface p-6 text-left shadow-sm">
           <div className="flex items-center gap-2">
             <span className="rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-brand-dark">
               {tierLabel}
@@ -111,7 +111,7 @@ export default async function CheckoutSuccessPage({
             <Link
               key={step.href}
               href={step.href}
-              className="group rounded-2xl border border-primary-100 bg-white p-4 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
+              className="group rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
             >
               <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-xl ${step.color} transition-colors group-hover:bg-brand group-hover:text-white`}>
                 {step.icon}

@@ -48,7 +48,7 @@ export function FeatureRequestForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+    <form onSubmit={handleSubmit} className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
       <h2 className="mb-1 text-base font-semibold text-primary-900">Submit a Request</h2>
       <p className="mb-5 text-sm text-primary-400">
         Tell us what you need — we review every submission

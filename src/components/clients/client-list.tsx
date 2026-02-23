@@ -149,7 +149,7 @@ export function ClientList({
       )}
 
       {showAdd && (
-        <div className="rounded-2xl border border-primary-200 bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border border-primary-200 bg-surface p-4 shadow-sm">
           <label className="block text-sm font-medium text-primary-700 mb-2">
             Client label
           </label>
@@ -217,7 +217,7 @@ export function ClientList({
               <Link
                 key={r.id}
                 href={`/clients/${r.id}`}
-                className="flex items-center justify-between rounded-2xl border border-primary-100 bg-white p-4 shadow-sm hover:border-brand/30 hover:shadow-md transition-all"
+                className="flex items-center justify-between rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm hover:border-brand/30 hover:shadow-md transition-all"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-sm font-semibold text-primary-600">
@@ -277,13 +277,13 @@ export function ClientList({
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/clients/${r.id}`}
-                    className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-white transition-colors"
+                    className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-surface transition-colors"
                   >
                     View
                   </Link>
                   <button
                     onClick={(e) => { e.preventDefault(); handleReactivate(r.id) }}
-                    className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-white transition-colors"
+                    className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-surface transition-colors"
                   >
                     Reactivate
                   </button>

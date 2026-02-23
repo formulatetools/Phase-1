@@ -184,7 +184,7 @@ export function CustomWorksheetBuilder({
         {/* Left: Builder */}
         <div className={`flex-1 min-w-0 ${showPreview ? 'hidden lg:block' : ''}`}>
           {/* Metadata */}
-          <div className="mb-6 space-y-4 rounded-2xl border border-primary-100 bg-white p-5">
+          <div className="mb-6 space-y-4 rounded-2xl border border-primary-100 bg-surface p-5">
             <div>
               <label className="text-xs font-semibold text-primary-500">Title *</label>
               <input
@@ -275,7 +275,7 @@ export function CustomWorksheetBuilder({
 
             <button
               onClick={addSection}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-primary-200 bg-white py-4 text-sm font-medium text-primary-400 transition-colors hover:border-brand/30 hover:text-brand"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-primary-200 bg-surface py-4 text-sm font-medium text-primary-400 transition-colors hover:border-brand/30 hover:text-brand"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -291,7 +291,7 @@ export function CustomWorksheetBuilder({
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary-400">
               Live Preview
             </h2>
-            <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
               {title && (
                 <h3 className="mb-1 text-lg font-bold text-primary-900">{title}</h3>
               )}

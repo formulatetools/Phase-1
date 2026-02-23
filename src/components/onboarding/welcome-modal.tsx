@@ -5,6 +5,7 @@ import { completeOnboarding } from '@/app/(dashboard)/dashboard/actions'
 
 interface WelcomeModalProps {
   open: boolean
+  onStartTour?: () => void
 }
 
 const slides = [
@@ -50,13 +51,19 @@ const slides = [
   },
 ]
 
-export function WelcomeModal({ open }: WelcomeModalProps) {
+export function WelcomeModal({ open, onStartTour }: WelcomeModalProps) {
   const [step, setStep] = useState(0)
   const [visible, setVisible] = useState(open)
 
   const handleDismiss = async () => {
     setVisible(false)
     await completeOnboarding()
+  }
+
+  const handleGetStarted = async () => {
+    setVisible(false)
+    await completeOnboarding()
+    onStartTour?.()
   }
 
   if (!visible) return null
@@ -71,7 +78,7 @@ export function WelcomeModal({ open }: WelcomeModalProps) {
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-primary-100 bg-white p-8 shadow-xl"
+        className="relative w-full max-w-lg rounded-2xl border border-primary-100 bg-surface p-8 shadow-xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="welcome-title"
@@ -133,8 +140,8 @@ export function WelcomeModal({ open }: WelcomeModalProps) {
 
           {isLast ? (
             <button
-              onClick={handleDismiss}
-              className="rounded-lg bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+              onClick={handleGetStarted}
+              className="rounded-lg bg-brand px-6 py-2.5 text-sm font-semibold text-primary-900 transition-colors hover:bg-brand-dark"
             >
               Get Started
             </button>

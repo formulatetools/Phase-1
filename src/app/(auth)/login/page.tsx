@@ -33,7 +33,7 @@ export default async function LoginPage({
           </div>
         )}
 
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-primary-100">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-primary-100">
           <AuthForm mode="login" redirectTo={params.redirect} />
         </div>
 

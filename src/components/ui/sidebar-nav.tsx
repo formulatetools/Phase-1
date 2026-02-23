@@ -3,8 +3,10 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { Logo } from '@/components/ui/logo'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { useShortcutsModal } from '@/components/providers/keyboard-shortcuts-provider'
 
 interface SidebarNavProps {
   userEmail: string
@@ -83,6 +85,17 @@ const navItems = [
 export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { openShortcutsModal } = useShortcutsModal()
+
+  // Swipe-to-close gesture for mobile sidebar
+  const touchStartX = useRef(0)
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }, [])
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const diff = touchStartX.current - e.changedTouches[0].clientX
+    if (diff > 60) setMobileOpen(false) // swipe left to close
+  }, [])
 
   // Build nav items — conditionally add Admin for admin users
   const allNavItems = role === 'admin'
@@ -151,22 +164,30 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
-        {allNavItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-              isActive(item.href)
-                ? 'bg-brand/10 text-brand-dark'
-                : 'text-primary-500 hover:bg-primary-50 hover:text-primary-700'
-            }`}
-          >
-            <span className={isActive(item.href) ? 'text-brand' : ''}>{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
+      <nav className="flex-1 space-y-1 px-3 py-4" data-tour="sidebar-nav">
+        {allNavItems.map((item) => {
+          const tourId =
+            item.label === 'Worksheets' ? 'nav-worksheets'
+            : item.label === 'Clients' ? 'nav-clients'
+            : item.label === 'Settings' ? 'nav-settings'
+            : undefined
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              data-tour={tourId}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                isActive(item.href)
+                  ? 'bg-brand/10 text-brand-dark'
+                  : 'text-primary-500 hover:bg-primary-50 hover:text-primary-700'
+              }`}
+            >
+              <span className={isActive(item.href) ? 'text-brand' : ''}>{item.icon}</span>
+              {item.label}
+            </Link>
+          )
+        })}
       </nav>
 
       {/* Legal links */}
@@ -195,9 +216,21 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
             {tierLabels[tier] || tier}
           </span>
         </div>
+        <div className="mt-3 flex items-center gap-1">
+          <ThemeToggle />
+          <button
+            onClick={openShortcutsModal}
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
+            title="Keyboard shortcuts (?)"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+            </svg>
+          </button>
+        </div>
         <button
           onClick={handleSignOut}
-          className="mt-3 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
+          className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
@@ -211,7 +244,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
   return (
     <>
       {/* Mobile header */}
-      <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-primary-100 bg-white px-4 lg:hidden">
+      <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-primary-100 bg-surface px-4 md:hidden">
         <Link href="/dashboard">
           <Logo size="sm" />
         </Link>
@@ -229,7 +262,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
         )}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="rounded-lg p-2 text-primary-500 hover:bg-primary-50"
+          className="rounded-lg p-2.5 text-primary-500 hover:bg-primary-50"
         >
           {mobileOpen ? (
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -247,14 +280,16 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Mobile slide-out sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white shadow-xl transition-transform duration-200 lg:hidden ${
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-surface shadow-xl transition-transform duration-200 md:hidden ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -262,7 +297,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-20 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-primary-100 lg:bg-white">
+      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-20 md:flex md:w-64 md:flex-col md:border-r md:border-primary-100 md:bg-surface">
         {sidebarContent}
       </aside>
     </>

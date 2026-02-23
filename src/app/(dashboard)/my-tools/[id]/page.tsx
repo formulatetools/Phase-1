@@ -119,7 +119,7 @@ export default async function MyToolDetailPage({ params }: PageProps) {
         </div>
 
         {/* Worksheet preview */}
-        <div className="rounded-xl border border-primary-100 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-primary-100 bg-surface p-6 shadow-sm">
           <WorksheetRenderer
             schema={typedWorksheet.schema}
             readOnly={false}

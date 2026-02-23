@@ -54,7 +54,7 @@ export function FieldEditor({
   }
 
   return (
-    <div className="rounded-xl border border-primary-100 bg-white p-4">
+    <div className="rounded-xl border border-primary-100 bg-surface p-4">
       {/* Field header */}
       <div className="flex items-center gap-2">
         <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${FIELD_TYPE_COLORS[field.type] || 'bg-primary-50 text-primary-500'}`}>

@@ -166,8 +166,8 @@ export default async function AdminContentPage() {
       <AdminTabs />
 
       {/* ── Stat cards ──────────────────────────────────────────────── */}
-      <div className="mb-8 grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+      <div className="mb-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
             <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -183,7 +183,7 @@ export default async function AdminContentPage() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50">
             <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -198,7 +198,7 @@ export default async function AdminContentPage() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
             <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
@@ -208,7 +208,7 @@ export default async function AdminContentPage() {
           <p className="mt-0.5 text-sm text-primary-400">Assignments</p>
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
             <svg className="h-5 w-5 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
@@ -234,7 +234,7 @@ export default async function AdminContentPage() {
       {/* ── Bottom section: Category Usage + Search Terms ─────────── */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Category Usage */}
-        <div className="rounded-2xl border border-primary-100 bg-white shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface shadow-sm">
           <div className="border-b border-primary-100 px-6 py-4">
             <h3 className="text-sm font-semibold text-primary-900">Usage by Category</h3>
           </div>
@@ -267,7 +267,7 @@ export default async function AdminContentPage() {
         </div>
 
         {/* Search Terms */}
-        <div className="rounded-2xl border border-primary-100 bg-white shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface shadow-sm">
           <div className="border-b border-primary-100 px-6 py-4">
             <h3 className="text-sm font-semibold text-primary-900">Top Search Terms</h3>
             <p className="mt-0.5 text-xs text-primary-400">What users are looking for</p>
@@ -277,17 +277,17 @@ export default async function AdminContentPage() {
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-primary-50 bg-primary-50/50">
                   <tr>
-                    <th className="px-6 py-3 font-medium text-primary-500">#</th>
-                    <th className="px-6 py-3 font-medium text-primary-500">Search Term</th>
-                    <th className="px-6 py-3 font-medium text-primary-500 text-right">Searches</th>
+                    <th className="px-3 sm:px-6 py-3 font-medium text-primary-500">#</th>
+                    <th className="px-3 sm:px-6 py-3 font-medium text-primary-500">Search Term</th>
+                    <th className="px-3 sm:px-6 py-3 font-medium text-primary-500 text-right">Searches</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-primary-50">
                   {topSearchTerms.map(([term, count], i) => (
                     <tr key={term} className="hover:bg-primary-50/50 transition-colors">
-                      <td className="px-6 py-2.5 text-primary-400">{i + 1}</td>
-                      <td className="px-6 py-2.5 font-medium text-primary-900">{term}</td>
-                      <td className="px-6 py-2.5 text-right text-primary-600">{count}</td>
+                      <td className="px-3 sm:px-6 py-2.5 text-primary-400">{i + 1}</td>
+                      <td className="px-3 sm:px-6 py-2.5 font-medium text-primary-900">{term}</td>
+                      <td className="px-3 sm:px-6 py-2.5 text-right text-primary-600">{count}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -302,7 +302,7 @@ export default async function AdminContentPage() {
       </div>
 
       {/* ── Full Worksheets Table ──────────────────────────────────── */}
-      <div className="mt-8 rounded-2xl border border-primary-100 bg-white shadow-sm">
+      <div className="mt-8 rounded-2xl border border-primary-100 bg-surface shadow-sm">
         <div className="border-b border-primary-100 px-6 py-4">
           <h3 className="text-sm font-semibold text-primary-900">All Worksheets by Popularity</h3>
         </div>
@@ -310,35 +310,35 @@ export default async function AdminContentPage() {
           <table className="w-full text-left text-sm">
             <thead className="border-b border-primary-50 bg-primary-50/50">
               <tr>
-                <th className="px-6 py-3 font-medium text-primary-500">#</th>
-                <th className="px-6 py-3 font-medium text-primary-500">Title</th>
-                <th className="px-6 py-3 font-medium text-primary-500">Category</th>
-                <th className="px-6 py-3 font-medium text-primary-500 text-right">Views</th>
-                <th className="px-6 py-3 font-medium text-primary-500 text-right">Assigns</th>
-                <th className="px-6 py-3 font-medium text-primary-500 text-right">Exports</th>
-                <th className="px-6 py-3 font-medium text-primary-500 text-right">Total</th>
-                <th className="px-6 py-3 font-medium text-primary-500">Status</th>
-                <th className="px-6 py-3 font-medium text-primary-500"></th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-primary-500">#</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-primary-500">Title</th>
+                <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-primary-500">Category</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-primary-500 text-right">Views</th>
+                <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-primary-500 text-right">Assigns</th>
+                <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-primary-500 text-right">Exports</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-primary-500 text-right">Total</th>
+                <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-primary-500">Status</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-primary-500"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-primary-50">
               {ranked.slice(0, 30).map((ws, i) => (
                 <tr key={ws.id} className="hover:bg-primary-50/50 transition-colors">
-                  <td className="px-6 py-3 text-primary-400">{i + 1}</td>
-                  <td className="px-6 py-3 font-medium text-primary-900">{ws.title}</td>
-                  <td className="px-6 py-3 text-primary-500">{categoryMap.get(ws.category_id) || '—'}</td>
-                  <td className="px-6 py-3 text-right text-primary-600">{ws.views}</td>
-                  <td className="px-6 py-3 text-right text-primary-600">{ws.assignments}</td>
-                  <td className="px-6 py-3 text-right text-primary-600">{ws.exports}</td>
-                  <td className="px-6 py-3 text-right font-medium text-primary-900">{ws.total}</td>
-                  <td className="px-6 py-3">
+                  <td className="px-3 sm:px-6 py-3 text-primary-400">{i + 1}</td>
+                  <td className="px-3 sm:px-6 py-3 font-medium text-primary-900">{ws.title}</td>
+                  <td className="hidden sm:table-cell px-3 sm:px-6 py-3 text-primary-500">{categoryMap.get(ws.category_id) || '—'}</td>
+                  <td className="px-3 sm:px-6 py-3 text-right text-primary-600">{ws.views}</td>
+                  <td className="hidden sm:table-cell px-3 sm:px-6 py-3 text-right text-primary-600">{ws.assignments}</td>
+                  <td className="hidden sm:table-cell px-3 sm:px-6 py-3 text-right text-primary-600">{ws.exports}</td>
+                  <td className="px-3 sm:px-6 py-3 text-right font-medium text-primary-900">{ws.total}</td>
+                  <td className="hidden sm:table-cell px-3 sm:px-6 py-3">
                     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                       ws.is_published ? 'bg-brand/10 text-brand-dark' : 'bg-primary-100 text-primary-600'
                     }`}>
                       {ws.is_published ? 'Published' : 'Draft'}
                     </span>
                   </td>
-                  <td className="px-6 py-3">
+                  <td className="px-3 sm:px-6 py-3">
                     <Link href={`/admin/worksheets/${ws.slug}/edit`} className="text-sm text-brand-text hover:text-brand-dark transition-colors">
                       Edit
                     </Link>

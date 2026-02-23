@@ -9,6 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
+import { useChartColors } from '@/hooks/use-chart-colors'
 
 interface SignupChartProps {
   data: { week: string; count: number }[]
@@ -20,8 +21,9 @@ const formatWeek = (w: unknown) => {
 }
 
 export function SignupChart({ data }: SignupChartProps) {
+  const cc = useChartColors()
   return (
-    <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
       <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-primary-400">
         Signups Over Time
       </h3>
@@ -34,18 +36,18 @@ export function SignupChart({ data }: SignupChartProps) {
                 <stop offset="95%" stopColor="#e4a930" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f0ee" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} vertical={false} />
             <XAxis
               dataKey="week"
               tickFormatter={formatWeek}
-              tick={{ fontSize: 11, fill: '#888' }}
+              tick={{ fontSize: 11, fill: cc.tick }}
               axisLine={false}
               tickLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
               allowDecimals={false}
-              tick={{ fontSize: 11, fill: '#888' }}
+              tick={{ fontSize: 11, fill: cc.tick }}
               axisLine={false}
               tickLine={false}
             />
@@ -53,7 +55,8 @@ export function SignupChart({ data }: SignupChartProps) {
               labelFormatter={formatWeek}
               contentStyle={{
                 borderRadius: '12px',
-                border: '1px solid #f1f0ee',
+                border: `1px solid ${cc.tooltipBorder}`,
+                background: cc.tooltipBg,
                 fontSize: '13px',
                 boxShadow: '0 4px 12px rgba(0,0,0,.06)',
               }}

@@ -133,7 +133,7 @@ export function AdminFeatureRequests({ requests, voteCounts, userMap }: Props) {
               className={`rounded-xl border p-3 text-center transition-colors ${
                 filterStatus === s.value
                   ? 'border-brand bg-brand/5'
-                  : 'border-primary-100 bg-white hover:bg-primary-50'
+                  : 'border-primary-100 bg-surface hover:bg-primary-50'
               }`}
             >
               <p className="text-lg font-bold text-primary-900">{count}</p>
@@ -144,7 +144,7 @@ export function AdminFeatureRequests({ requests, voteCounts, userMap }: Props) {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl border border-primary-100 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-primary-100 bg-surface shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-primary-100 bg-primary-50/50">
@@ -225,7 +225,7 @@ export function AdminFeatureRequests({ requests, voteCounts, userMap }: Props) {
 
       {/* Detail / edit panel */}
       {selectedRequest && (
-        <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm space-y-5">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm space-y-5">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold text-primary-900">{selectedRequest.title}</h3>

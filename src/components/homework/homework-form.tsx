@@ -144,7 +144,7 @@ export function HomeworkForm({
   return (
     <div className="space-y-6">
       {/* Worksheet form */}
-      <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
         <WorksheetRenderer
           schema={schema}
           readOnly={readOnly}
@@ -161,7 +161,7 @@ export function HomeworkForm({
 
       {/* Action bar */}
       {!readOnly && (
-        <div className="flex items-center justify-between rounded-2xl border border-primary-100 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm">
           <div className="text-xs text-primary-400">
             {saving && 'Saving…'}
             {!saving && lastSaved && (

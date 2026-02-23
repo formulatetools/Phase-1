@@ -99,7 +99,7 @@ export function OnboardingChecklist({ status }: OnboardingChecklistProps) {
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
                 done
                   ? 'text-primary-400'
-                  : 'text-primary-700 hover:bg-white/60'
+                  : 'text-primary-700 hover:bg-surface/60'
               }`}
             >
               {/* Check / circle icon */}
@@ -129,8 +129,17 @@ export function OnboardingChecklist({ status }: OnboardingChecklistProps) {
         })}
       </div>
 
-      {/* Dismiss link */}
-      <div className="mt-3 flex justify-end">
+      {/* Tour + Dismiss links */}
+      <div className="mt-3 flex items-center justify-between">
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('formulate:start-tour'))}
+          className="flex items-center gap-1 text-xs font-medium text-brand transition-colors hover:text-brand-dark"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
+          </svg>
+          Take a tour
+        </button>
         <button
           onClick={handleDismiss}
           className="text-xs text-primary-400 transition-colors hover:text-primary-600"

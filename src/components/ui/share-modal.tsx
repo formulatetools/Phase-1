@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useToast } from '@/hooks/use-toast'
 
 interface ShareModalProps {
   open: boolean
@@ -19,9 +20,9 @@ export function ShareModal({
   clientLabel,
   dueDate,
 }: ShareModalProps) {
-  const [copied, setCopied] = useState(false)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const { toast } = useToast()
 
   // Generate QR code using Canvas API (no external dependency)
   useEffect(() => {
@@ -35,12 +36,11 @@ export function ShareModal({
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(homeworkUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2500)
+    toast({ type: 'success', message: 'Link copied to clipboard' })
   }
 
   const handleCopyMessage = async () => {
-    const message = [
+    const msg = [
       `Hi,`,
       ``,
       `Your therapist has assigned you a worksheet: "${worksheetTitle}".`,
@@ -54,9 +54,8 @@ export function ShareModal({
       .filter(Boolean)
       .join('\n')
 
-    await navigator.clipboard.writeText(message)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2500)
+    await navigator.clipboard.writeText(msg)
+    toast({ type: 'success', message: 'Message copied to clipboard' })
   }
 
   if (!open) return null
@@ -67,7 +66,7 @@ export function ShareModal({
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md rounded-2xl border border-primary-100 bg-white p-6 shadow-xl">
+      <div className="relative w-full max-w-md rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -100,20 +99,16 @@ export function ShareModal({
             </div>
             <button
               onClick={handleCopy}
-              className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                copied
-                  ? 'bg-green-600 text-white'
-                  : 'bg-primary-800 text-white hover:bg-primary-900'
-              }`}
+              className="shrink-0 rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-primary-900"
             >
-              {copied ? 'Copied!' : 'Copy link'}
+              Copy link
             </button>
           </div>
         </div>
 
         {/* QR Code */}
         {qrDataUrl && (
-          <div className="mt-4 flex flex-col items-center rounded-xl border border-primary-100 bg-white p-4">
+          <div className="mt-4 flex flex-col items-center rounded-xl border border-primary-100 bg-surface p-4">
             <img
               src={qrDataUrl}
               alt="QR code for homework link"

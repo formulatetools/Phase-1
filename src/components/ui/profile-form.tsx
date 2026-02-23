@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 
 interface Props {
   initialName: string
@@ -11,12 +12,11 @@ interface Props {
 export function ProfileForm({ initialName, initialEmail }: Props) {
   const [fullName, setFullName] = useState(initialName)
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
-    setMessage(null)
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -29,9 +29,9 @@ export function ProfileForm({ initialName, initialEmail }: Props) {
       .eq('id', user.id)
 
     if (error) {
-      setMessage('Failed to update profile.')
+      toast({ type: 'error', message: 'Failed to update profile' })
     } else {
-      setMessage('Profile updated.')
+      toast({ type: 'success', message: 'Profile updated' })
     }
 
     setSaving(false)
@@ -58,10 +58,6 @@ export function ProfileForm({ initialName, initialEmail }: Props) {
         </label>
         <p className="mt-1 text-sm text-primary-500">{initialEmail}</p>
       </div>
-
-      {message && (
-        <p className="text-sm text-brand-text">{message}</p>
-      )}
 
       <button
         type="submit"

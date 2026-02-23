@@ -34,7 +34,7 @@ export default async function ReferralsPage() {
         )}
 
         {/* How it works */}
-        <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
           <h2 className="mb-4 text-base font-semibold text-primary-900">How it works</h2>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
@@ -68,7 +68,7 @@ export default async function ReferralsPage() {
         </div>
 
         {/* Stats */}
-        <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
           <h2 className="mb-4 text-base font-semibold text-primary-900">Your referral stats</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-xl bg-primary-50 p-4 text-center">

@@ -89,7 +89,7 @@ export default async function HomeworkPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Minimal header */}
-      <header className="border-b border-primary-100 bg-white">
+      <header className="border-b border-primary-100 bg-surface">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <LogoIcon size={20} />

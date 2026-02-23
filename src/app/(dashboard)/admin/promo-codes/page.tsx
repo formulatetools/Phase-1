@@ -47,7 +47,7 @@ export default async function AdminPromoCodesPage() {
       </div>
 
       {/* Create form */}
-      <div className="mb-8 rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+      <div className="mb-8 rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
         <h2 className="mb-4 text-base font-semibold text-primary-900">Create New Code</h2>
         <form action={createPromoCode} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div>
@@ -105,7 +105,7 @@ export default async function AdminPromoCodesPage() {
       </div>
 
       {/* Codes table */}
-      <div className="rounded-2xl border border-primary-100 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-primary-100 bg-surface shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

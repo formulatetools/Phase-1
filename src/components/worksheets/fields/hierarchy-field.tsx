@@ -123,7 +123,7 @@ export function HierarchyField({ field, value, onChange }: Props) {
           return (
             <div
               key={originalIndex}
-              className="group flex items-center gap-3 rounded-lg border border-primary-100 bg-white p-3 transition-shadow hover:shadow-sm"
+              className="group flex items-center gap-3 rounded-lg border border-primary-100 bg-surface p-3 transition-shadow hover:shadow-sm"
             >
               {/* SUDS value input */}
               {numericCol && (

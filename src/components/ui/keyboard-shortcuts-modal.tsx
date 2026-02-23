@@ -1,0 +1,92 @@
+'use client'
+
+interface KeyboardShortcutsModalProps {
+  open: boolean
+  onClose: () => void
+}
+
+const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+const modKey = isMac ? '⌘' : 'Ctrl'
+
+const shortcuts = [
+  {
+    scope: 'Navigation',
+    items: [
+      { keys: ['G', 'D'], description: 'Go to Dashboard' },
+      { keys: ['G', 'W'], description: 'Go to Worksheets' },
+      { keys: ['G', 'C'], description: 'Go to Clients' },
+      { keys: ['G', 'S'], description: 'Go to Settings' },
+    ],
+  },
+  {
+    scope: 'Actions',
+    items: [
+      { keys: [modKey, 'K'], description: 'Search worksheets' },
+      { keys: ['?'], description: 'Open this reference' },
+      { keys: ['Esc'], description: 'Close modal' },
+    ],
+  },
+]
+
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="inline-flex h-6 min-w-[24px] items-center justify-center rounded-md border border-primary-200 bg-primary-50 px-1.5 text-[11px] font-semibold text-primary-600">
+      {children}
+    </kbd>
+  )
+}
+
+export function KeyboardShortcutsModal({ open, onClose }: KeyboardShortcutsModalProps) {
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Modal */}
+      <div className="relative w-full max-w-md rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-lg p-1 text-primary-400 hover:bg-primary-50 hover:text-primary-600"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <h2 className="mb-1 text-lg font-bold text-primary-900">Keyboard Shortcuts</h2>
+        <p className="mb-5 text-sm text-primary-400">
+          Navigate quickly with these shortcuts
+        </p>
+
+        {shortcuts.map((group) => (
+          <div key={group.scope} className="mb-5 last:mb-0">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary-400">
+              {group.scope}
+            </h3>
+            <div className="space-y-2">
+              {group.items.map((item) => (
+                <div
+                  key={item.description}
+                  className="flex items-center justify-between rounded-lg px-2 py-1.5"
+                >
+                  <span className="text-sm text-primary-700">{item.description}</span>
+                  <div className="flex items-center gap-1">
+                    {item.keys.map((key, i) => (
+                      <span key={i} className="flex items-center gap-1">
+                        {i > 0 && <span className="text-xs text-primary-300">then</span>}
+                        <Kbd>{key}</Kbd>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}

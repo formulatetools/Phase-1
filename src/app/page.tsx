@@ -34,7 +34,7 @@ export default function Home() {
           </Link>
           <a
             href="#preview"
-            className="rounded-lg border border-primary-200 bg-white px-6 py-3 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
+            className="rounded-lg border border-primary-200 bg-surface px-6 py-3 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
           >
             See it in action &darr;
           </a>
@@ -197,7 +197,7 @@ export default function Home() {
                   'Client data protected with audit trails, row-level security, and GDPR-ready architecture.',
               },
             ].map((feature) => (
-              <div key={feature.title} className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+              <div key={feature.title} className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
                   {feature.icon}
                 </div>
@@ -257,7 +257,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-primary-100 bg-white py-8">
+      <footer className="border-t border-primary-100 bg-surface py-8">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div className="flex items-center gap-3">

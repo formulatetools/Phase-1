@@ -44,7 +44,7 @@ export default async function EditWorksheetPage({
       <h1 className="mb-8 text-3xl font-bold text-primary-900">
         Edit: {worksheet.title as string}
       </h1>
-      <div className="rounded-xl border border-primary-100 bg-white p-6 shadow-sm">
+      <div className="rounded-xl border border-primary-100 bg-surface p-6 shadow-sm">
         <WorksheetEditorForm
           categories={(categories || []) as { id: string; name: string }[]}
           action={boundUpdate}
