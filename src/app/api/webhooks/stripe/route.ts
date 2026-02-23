@@ -2,7 +2,9 @@ import { NextResponse, type NextRequest } from 'next/server'
 import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe/client'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { STRIPE_PRICES } from '@/lib/stripe/config'
+import { STRIPE_PRICES, TIER_LABELS } from '@/lib/stripe/config'
+import { sendEmail } from '@/lib/email'
+import { abandonedCheckoutEmail } from '@/lib/email-templates'
 
 // Determine subscription tier from the Stripe price ID
 function getTierFromPriceId(priceId: string): 'starter' | 'standard' | 'professional' | null {
@@ -91,6 +93,34 @@ export async function POST(request: NextRequest) {
           entity_id: subscriptionId,
           metadata: { tier, price_id: priceId },
         })
+
+        // Convert pending referral if this user was referred
+        try {
+          const { data: pendingReferral } = await supabase
+            .from('referrals')
+            .select('id, referrer_id')
+            .eq('referee_id', userId)
+            .eq('status', 'pending')
+            .single()
+
+          if (pendingReferral) {
+            await supabase
+              .from('referrals')
+              .update({ status: 'converted' })
+              .eq('id', pendingReferral.id)
+
+            await supabase.from('audit_log').insert({
+              user_id: pendingReferral.referrer_id,
+              action: 'update',
+              entity_type: 'referral',
+              entity_id: pendingReferral.id,
+              metadata: { referee_id: userId, status: 'converted' },
+            })
+          }
+        } catch {
+          // Don't fail the webhook if referral tracking fails
+          console.error('[referral] Failed to convert referral for user:', userId)
+        }
 
         break
       }
@@ -231,6 +261,51 @@ export async function POST(request: NextRequest) {
             .update({ status: 'past_due' })
             .eq('stripe_subscription_id', subIdStr)
         }
+
+        break
+      }
+
+      case 'checkout.session.expired': {
+        const session = event.data.object as Stripe.Checkout.Session
+        const userId = session.metadata?.supabase_user_id
+        const tier = session.metadata?.tier
+
+        if (!userId || !tier) break
+
+        // Look up user profile
+        const { data: expiredProfile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', userId)
+          .single()
+
+        if (!expiredProfile?.email) break
+
+        // Dedup: max 1 abandoned checkout email per user per 7 days
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        const { count: recentSends } = await supabase
+          .from('audit_log')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('entity_type', 'email')
+          .eq('entity_id', 'abandoned_checkout')
+          .gte('created_at', sevenDaysAgo)
+
+        if ((recentSends ?? 0) > 0) break
+
+        // Send recovery email (fire-and-forget)
+        const tierLabel = TIER_LABELS[tier] || 'Starter'
+        const email = abandonedCheckoutEmail(expiredProfile.full_name, tierLabel)
+        sendEmail({ to: expiredProfile.email, subject: email.subject, html: email.html })
+
+        // Log for dedup
+        await supabase.from('audit_log').insert({
+          user_id: userId,
+          action: 'create',
+          entity_type: 'email',
+          entity_id: 'abandoned_checkout',
+          metadata: { tier, tier_label: tierLabel },
+        })
 
         break
       }

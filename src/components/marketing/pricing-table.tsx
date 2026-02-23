@@ -156,6 +156,11 @@ export function PricingTable() {
                         £{perMonth}/mo billed annually
                       </p>
                     )}
+                    {period === 'annual' && tier.monthlyPrice > 0 && (
+                      <span className="mt-2 inline-block rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700">
+                        Save {Math.round((1 - tier.annualPrice / (tier.monthlyPrice * 12)) * 100)}%
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

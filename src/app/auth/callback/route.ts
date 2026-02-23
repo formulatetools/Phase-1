@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 import { sendEmail } from '@/lib/email'
 import { welcomeEmail } from '@/lib/email-templates'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -42,6 +43,31 @@ export async function GET(request: NextRequest) {
         if (profile && !profile.onboarding_completed) {
           const email = welcomeEmail(profile.full_name as string | null)
           sendEmail({ to: user.email, subject: email.subject, html: email.html })
+
+          // Track referral if user signed up via referral link (fire-and-forget)
+          const referralCode = user.user_metadata?.referral_code as string | undefined
+          if (referralCode) {
+            try {
+              const admin = createAdminClient()
+              const { data: refCode } = await admin
+                .from('referral_codes')
+                .select('id, user_id')
+                .eq('code', referralCode.toUpperCase())
+                .single()
+
+              if (refCode && refCode.user_id !== user.id) {
+                await admin.from('referrals').insert({
+                  referrer_id: refCode.user_id,
+                  referee_id: user.id,
+                  referral_code_id: refCode.id,
+                  status: 'pending',
+                })
+              }
+            } catch {
+              // Don't block redirect on referral tracking failure
+              console.error('[referral] Failed to track referral')
+            }
+          }
         }
       }
 

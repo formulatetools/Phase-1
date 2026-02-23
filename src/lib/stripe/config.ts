@@ -47,3 +47,33 @@ export const TIER_LABELS: Record<string, string> = {
   standard: 'Practice',
   professional: 'Specialist',
 }
+
+// Pricing amounts (used for savings calculations and display)
+export const TIER_PRICES = {
+  starter: { monthly: 4.99, annual: 47.90 },
+  standard: { monthly: 9.99, annual: 95.90 },
+  professional: { monthly: 19.99, annual: 191.90 },
+} as const
+
+// Feature lists per tier (used on success page and pricing table)
+export const TIER_FEATURES: Record<string, string[]> = {
+  starter: [
+    'Unlimited worksheet access',
+    'Clean PDF export (no branding)',
+    'Bookmark & favourite tools',
+  ],
+  standard: [
+    'Everything in Starter',
+    'Client management dashboard',
+    'Share worksheets with clients',
+    'Custom worksheet builder',
+    'Fork & customise any tool',
+  ],
+  professional: [
+    'Everything in Practice',
+    'CPD video training content',
+    'Early access to new features',
+    'AI-assisted formulation (coming soon)',
+    'Psychometric tracking (coming soon)',
+  ],
+}

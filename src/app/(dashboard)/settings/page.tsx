@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
-import { TIER_LABELS } from '@/lib/stripe/config'
+import { createClient } from '@/lib/supabase/server'
 import { ProfileForm } from '@/components/ui/profile-form'
 import { PromoCodeInput } from '@/components/ui/promo-code-input'
+import { SubscriptionDetails } from '@/components/ui/subscription-details'
 
 export const metadata = {
   title: 'Settings — Formulate',
@@ -12,6 +13,17 @@ export default async function SettingsPage() {
   const { user, profile } = await getCurrentUser()
 
   if (!user || !profile) redirect('/login')
+
+  // Fetch active subscription details
+  const supabase = await createClient()
+  const { data: subscription } = await supabase
+    .from('subscriptions')
+    .select('current_period_start, current_period_end, cancel_at_period_end, status')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
 
   return (
     <div className="px-4 py-8 sm:px-8 lg:px-12">
@@ -31,21 +43,15 @@ export default async function SettingsPage() {
         </div>
 
         <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
+          <h2 className="mb-1 text-base font-semibold text-primary-900">Subscription</h2>
+          <p className="mb-5 text-sm text-primary-400">Manage your plan and billing</p>
+          <SubscriptionDetails profile={profile} subscription={subscription} />
+        </div>
+
+        <div className="rounded-2xl border border-primary-100 bg-white p-6 shadow-sm">
           <h2 className="mb-1 text-base font-semibold text-primary-900">Account</h2>
-          <p className="mb-5 text-sm text-primary-400">Manage your subscription and account settings</p>
+          <p className="mb-5 text-sm text-primary-400">Your account details and preferences</p>
           <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-xl bg-primary-50 px-4 py-3">
-              <div>
-                <p className="text-sm font-medium text-primary-700">Subscription</p>
-                <p className="text-xs text-primary-400">{TIER_LABELS[profile.subscription_tier] || profile.subscription_tier} plan</p>
-              </div>
-              <a
-                href="/pricing"
-                className="text-sm font-medium text-brand hover:text-brand-dark transition-colors"
-              >
-                {profile.subscription_tier === 'free' ? 'Upgrade' : 'Manage'} →
-              </a>
-            </div>
             <div className="flex items-center justify-between rounded-xl bg-primary-50 px-4 py-3">
               <div>
                 <p className="text-sm font-medium text-primary-700">Email</p>

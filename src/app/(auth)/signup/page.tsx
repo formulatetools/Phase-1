@@ -9,7 +9,14 @@ export const metadata: Metadata = {
     'Sign up free for access to professional CBT worksheets and clinical tools.',
 }
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ref?: string }>
+}) {
+  const params = await searchParams
+  const referralCode = params.ref || null
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
@@ -25,8 +32,19 @@ export default function SignupPage() {
           </p>
         </div>
 
+        {referralCode && (
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-brand/20 bg-brand-light px-4 py-3">
+            <svg className="h-4 w-4 shrink-0 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            </svg>
+            <p className="text-sm text-brand-text">
+              Referred by a friend? You&apos;ll get <strong>50% off</strong> your first month!
+            </p>
+          </div>
+        )}
+
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-primary-100">
-          <AuthForm mode="signup" />
+          <AuthForm mode="signup" referralCode={referralCode} />
         </div>
 
         <p className="mt-6 text-center text-sm text-primary-500">

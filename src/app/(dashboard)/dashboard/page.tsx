@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { TIER_LIMITS, TIER_LABELS } from '@/lib/stripe/config'
 import { ManageSubscriptionButton } from '@/components/ui/manage-subscription-button'
+import { AnnualUpgradeBanner } from '@/components/ui/annual-upgrade-banner'
 import { activityLabel, activityIcon, timeAgo, type ActivityItem } from '@/lib/utils/activity'
 import { WelcomeModal } from '@/components/onboarding/welcome-modal'
 import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist'
@@ -13,12 +14,7 @@ export const metadata = {
   title: 'Dashboard — Formulate',
 }
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ checkout?: string }>
-}) {
-  const params = await searchParams
+export default async function DashboardPage() {
   const { user, profile } = await getCurrentUser()
 
   if (!user || !profile) redirect('/login')
@@ -36,6 +32,7 @@ export default async function DashboardPage({
     { data: recentActivity },
     { count: userExportCount },
     { data: latestRedemption },
+    { data: activeSubscription },
   ] = await Promise.all([
     // Recently accessed worksheets
     supabase
@@ -109,6 +106,16 @@ export default async function DashboardPage({
       .order('access_expires_at', { ascending: false })
       .limit(1)
       .single(),
+
+    // Active subscription (for annual upgrade banner)
+    supabase
+      .from('subscriptions')
+      .select('stripe_price_id')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single(),
   ])
 
   // Deduplicate recently accessed worksheets
@@ -156,26 +163,19 @@ export default async function DashboardPage({
       {/* Welcome modal for first-time users */}
       {profile.onboarding_completed !== true && <WelcomeModal open={true} />}
 
-      {/* Checkout success banner */}
-      {params.checkout === 'success' && (
-        <div className="mb-6 flex items-center gap-3 rounded-xl border border-brand/20 bg-brand-light px-5 py-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-white">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
-          </div>
-          <div>
-            <p className="font-medium text-primary-900">Subscription activated</p>
-            <p className="text-sm text-primary-600">Welcome to {tierLabels[profile.subscription_tier]}! You now have unlimited access.</p>
-          </div>
-        </div>
-      )}
-
       {/* Auto-redeem promo code from signup */}
       <PromoAutoRedeem
         promoCode={(user.user_metadata?.promo_code as string) || null}
         isFree={profile.subscription_tier === 'free'}
       />
+
+      {/* Annual upgrade nudge for monthly subscribers */}
+      {profile.subscription_status === 'active' && activeSubscription && (
+        <AnnualUpgradeBanner
+          tier={profile.subscription_tier}
+          stripePriceId={activeSubscription.stripe_price_id}
+        />
+      )}
 
       {/* Expired trial banner */}
       {(() => {

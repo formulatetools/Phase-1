@@ -10,9 +10,10 @@ type AuthMethod = 'password' | 'magic-link'
 interface AuthFormProps {
   mode: AuthMode
   redirectTo?: string
+  referralCode?: string | null
 }
 
-export function AuthForm({ mode, redirectTo }: AuthFormProps) {
+export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
@@ -39,6 +40,7 @@ export function AuthForm({ mode, redirectTo }: AuthFormProps) {
           data: {
             full_name: fullName,
             ...(promoCode ? { promo_code: promoCode } : {}),
+            ...(referralCode ? { referral_code: referralCode } : {}),
           },
           emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo || '/dashboard'}`,
         },

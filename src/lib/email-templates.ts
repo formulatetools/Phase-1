@@ -99,6 +99,36 @@ export function engagementEmail(name: string | null): { subject: string; html: s
   }
 }
 
+// ─── Abandoned Checkout Recovery Email ─────────────────────────
+
+export function abandonedCheckoutEmail(
+  name: string | null,
+  tierLabel: string
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  return {
+    subject: 'You left something behind',
+    html: wrap(`
+      <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#1a1a1a;">Your upgrade is waiting</h1>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        You were checking out the <strong>${tierLabel}</strong> plan on Formulate but didn't finish.
+        No worries — your toolkit is still ready when you are.
+      </p>
+      <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
+        Pick up where you left off and unlock unlimited access to professional CBT worksheets:
+      </p>
+      ${button('Complete Your Upgrade', `${APP_URL}/pricing`)}
+      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+        If you ran into any issues during checkout, just reply to this email and we'll help.
+      </p>
+    `),
+  }
+}
+
 // ─── Promo Expiry Warning Email ────────────────────────────────
 
 export function promoExpiryEmail(
