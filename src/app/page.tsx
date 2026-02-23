@@ -251,6 +251,12 @@ export default function Home() {
               <Link href="/pricing" className="hover:text-primary-600 transition-colors">
                 Pricing
               </Link>
+              <Link href="/privacy" className="hover:text-primary-600 transition-colors">
+                Privacy
+              </Link>
+              <Link href="/terms" className="hover:text-primary-600 transition-colors">
+                Terms
+              </Link>
             </div>
           </div>
         </div>

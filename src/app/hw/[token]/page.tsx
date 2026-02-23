@@ -43,6 +43,10 @@ export default async function HomeworkPage({ params }: PageProps) {
   // Detect if this is a safety plan worksheet
   const isSafetyPlan = typedWorksheet.schema?.layout === 'safety_plan'
 
+  // Detect custom (non-curated) worksheets — curated ones are published by admins
+  // Custom worksheets will have a therapist_id once the custom builder ships
+  const isCurated = typedWorksheet.is_published
+
   // Fetch existing response (if any)
   const { data: existingResponse } = await supabase
     .from('worksheet_responses')
@@ -112,6 +116,14 @@ export default async function HomeworkPage({ params }: PageProps) {
             </div>
           )}
         </div>
+
+        {/* Custom worksheet disclaimer — non-curated tools */}
+        {!isCurated && (
+          <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-4 text-sm text-primary-600">
+            This worksheet was created by your therapist, not by Formulate.
+            Formulate does not review or validate custom clinical content.
+          </div>
+        )}
 
         {/* Safety plan crisis disclaimer */}
         {isSafetyPlan && (

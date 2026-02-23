@@ -10,6 +10,7 @@ import type {
   WorksheetAssignment,
   SubscriptionTier,
 } from '@/types/database'
+import { validateClientLabel } from '@/lib/validation/client-label'
 
 // ============================================================================
 // CLIENT (THERAPEUTIC RELATIONSHIP) ACTIONS
@@ -18,6 +19,10 @@ import type {
 export async function createClient_action(label: string) {
   const { user, profile } = await getCurrentUser()
   if (!user || !profile) return { error: 'Not authenticated' }
+
+  // PII validation — reject obvious identifiable information
+  const validation = validateClientLabel(label)
+  if (!validation.valid) return { error: validation.error! }
 
   const supabase = await createClient()
   const tier = profile.subscription_tier as SubscriptionTier

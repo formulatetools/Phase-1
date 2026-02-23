@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import type { TherapeuticRelationship, SubscriptionTier } from '@/types/database'
 import { createClient_action, dischargeClient, reactivateClient } from '@/app/(dashboard)/clients/actions'
+import { validateClientLabel } from '@/lib/validation/client-label'
 
 interface ClientListProps {
   relationships: TherapeuticRelationship[]
@@ -26,12 +27,37 @@ export function ClientList({
   const [newLabel, setNewLabel] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [piiWarning, setPiiWarning] = useState<string | null>(null)
 
   const canAddClient = maxClients === Infinity || clientCount < maxClients
   const atLimit = !canAddClient
 
+  const handleLabelChange = (value: string) => {
+    setNewLabel(value)
+    setError(null)
+    if (value.trim()) {
+      const validation = validateClientLabel(value)
+      if (!validation.valid) {
+        setError(validation.error!)
+        setPiiWarning(null)
+      } else {
+        setPiiWarning(validation.warning || null)
+      }
+    } else {
+      setPiiWarning(null)
+    }
+  }
+
   const handleAdd = async () => {
     if (!newLabel.trim()) return
+
+    // Final PII check before submitting
+    const validation = validateClientLabel(newLabel)
+    if (!validation.valid) {
+      setError(validation.error!)
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -42,6 +68,7 @@ export function ClientList({
     } else {
       setNewLabel('')
       setShowAdd(false)
+      setPiiWarning(null)
     }
     setLoading(false)
   }
@@ -133,7 +160,7 @@ export function ClientList({
             <input
               type="text"
               value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
+              onChange={(e) => handleLabelChange(e.target.value)}
               placeholder="e.g. AB, Client-7, Blue"
               maxLength={50}
               className="flex-1 rounded-lg border border-primary-200 px-3 py-2 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none"
@@ -148,12 +175,20 @@ export function ClientList({
               {loading ? 'Adding…' : 'Add'}
             </button>
             <button
-              onClick={() => { setShowAdd(false); setNewLabel(''); setError(null) }}
+              onClick={() => { setShowAdd(false); setNewLabel(''); setError(null); setPiiWarning(null) }}
               className="rounded-lg border border-primary-200 px-4 py-2 text-sm text-primary-600 hover:bg-primary-50 transition-colors"
             >
               Cancel
             </button>
           </div>
+          {piiWarning && (
+            <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
+              <svg className="mt-0.5 h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+              {piiWarning}
+            </div>
+          )}
         </div>
       )}
 
