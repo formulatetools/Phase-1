@@ -16,6 +16,7 @@ import {
   createSupervisionAssignment,
   lockSupervisionAssignment,
   markSupervisionReviewed,
+  markSupervisionPaperCompleted,
   gdprEraseSupervision,
 } from '@/app/(dashboard)/supervision/actions'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
@@ -37,6 +38,7 @@ const statusColors: Record<string, string> = {
   in_progress: 'bg-amber-50 text-amber-700',
   completed: 'bg-green-50 text-green-700',
   reviewed: 'bg-primary-100 text-primary-600',
+  pdf_downloaded: 'bg-purple-50 text-purple-700',
 }
 
 const statusLabels: Record<string, string> = {
@@ -44,6 +46,7 @@ const statusLabels: Record<string, string> = {
   in_progress: 'In progress',
   completed: 'Completed',
   reviewed: 'Reviewed',
+  pdf_downloaded: 'PDF downloaded',
 }
 
 export function SuperviseeDetail({
@@ -462,6 +465,9 @@ export function SuperviseeDetail({
                         <span>Assigned {new Date(a.assigned_at).toLocaleDateString('en-GB')}</span>
                         {a.due_date && <span>Due {new Date(a.due_date).toLocaleDateString('en-GB')}</span>}
                         <span>Expires {new Date(a.expires_at).toLocaleDateString('en-GB')}</span>
+                        {a.pdf_downloaded_at && (
+                          <span>PDF downloaded {new Date(a.pdf_downloaded_at).toLocaleDateString('en-GB')}</span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-4">
@@ -515,6 +521,16 @@ export function SuperviseeDetail({
                           title="Lock to prevent further edits"
                         >
                           Lock
+                        </button>
+                      )}
+
+                      {/* Mark as completed (paper) — shown when supervisee downloaded PDF */}
+                      {a.status === 'pdf_downloaded' && (
+                        <button
+                          onClick={() => markSupervisionPaperCompleted(a.id)}
+                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 transition-colors"
+                        >
+                          Mark completed (paper)
                         </button>
                       )}
                     </div>

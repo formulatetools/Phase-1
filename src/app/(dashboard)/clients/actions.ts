@@ -305,3 +305,34 @@ export async function markAsReviewed(assignmentId: string) {
   revalidatePath('/clients')
   return { success: true }
 }
+
+export async function markAsPaperCompleted(assignmentId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('worksheet_assignments')
+    .update({
+      status: 'completed',
+      completion_method: 'paper',
+      completed_at: new Date().toISOString(),
+    })
+    .eq('id', assignmentId)
+    .eq('therapist_id', user.id)
+
+  if (error) return { error: error.message }
+
+  // Audit log
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'update',
+    entity_type: 'worksheet_assignment',
+    entity_id: assignmentId,
+    metadata: { action: 'marked_as_paper_completed' },
+  })
+
+  revalidatePath('/clients')
+  return { success: true }
+}

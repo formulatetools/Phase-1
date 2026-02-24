@@ -2,6 +2,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { notFound } from 'next/navigation'
 import type { WorksheetAssignment, Worksheet, WorksheetResponse } from '@/types/database'
 import { HomeworkForm } from '@/components/homework/homework-form'
+import { ConsentGate } from '@/components/homework/consent-gate'
 import { LogoIcon } from '@/components/ui/logo'
 
 export const metadata = {
@@ -55,6 +56,17 @@ export default async function HomeworkPage({ params }: PageProps) {
     .is('deleted_at', null)
     .single()
 
+  // Check for existing consent (server-side, avoids flash for returning users)
+  const { data: existingConsent } = await supabase
+    .from('homework_consent')
+    .select('id')
+    .eq('relationship_id', typedAssignment.relationship_id)
+    .eq('consent_type', 'homework_digital_completion')
+    .is('withdrawn_at', null)
+    .single()
+
+  const hasConsent = !!existingConsent
+
   // Determine state
   const isExpired = new Date(typedAssignment.expires_at) < new Date()
   const isLocked = !!typedAssignment.locked_at
@@ -103,58 +115,66 @@ export default async function HomeworkPage({ params }: PageProps) {
         </div>
       </header>
 
-      {/* Main content */}
+      {/* Main content — wrapped in ConsentGate */}
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-primary-900">{typedWorksheet.title}</h1>
-          {typedWorksheet.description && (
-            <p className="mt-2 text-sm text-primary-500">{typedWorksheet.description}</p>
-          )}
-          {typedWorksheet.instructions && (
-            <div className="mt-4 rounded-xl border border-brand/20 bg-brand-light p-4 text-sm text-primary-700">
-              {typedWorksheet.instructions}
+        <ConsentGate
+          token={token}
+          initialHasConsent={hasConsent}
+          worksheetTitle={typedWorksheet.title}
+          worksheetSchema={typedWorksheet.schema}
+        >
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-primary-900">{typedWorksheet.title}</h1>
+            {typedWorksheet.description && (
+              <p className="mt-2 text-sm text-primary-500">{typedWorksheet.description}</p>
+            )}
+            {typedWorksheet.instructions && (
+              <div className="mt-4 rounded-xl border border-brand/20 bg-brand-light p-4 text-sm text-primary-700">
+                {typedWorksheet.instructions}
+              </div>
+            )}
+          </div>
+
+          {/* Custom worksheet disclaimer — non-curated tools */}
+          {!isCurated && (
+            <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-4 text-sm text-primary-600">
+              This worksheet was created by your therapist, not by Formulate.
+              Formulate does not review or validate custom clinical content.
             </div>
           )}
-        </div>
 
-        {/* Custom worksheet disclaimer — non-curated tools */}
-        {!isCurated && (
-          <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-4 text-sm text-primary-600">
-            This worksheet was created by your therapist, not by Formulate.
-            Formulate does not review or validate custom clinical content.
-          </div>
-        )}
+          {/* Safety plan crisis disclaimer */}
+          {isSafetyPlan && (
+            <div className="mb-6 rounded-xl border-l-4 border-amber-400 bg-amber-50 p-4">
+              <p className="text-sm text-primary-700">
+                <strong>Important:</strong> This safety plan is designed to be completed with your therapist.
+                If you are in immediate danger or experiencing a mental health crisis, please contact:{' '}
+                <strong>999</strong> (emergency),{' '}
+                <strong>116 123</strong> (Samaritans, 24/7), or{' '}
+                <strong>0800 689 5555</strong> (SANEline, 4:30pm–10:30pm).
+                This worksheet is not a crisis service.
+              </p>
+            </div>
+          )}
 
-        {/* Safety plan crisis disclaimer */}
-        {isSafetyPlan && (
-          <div className="mb-6 rounded-xl border-l-4 border-amber-400 bg-amber-50 p-4">
-            <p className="text-sm text-primary-700">
-              <strong>Important:</strong> This safety plan is designed to be completed with your therapist.
-              If you are in immediate danger or experiencing a mental health crisis, please contact:{' '}
-              <strong>999</strong> (emergency),{' '}
-              <strong>116 123</strong> (Samaritans, 24/7), or{' '}
-              <strong>0800 689 5555</strong> (SANEline, 4:30pm–10:30pm).
-              This worksheet is not a crisis service.
-            </p>
-          </div>
-        )}
+          {readOnly && (
+            <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-3 text-sm text-primary-600 flex items-center gap-2">
+              <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+              </svg>
+              This worksheet has been submitted and reviewed. It is now read-only.
+            </div>
+          )}
 
-        {readOnly && (
-          <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-3 text-sm text-primary-600 flex items-center gap-2">
-            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-            </svg>
-            This worksheet has been submitted and reviewed. It is now read-only.
-          </div>
-        )}
-
-        <HomeworkForm
-          token={token}
-          schema={typedWorksheet.schema}
-          existingResponse={existingResponse ? (existingResponse as WorksheetResponse).response_data as Record<string, unknown> : undefined}
-          isCompleted={isCompleted}
-          readOnly={readOnly}
-        />
+          <HomeworkForm
+            token={token}
+            schema={typedWorksheet.schema}
+            existingResponse={existingResponse ? (existingResponse as WorksheetResponse).response_data as Record<string, unknown> : undefined}
+            isCompleted={isCompleted}
+            readOnly={readOnly}
+            worksheetTitle={typedWorksheet.title}
+          />
+        </ConsentGate>
       </main>
 
       {/* Footer */}

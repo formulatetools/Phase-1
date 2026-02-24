@@ -11,7 +11,9 @@ export type FeatureRequestStatus = 'submitted' | 'under_review' | 'planned' | 's
 export type FeatureRequestCategory = 'new_worksheet_or_tool' | 'new_psychometric_measure' | 'platform_feature' | 'integration' | 'other'
 export type WorksheetVisibility = 'curated' | 'private' | 'organisation' | 'public'
 export type TrackingFrequency = 'daily' | 'weekly' | 'session' | 'custom'
-export type AssignmentStatus = 'assigned' | 'in_progress' | 'completed' | 'reviewed'
+export type AssignmentStatus = 'assigned' | 'in_progress' | 'completed' | 'reviewed' | 'pdf_downloaded'
+export type CompletionMethod = 'digital' | 'paper'
+export type HomeworkEventType = 'consent_granted' | 'consent_declined' | 'consent_withdrawn' | 'pdf_downloaded'
 export type ResponseSource = 'manual' | 'assigned' | 'ai_generated'
 export type RelationshipStatus = 'active' | 'discharged' | 'paused'
 export type RelationshipType = 'clinical' | 'supervision'
@@ -129,6 +131,8 @@ export interface WorksheetAssignment {
   completed_at: string | null
   locked_at: string | null
   deleted_at: string | null
+  completion_method: CompletionMethod
+  pdf_downloaded_at: string | null
 }
 
 export interface WorksheetResponse {
@@ -299,6 +303,26 @@ export interface PromoRedemption {
   user_id: string
   redeemed_at: string
   access_expires_at: string
+}
+
+export interface HomeworkConsent {
+  id: string
+  relationship_id: string
+  consent_type: 'homework_digital_completion'
+  consented_at: string
+  withdrawn_at: string | null
+  ip_hash: string | null
+  user_agent: string | null
+  created_at: string
+}
+
+export interface HomeworkEvent {
+  id: string
+  relationship_id: string
+  assignment_id: string | null
+  event_type: HomeworkEventType
+  metadata: Record<string, unknown>
+  created_at: string
 }
 
 // Note: We use untyped Supabase clients and cast query results to our

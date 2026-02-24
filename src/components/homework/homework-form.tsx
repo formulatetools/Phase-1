@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
+import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from './blank-pdf-generator'
 
 type FieldValue = string | number | '' | string[] | Record<string, string | number | ''>[]
 
@@ -12,6 +13,7 @@ interface HomeworkFormProps {
   existingResponse?: Record<string, unknown>
   isCompleted: boolean
   readOnly: boolean
+  worksheetTitle?: string
 }
 
 export function HomeworkForm({
@@ -20,15 +22,18 @@ export function HomeworkForm({
   existingResponse,
   isCompleted,
   readOnly,
+  worksheetTitle,
 }: HomeworkFormProps) {
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(isCompleted)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [generatingPdf, setGeneratingPdf] = useState(false)
   const valuesRef = useRef<Record<string, FieldValue>>({})
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null)
   const hasChangesRef = useRef(false)
+  const pdfRef = useRef<BlankPdfGeneratorHandle>(null)
 
   // Auto-save every 30 seconds if there are changes
   useEffect(() => {
@@ -124,6 +129,27 @@ export function HomeworkForm({
     }
   }
 
+  const handleBlankPdfDownload = async () => {
+    setGeneratingPdf(true)
+    try {
+      // Generate the blank PDF
+      if (pdfRef.current) {
+        await pdfRef.current.generatePdf()
+      }
+
+      // Log the download event (does NOT change assignment status)
+      await fetch('/api/homework/pdf-download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      })
+    } catch (err) {
+      console.error('PDF download failed:', err)
+    } finally {
+      setGeneratingPdf(false)
+    }
+  }
+
   // Submitted confirmation
   if (submitted && !existingResponse) {
     return (
@@ -189,6 +215,19 @@ export function HomeworkForm({
         </div>
       )}
 
+      {/* Prefer pen and paper? — subtle link below action bar */}
+      {!readOnly && !submitted && worksheetTitle && (
+        <div className="text-center">
+          <button
+            onClick={handleBlankPdfDownload}
+            disabled={generatingPdf}
+            className="text-xs text-primary-400 underline underline-offset-2 transition-colors hover:text-primary-600 disabled:opacity-50"
+          >
+            {generatingPdf ? 'Generating PDF…' : 'Prefer pen and paper? Download blank PDF ↓'}
+          </button>
+        </div>
+      )}
+
       {/* Already submitted indicator */}
       {submitted && existingResponse && (
         <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
@@ -197,6 +236,15 @@ export function HomeworkForm({
           </svg>
           This worksheet has been submitted. Your therapist can see your responses.
         </div>
+      )}
+
+      {/* Hidden blank PDF generator */}
+      {worksheetTitle && (
+        <BlankPdfGenerator
+          ref={pdfRef}
+          schema={schema}
+          worksheetTitle={worksheetTitle}
+        />
       )}
     </div>
   )
