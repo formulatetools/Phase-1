@@ -67,6 +67,18 @@ export default async function HomeworkPage({ params }: PageProps) {
 
   const hasConsent = !!existingConsent
 
+  // Fetch client portal token for linking to the data portal
+  const { data: relationship } = await supabase
+    .from('therapeutic_relationships')
+    .select('client_portal_token')
+    .eq('id', typedAssignment.relationship_id)
+    .is('deleted_at', null)
+    .single()
+
+  const portalUrl = relationship?.client_portal_token
+    ? `/client/${relationship.client_portal_token}`
+    : null
+
   // Determine state
   const isExpired = new Date(typedAssignment.expires_at) < new Date()
   const isLocked = !!typedAssignment.locked_at
@@ -86,6 +98,14 @@ export default async function HomeworkPage({ params }: PageProps) {
           <p className="mt-2 text-sm text-primary-500">
             This homework assignment link is no longer active. Please contact your therapist for a new link.
           </p>
+          {portalUrl && (
+            <a
+              href={portalUrl}
+              className="mt-4 inline-block rounded-lg border border-primary-200 px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+            >
+              View your data
+            </a>
+          )}
           <div className="mt-6 flex items-center justify-center gap-1.5 text-xs text-primary-400">
             <LogoIcon size={14} />
             <span>Formulate</span>
@@ -162,7 +182,15 @@ export default async function HomeworkPage({ params }: PageProps) {
               <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
               </svg>
-              This worksheet has been submitted and reviewed. It is now read-only.
+              <span className="flex-1">This worksheet has been submitted and reviewed. It is now read-only.</span>
+              {portalUrl && (
+                <a
+                  href={portalUrl}
+                  className="shrink-0 text-xs font-medium text-primary-600 underline underline-offset-2 hover:text-primary-800 transition-colors"
+                >
+                  View all your data
+                </a>
+              )}
             </div>
           )}
 
@@ -173,6 +201,7 @@ export default async function HomeworkPage({ params }: PageProps) {
             isCompleted={isCompleted}
             readOnly={readOnly}
             worksheetTitle={typedWorksheet.title}
+            portalUrl={portalUrl}
           />
         </ConsentGate>
       </main>

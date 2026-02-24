@@ -14,6 +14,7 @@ interface HomeworkFormProps {
   isCompleted: boolean
   readOnly: boolean
   worksheetTitle?: string
+  portalUrl?: string | null
 }
 
 export function HomeworkForm({
@@ -23,6 +24,7 @@ export function HomeworkForm({
   isCompleted,
   readOnly,
   worksheetTitle,
+  portalUrl,
 }: HomeworkFormProps) {
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -163,6 +165,17 @@ export function HomeworkForm({
         <p className="mt-2 text-sm text-primary-500">
           Your responses have been sent to your therapist. You can close this page now.
         </p>
+        {portalUrl && (
+          <a
+            href={portalUrl}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-green-300 bg-white px-4 py-2 text-sm font-medium text-primary-700 hover:bg-green-50 transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+            View all your data
+          </a>
+        )}
       </div>
     )
   }
@@ -234,7 +247,15 @@ export function HomeworkForm({
           <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
-          This worksheet has been submitted. Your therapist can see your responses.
+          <span className="flex-1">This worksheet has been submitted. Your therapist can see your responses.</span>
+          {portalUrl && (
+            <a
+              href={portalUrl}
+              className="shrink-0 text-xs font-medium text-green-800 underline underline-offset-2 hover:text-green-900 transition-colors"
+            >
+              View all your data
+            </a>
+          )}
         </div>
       )}
 
