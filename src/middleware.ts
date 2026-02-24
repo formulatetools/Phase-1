@@ -115,6 +115,7 @@ export const config = {
     '/api/checkout',
     '/api/portal',
     '/api/homework',
+    '/api/import-worksheet',
     // All non-static, non-API page routes (existing auth pattern)
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api/).*)',
   ],

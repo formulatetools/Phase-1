@@ -71,4 +71,5 @@ export const RATE_LIMITS: Record<string, { limit: number; windowMs: number }> = 
   '/api/checkout': { limit: 10, windowMs: 60_000 },
   '/api/portal': { limit: 10, windowMs: 60_000 },
   '/api/homework': { limit: 30, windowMs: 60_000 },
+  '/api/import-worksheet': { limit: 5, windowMs: 60_000 },
 }

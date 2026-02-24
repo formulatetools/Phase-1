@@ -90,6 +90,7 @@ export default async function NewToolPage({ searchParams }: PageProps) {
     <CustomWorksheetBuilder
       mode="create"
       categories={(categories || []) as { id: string; name: string }[]}
+      showImportPanel={!forkId}
       initialData={initialData}
     />
   )

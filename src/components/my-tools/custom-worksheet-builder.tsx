@@ -1,17 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { WorksheetSchema, WorksheetSection } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { SectionEditor } from './section-editor'
+import { WorksheetImportPanel } from './worksheet-import-panel'
 import { createCustomWorksheet, updateCustomWorksheet } from '@/app/(dashboard)/my-tools/actions'
+import { useToast } from '@/hooks/use-toast'
 
 interface CustomWorksheetBuilderProps {
   mode: 'create' | 'edit'
   worksheetId?: string
   categories: { id: string; name: string }[]
+  showImportPanel?: boolean
   initialData?: {
     title: string
     description: string
@@ -28,11 +31,31 @@ export function CustomWorksheetBuilder({
   mode,
   worksheetId,
   categories,
+  showImportPanel,
   initialData,
 }: CustomWorksheetBuilderProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // ── Import handler ──────────────────────────────────────────────────
+  const handleImportComplete = useCallback((data: {
+    title: string
+    description: string
+    instructions: string
+    estimatedMinutes: number | null
+    tags: string[]
+    schema: WorksheetSchema
+  }) => {
+    setTitle(data.title)
+    setDescription(data.description)
+    setInstructions(data.instructions)
+    setSections(data.schema.sections)
+    setTagsInput(data.tags.join(', '))
+    setEstimatedMinutes(data.estimatedMinutes)
+    toast({ type: 'success', message: 'Worksheet imported — review and edit below.' })
+  }, [toast])
 
   // Metadata state
   const [title, setTitle] = useState(initialData?.title || '')
@@ -183,6 +206,14 @@ export function CustomWorksheetBuilder({
       <div className="flex gap-6">
         {/* Left: Builder */}
         <div className={`flex-1 min-w-0 ${showPreview ? 'hidden lg:block' : ''}`}>
+          {/* Import from file */}
+          {showImportPanel && (
+            <WorksheetImportPanel
+              onImportComplete={handleImportComplete}
+              disabled={saving}
+            />
+          )}
+
           {/* Metadata */}
           <div className="mb-6 space-y-4 rounded-2xl border border-primary-100 bg-surface p-5">
             <div>
