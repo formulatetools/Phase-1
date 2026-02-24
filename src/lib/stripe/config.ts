@@ -19,24 +19,28 @@ export const TIER_LIMITS = {
     maxClients: 2,
     maxActiveAssignments: 3,
     maxCustomWorksheets: 0,
+    maxSupervisees: 0,
   },
   starter: {
     monthlyUses: Infinity,
     maxClients: 0,
     maxActiveAssignments: 0,
     maxCustomWorksheets: 0,
+    maxSupervisees: 0,
   },
   standard: {
     monthlyUses: Infinity,
     maxClients: Infinity,
     maxActiveAssignments: Infinity,
     maxCustomWorksheets: 3,
+    maxSupervisees: 4,
   },
   professional: {
     monthlyUses: Infinity,
     maxClients: Infinity,
     maxActiveAssignments: Infinity,
     maxCustomWorksheets: 20,
+    maxSupervisees: 8,
   },
 } as const
 
@@ -68,6 +72,7 @@ export const TIER_FEATURES: Record<string, string[]> = {
     'Share worksheets with clients',
     'Custom worksheet builder',
     'Fork & customise any tool',
+    'Supervision portal',
   ],
   professional: [
     'Everything in Practice',

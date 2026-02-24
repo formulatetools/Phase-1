@@ -14,6 +14,7 @@ export type TrackingFrequency = 'daily' | 'weekly' | 'session' | 'custom'
 export type AssignmentStatus = 'assigned' | 'in_progress' | 'completed' | 'reviewed'
 export type ResponseSource = 'manual' | 'assigned' | 'ai_generated'
 export type RelationshipStatus = 'active' | 'discharged' | 'paused'
+export type RelationshipType = 'clinical' | 'supervision'
 export type TrainingProgressStatus = 'not_started' | 'in_progress' | 'completed'
 export type EmaScheduleStatus = 'active' | 'paused' | 'completed' | 'cancelled'
 export type ConsentType = 'data_processing' | 'ema_notifications' | 'data_sharing_with_therapist' | 'research_participation' | 'marketing'
@@ -160,6 +161,7 @@ export interface TherapeuticRelationship {
   therapist_id: string
   client_label: string
   status: RelationshipStatus
+  relationship_type: RelationshipType
   started_at: string
   ended_at: string | null
   deleted_at: string | null

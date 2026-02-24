@@ -33,6 +33,7 @@ export default async function DashboardPage() {
     { count: userExportCount },
     { data: latestRedemption },
     { data: activeSubscription },
+    { count: activeSuperviseeCount },
   ] = await Promise.all([
     // Recently accessed worksheets
     supabase
@@ -42,20 +43,22 @@ export default async function DashboardPage() {
       .order('created_at', { ascending: false })
       .limit(5),
 
-    // Active clients count
+    // Active clients count (clinical only)
     supabase
       .from('therapeutic_relationships')
       .select('*', { count: 'exact', head: true })
       .eq('therapist_id', user.id)
       .eq('status', 'active')
+      .eq('relationship_type', 'clinical')
       .is('deleted_at', null),
 
-    // Discharged clients count
+    // Discharged clients count (clinical only)
     supabase
       .from('therapeutic_relationships')
       .select('*', { count: 'exact', head: true })
       .eq('therapist_id', user.id)
       .eq('status', 'discharged')
+      .eq('relationship_type', 'clinical')
       .is('deleted_at', null),
 
     // Active assignments (assigned or in_progress)
@@ -116,6 +119,15 @@ export default async function DashboardPage() {
       .order('created_at', { ascending: false })
       .limit(1)
       .single(),
+
+    // Active supervisees count
+    supabase
+      .from('therapeutic_relationships')
+      .select('*', { count: 'exact', head: true })
+      .eq('therapist_id', user.id)
+      .eq('status', 'active')
+      .eq('relationship_type', 'supervision')
+      .is('deleted_at', null),
   ])
 
   // Deduplicate recently accessed worksheets
@@ -235,6 +247,9 @@ export default async function DashboardPage() {
             Active client{(activeClientCount ?? 0) !== 1 ? 's' : ''}
             {(dischargedClientCount ?? 0) > 0 && (
               <span className="text-primary-300"> · {dischargedClientCount} discharged</span>
+            )}
+            {(activeSuperviseeCount ?? 0) > 0 && (
+              <span className="text-primary-300"> · {activeSuperviseeCount} supervisee{(activeSuperviseeCount ?? 0) !== 1 ? 's' : ''}</span>
             )}
           </p>
         </div>
