@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import { validateCustomSchema } from '@/lib/validation/custom-worksheet'
-import { buildImportPrompt } from '@/lib/ai/import-prompt'
+import { buildImportPrompt, buildFilledImportPrompt } from '@/lib/ai/import-prompt'
 import type { SubscriptionTier } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
 import Anthropic from '@anthropic-ai/sdk'
@@ -104,6 +104,8 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 5. Call Claude Haiku 4.5 ─────────────────────────────────────
+    const filled = formData.get('filled') === 'true'
+
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
       console.error('ANTHROPIC_API_KEY not configured')
@@ -114,7 +116,9 @@ export async function POST(request: NextRequest) {
     }
 
     const anthropic = new Anthropic({ apiKey })
-    const prompt = buildImportPrompt(extractedText)
+    const prompt = filled
+      ? buildFilledImportPrompt(extractedText)
+      : buildImportPrompt(extractedText)
 
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20241022',
@@ -138,6 +142,7 @@ export async function POST(request: NextRequest) {
       estimatedMinutes?: number | null
       tags?: string[]
       schema?: WorksheetSchema
+      responseValues?: Record<string, unknown>
     }
 
     try {
@@ -168,14 +173,21 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 8. Return structured result ──────────────────────────────────
-    return NextResponse.json({
+    const result: Record<string, unknown> = {
       title: parsed.title || 'Imported Worksheet',
       description: parsed.description || '',
       instructions: parsed.instructions || '',
       estimatedMinutes: parsed.estimatedMinutes ?? null,
       tags: Array.isArray(parsed.tags) ? parsed.tags : [],
       schema: parsed.schema,
-    })
+    }
+
+    // Include response values for filled worksheet imports
+    if (filled && parsed.responseValues && typeof parsed.responseValues === 'object') {
+      result.responseValues = parsed.responseValues
+    }
+
+    return NextResponse.json(result)
   } catch (err) {
     // Handle Anthropic-specific errors
     if (err instanceof Anthropic.APIError) {

@@ -1,33 +1,8 @@
 // Prompt builder for AI-powered worksheet import
 // Sends extracted document text to Claude Haiku 4.5 and gets back a WorksheetSchema
+// Supports two modes: blank template (schema only) and filled worksheet (schema + response values)
 
-export function buildImportPrompt(documentText: string): string {
-  return `You are a clinical psychology worksheet digitiser. Convert the paper-based therapy worksheet below into a structured JSON schema for an interactive web form.
-
-## Output Format
-
-Return a single JSON object with this exact structure (NO markdown fences, ONLY raw JSON):
-
-{
-  "title": "Worksheet title",
-  "description": "1-2 sentence clinical description of what this worksheet is for",
-  "instructions": "Instructions shown to the user before they fill it in",
-  "estimatedMinutes": 15,
-  "tags": ["tag1", "tag2"],
-  "schema": {
-    "version": 1,
-    "sections": [
-      {
-        "id": "s-1",
-        "title": "Section Title",
-        "description": "Optional section instructions",
-        "fields": [ /* field objects */ ]
-      }
-    ]
-  }
-}
-
-## Allowed Field Types
+const SCHEMA_SPEC = `## Allowed Field Types
 
 Each field MUST have "id" (unique, format "f-1", "f-2", etc.), "label" (non-empty string), and "type" from this list ONLY:
 
@@ -74,9 +49,9 @@ Each field MUST have "id" (unique, format "f-1", "f-2", etc.), "label" (non-empt
 - Tabular/columnar data (thought records, activity logs, rows of entries) → table
 - Dates → date
 - Times → time
-- Scores that sum or average other fields → computed
+- Scores that sum or average other fields → computed`
 
-## Rules
+const SCHEMA_RULES = `## Rules
 
 1. ONLY output valid JSON. No markdown, no explanation, just the JSON object.
 2. ONLY use the 10 field types listed above. Never invent new types.
@@ -87,9 +62,106 @@ Each field MUST have "id" (unique, format "f-1", "f-2", etc.), "label" (non-empt
 7. If the document has no clear sections, create a single section with an empty title.
 8. For Likert scales, always include anchors for the min and max values.
 9. For tables, include at least 2 columns and set min_rows: 1, max_rows: 10.
-10. For tags, suggest relevant clinical tags like "CBT", "anxiety", "depression", "thought record", etc.
+10. For tags, suggest relevant clinical tags like "CBT", "anxiety", "depression", "thought record", etc.`
+
+export function buildImportPrompt(documentText: string): string {
+  return `You are a clinical psychology worksheet digitiser. Convert the paper-based therapy worksheet below into a structured JSON schema for an interactive web form.
+
+## Output Format
+
+Return a single JSON object with this exact structure (NO markdown fences, ONLY raw JSON):
+
+{
+  "title": "Worksheet title",
+  "description": "1-2 sentence clinical description of what this worksheet is for",
+  "instructions": "Instructions shown to the user before they fill it in",
+  "estimatedMinutes": 15,
+  "tags": ["tag1", "tag2"],
+  "schema": {
+    "version": 1,
+    "sections": [
+      {
+        "id": "s-1",
+        "title": "Section Title",
+        "description": "Optional section instructions",
+        "fields": [ /* field objects */ ]
+      }
+    ]
+  }
+}
+
+${SCHEMA_SPEC}
+
+${SCHEMA_RULES}
 
 ## Document to Convert
+
+"""
+${documentText}
+"""`
+}
+
+export function buildFilledImportPrompt(documentText: string): string {
+  return `You are a clinical psychology worksheet digitiser. The document below is a FILLED-IN therapy worksheet — it contains both the worksheet structure AND a client's responses. Your job is to extract BOTH the worksheet schema (structure) AND the filled-in response values.
+
+## Output Format
+
+Return a single JSON object with this exact structure (NO markdown fences, ONLY raw JSON):
+
+{
+  "title": "Worksheet title",
+  "description": "1-2 sentence clinical description of what this worksheet is for",
+  "instructions": "Instructions shown to the user before they fill it in",
+  "estimatedMinutes": 15,
+  "tags": ["tag1", "tag2"],
+  "schema": {
+    "version": 1,
+    "sections": [
+      {
+        "id": "s-1",
+        "title": "Section Title",
+        "fields": [ /* field objects with "id", "type", "label", etc. */ ]
+      }
+    ]
+  },
+  "responseValues": {
+    "f-1": "The client's written answer for this text/textarea field",
+    "f-2": 7,
+    "f-3": ["opt-1", "opt-3"],
+    "f-4": [
+      { "col-1": "Row 1 text", "col-2": 85 },
+      { "col-1": "Row 2 text", "col-2": 40 }
+    ]
+  }
+}
+
+## The "responseValues" Object
+
+This maps field IDs to the client's actual answers extracted from the document:
+
+- "text" / "textarea" fields → string value (the client's written response)
+- "number" fields → number value
+- "likert" fields → number value (the rating they selected)
+- "checklist" fields → array of selected option IDs, e.g. ["opt-1", "opt-3"]
+- "select" fields → single option ID string, e.g. "opt-2"
+- "date" fields → date string in "YYYY-MM-DD" format
+- "time" fields → time string in "HH:MM" format
+- "table" fields → array of row objects, each mapping column IDs to values, e.g. [{ "col-1": "text", "col-2": 50 }]
+- "computed" fields → omit from responseValues (they are auto-calculated)
+
+If a field appears blank or unanswered in the document, OMIT it from responseValues entirely.
+
+${SCHEMA_SPEC}
+
+${SCHEMA_RULES}
+
+11. Extract ALL filled-in client responses you can find in the document.
+12. Map each response to the correct field ID in responseValues.
+13. For checklist fields, only include option IDs that were ticked/selected.
+14. For table fields, include one object per filled row.
+15. If you cannot determine the value for a field, omit it from responseValues.
+
+## Filled Worksheet to Convert
 
 """
 ${documentText}

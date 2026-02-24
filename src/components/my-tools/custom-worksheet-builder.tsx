@@ -40,6 +40,8 @@ export function CustomWorksheetBuilder({
   const [error, setError] = useState<string | null>(null)
 
   // ── Import handler ──────────────────────────────────────────────────
+  const [importedValues, setImportedValues] = useState<Record<string, unknown> | null>(null)
+
   const handleImportComplete = useCallback((data: {
     title: string
     description: string
@@ -47,6 +49,7 @@ export function CustomWorksheetBuilder({
     estimatedMinutes: number | null
     tags: string[]
     schema: WorksheetSchema
+    responseValues?: Record<string, unknown>
   }) => {
     setTitle(data.title)
     setDescription(data.description)
@@ -54,6 +57,14 @@ export function CustomWorksheetBuilder({
     setSections(data.schema.sections)
     setTagsInput(data.tags.join(', '))
     setEstimatedMinutes(data.estimatedMinutes)
+
+    // Store extracted response values for preview
+    if (data.responseValues && Object.keys(data.responseValues).length > 0) {
+      setImportedValues(data.responseValues)
+    } else {
+      setImportedValues(null)
+    }
+
     toast({ type: 'success', message: 'Worksheet imported — review and edit below.' })
   }, [toast])
 
@@ -334,8 +345,20 @@ export function CustomWorksheetBuilder({
                   {instructions}
                 </div>
               )}
+              {importedValues && (
+                <div className="mb-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                  <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                  </svg>
+                  Preview shows imported client responses
+                </div>
+              )}
               {sections.length > 0 ? (
-                <WorksheetRenderer schema={schema} readOnly={false} />
+                <WorksheetRenderer
+                  schema={schema}
+                  readOnly={false}
+                  initialValues={importedValues ?? undefined}
+                />
               ) : (
                 <div className="py-8 text-center text-sm text-primary-300">
                   Add sections and fields to see a preview

@@ -11,6 +11,7 @@ interface ImportResult {
   estimatedMinutes: number | null
   tags: string[]
   schema: WorksheetSchema
+  responseValues?: Record<string, unknown>
 }
 
 interface WorksheetImportPanelProps {
@@ -32,6 +33,7 @@ export function WorksheetImportPanel({ onImportComplete, disabled }: WorksheetIm
   const [state, setState] = useState<ImportState>('idle')
   const [fileName, setFileName] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
+  const [filled, setFilled] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const processFile = useCallback(async (file: File) => {
@@ -51,6 +53,9 @@ export function WorksheetImportPanel({ onImportComplete, disabled }: WorksheetIm
     try {
       const formData = new FormData()
       formData.append('file', file)
+      if (filled) {
+        formData.append('filled', 'true')
+      }
 
       const response = await fetch('/api/import-worksheet', {
         method: 'POST',
@@ -66,7 +71,13 @@ export function WorksheetImportPanel({ onImportComplete, disabled }: WorksheetIm
       }
 
       setState('success')
-      toast({ type: 'success', message: 'Worksheet imported — review and edit below.' })
+      const hasResponses = filled && data.responseValues && Object.keys(data.responseValues).length > 0
+      toast({
+        type: 'success',
+        message: hasResponses
+          ? 'Worksheet and responses imported — review and edit below.'
+          : 'Worksheet imported — review and edit below.',
+      })
       onImportComplete(data)
     } catch {
       toast({ type: 'error', message: 'Network error. Check your connection and try again.' })
@@ -166,8 +177,32 @@ export function WorksheetImportPanel({ onImportComplete, disabled }: WorksheetIm
           aria-label="Upload worksheet file"
         />
       </div>
+      {/* Filled worksheet toggle */}
+      <div className="mt-3 flex items-center gap-2.5">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={filled}
+          onClick={() => setFilled((f) => !f)}
+          disabled={state === 'analysing'}
+          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50 ${
+            filled ? 'bg-brand' : 'bg-primary-200 dark:bg-primary-600'
+          }`}
+        >
+          <span
+            className={`pointer-events-none block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
+              filled ? 'translate-x-[18px]' : 'translate-x-[3px]'
+            }`}
+          />
+        </button>
+        <span className="text-xs text-primary-600 dark:text-primary-400">
+          This worksheet has been filled in by a client
+        </span>
+      </div>
       <p className="mt-2 text-xs text-primary-500 dark:text-primary-400">
-        We&apos;ll analyse the structure and convert it into an editable worksheet. You can review and edit everything before saving.
+        {filled
+          ? 'We\u2019ll extract both the worksheet structure and the client\u2019s responses. You can review and edit everything before saving.'
+          : 'We\u2019ll analyse the structure and convert it into an editable worksheet. You can review and edit everything before saving.'}
       </p>
     </div>
   )
