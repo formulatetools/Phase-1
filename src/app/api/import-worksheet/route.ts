@@ -6,6 +6,7 @@ import { validateCustomSchema } from '@/lib/validation/custom-worksheet'
 import { buildImportPrompt, buildFilledImportPrompt } from '@/lib/ai/import-prompt'
 import type { SubscriptionTier } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
+import { stripPii } from '@/lib/pii/strip-pii'
 import Anthropic from '@anthropic-ai/sdk'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -103,6 +104,16 @@ export async function POST(request: NextRequest) {
       extractedText = extractedText.slice(0, MAX_TEXT_LENGTH)
     }
 
+    // ── 4b. Strip PII before AI processing ───────────────────────────
+    const { text: sanitisedText, strippedCounts } = stripPii(extractedText)
+
+    if (strippedCounts.total > 0) {
+      console.log(
+        `[import-worksheet] Stripped ${strippedCounts.total} PII items:`,
+        JSON.stringify(strippedCounts)
+      )
+    }
+
     // ── 5. Call Claude Haiku 4.5 ─────────────────────────────────────
     const filled = formData.get('filled') === 'true'
 
@@ -117,8 +128,8 @@ export async function POST(request: NextRequest) {
 
     const anthropic = new Anthropic({ apiKey })
     const prompt = filled
-      ? buildFilledImportPrompt(extractedText)
-      : buildImportPrompt(extractedText)
+      ? buildFilledImportPrompt(sanitisedText)
+      : buildImportPrompt(sanitisedText)
 
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20241022',

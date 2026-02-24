@@ -62,7 +62,8 @@ const SCHEMA_RULES = `## Rules
 7. If the document has no clear sections, create a single section with an empty title.
 8. For Likert scales, always include anchors for the min and max values.
 9. For tables, include at least 2 columns and set min_rows: 1, max_rows: 10.
-10. For tags, suggest relevant clinical tags like "CBT", "anxiety", "depression", "thought record", etc.`
+10. For tags, suggest relevant clinical tags like "CBT", "anxiety", "depression", "thought record", etc.
+11. If the document contains any personally identifiable information (names, emails, phone numbers, addresses, NHS numbers, etc.), do NOT include it in the output. Use generic placeholders in labels if needed.`
 
 export function buildImportPrompt(documentText: string): string {
   return `You are a clinical psychology worksheet digitiser. Convert the paper-based therapy worksheet below into a structured JSON schema for an interactive web form.
@@ -160,6 +161,7 @@ ${SCHEMA_RULES}
 13. For checklist fields, only include option IDs that were ticked/selected.
 14. For table fields, include one object per filled row.
 15. If you cannot determine the value for a field, omit it from responseValues.
+16. PRIVACY: The document text has been pre-processed to replace identifiable information with placeholders like [EMAIL], [PHONE], [NAME], [DATE], [NHS_NUMBER], [NI_NUMBER], [POSTCODE]. Keep these placeholders as-is in your responseValues. If you spot any remaining personally identifiable information that was NOT caught by pre-processing, replace it with the appropriate placeholder.
 
 ## Filled Worksheet to Convert
 

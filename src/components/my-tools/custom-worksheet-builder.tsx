@@ -7,13 +7,14 @@ import type { WorksheetSchema, WorksheetSection } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { SectionEditor } from './section-editor'
 import { WorksheetImportPanel } from './worksheet-import-panel'
-import { createCustomWorksheet, updateCustomWorksheet } from '@/app/(dashboard)/my-tools/actions'
+import { createCustomWorksheet, updateCustomWorksheet, saveImportedResponse } from '@/app/(dashboard)/my-tools/actions'
 import { useToast } from '@/hooks/use-toast'
 
 interface CustomWorksheetBuilderProps {
   mode: 'create' | 'edit'
   worksheetId?: string
   categories: { id: string; name: string }[]
+  clients?: { id: string; client_label: string }[]
   showImportPanel?: boolean
   initialData?: {
     title: string
@@ -31,6 +32,7 @@ export function CustomWorksheetBuilder({
   mode,
   worksheetId,
   categories,
+  clients,
   showImportPanel,
   initialData,
 }: CustomWorksheetBuilderProps) {
@@ -41,6 +43,7 @@ export function CustomWorksheetBuilder({
 
   // ── Import handler ──────────────────────────────────────────────────
   const [importedValues, setImportedValues] = useState<Record<string, unknown> | null>(null)
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
 
   const handleImportComplete = useCallback((data: {
     title: string
@@ -144,7 +147,23 @@ export function CustomWorksheetBuilder({
         setError(result.error)
         setSaving(false)
       } else {
-        router.push(`/my-tools/${result.id}`)
+        // If a client was selected and we have imported response values, save the response
+        if (selectedClientId && importedValues && Object.keys(importedValues).length > 0) {
+          const saveResult = await saveImportedResponse(
+            result.id!,
+            selectedClientId,
+            importedValues
+          )
+          if (saveResult.error) {
+            toast({ type: 'error', message: `Tool created but response save failed: ${saveResult.error}` })
+            router.push(`/my-tools/${result.id}`)
+          } else {
+            toast({ type: 'success', message: 'Tool created and responses saved to client.' })
+            router.push(`/clients/${selectedClientId}`)
+          }
+        } else {
+          router.push(`/my-tools/${result.id}`)
+        }
       }
     } else if (worksheetId) {
       const result = await updateCustomWorksheet(
@@ -222,6 +241,9 @@ export function CustomWorksheetBuilder({
             <WorksheetImportPanel
               onImportComplete={handleImportComplete}
               disabled={saving}
+              clients={clients}
+              selectedClientId={selectedClientId}
+              onClientChange={setSelectedClientId}
             />
           )}
 

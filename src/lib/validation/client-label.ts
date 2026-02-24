@@ -8,15 +8,15 @@
 
 // ── Patterns ────────────────────────────────────────────────────────────────
 
-const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
-const PHONE_RE = /(?:\+?\d{1,4}[\s-]?)?(?:\(?\d{2,5}\)?[\s-]?)?\d{4,}/
-const NHS_NUMBER_RE = /\b\d{3}[\s-]?\d{3}[\s-]?\d{4}\b/
-const POSTCODE_RE = /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i
-const DOB_RE = /\b\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}\b/
-const NI_NUMBER_RE = /\b[A-CEGHJ-PR-TW-Z]{2}\s?\d{2}\s?\d{2}\s?\d{2}\s?[A-D]\b/i
+export const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
+export const PHONE_RE = /(?:\+?\d{1,4}[\s-]?)?(?:\(?\d{2,5}\)?[\s-]?)?\d{4,}/
+export const NHS_NUMBER_RE = /\b\d{3}[\s-]?\d{3}[\s-]?\d{4}\b/
+export const POSTCODE_RE = /\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i
+export const DOB_RE = /\b\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}\b/
+export const NI_NUMBER_RE = /\b[A-CEGHJ-PR-TW-Z]{2}\s?\d{2}\s?\d{2}\s?\d{2}\s?[A-D]\b/i
 
 // Common first names (UK-weighted) — kept intentionally short; catches obvious cases
-const COMMON_NAMES = new Set([
+export const COMMON_NAMES = new Set([
   'james', 'john', 'robert', 'michael', 'david', 'william', 'richard', 'thomas',
   'mary', 'patricia', 'jennifer', 'linda', 'elizabeth', 'barbara', 'susan', 'sarah',
   'jessica', 'margaret', 'emma', 'olivia', 'ava', 'sophia', 'mia', 'charlotte',

@@ -41,6 +41,15 @@ export default async function NewToolPage({ searchParams }: PageProps) {
     .select('id, name')
     .order('display_order')
 
+  // Fetch therapist's active clients for the import-to-client dropdown
+  const { data: clients } = await supabase
+    .from('therapeutic_relationships')
+    .select('id, client_label')
+    .eq('therapist_id', user.id)
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .order('client_label')
+
   // If forking a curated worksheet, pre-populate with its data
   let initialData: {
     title: string
@@ -90,6 +99,7 @@ export default async function NewToolPage({ searchParams }: PageProps) {
     <CustomWorksheetBuilder
       mode="create"
       categories={(categories || []) as { id: string; name: string }[]}
+      clients={(clients || []) as { id: string; client_label: string }[]}
       showImportPanel={!forkId}
       initialData={initialData}
     />

@@ -17,6 +17,9 @@ interface ImportResult {
 interface WorksheetImportPanelProps {
   onImportComplete: (data: ImportResult) => void
   disabled?: boolean
+  clients?: { id: string; client_label: string }[]
+  selectedClientId: string | null
+  onClientChange: (id: string | null) => void
 }
 
 type ImportState = 'idle' | 'analysing' | 'success'
@@ -28,7 +31,13 @@ const ACCEPTED_TYPES = [
 const ACCEPTED_EXTENSIONS = '.pdf,.docx'
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 
-export function WorksheetImportPanel({ onImportComplete, disabled }: WorksheetImportPanelProps) {
+export function WorksheetImportPanel({
+  onImportComplete,
+  disabled,
+  clients,
+  selectedClientId,
+  onClientChange,
+}: WorksheetImportPanelProps) {
   const { toast } = useToast()
   const [state, setState] = useState<ImportState>('idle')
   const [fileName, setFileName] = useState<string | null>(null)
@@ -183,7 +192,12 @@ export function WorksheetImportPanel({ onImportComplete, disabled }: WorksheetIm
           type="button"
           role="switch"
           aria-checked={filled}
-          onClick={() => setFilled((f) => !f)}
+          onClick={() => {
+            setFilled((f) => {
+              if (f) onClientChange(null) // Clear client when disabling filled mode
+              return !f
+            })
+          }}
           disabled={state === 'analysing'}
           className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50 ${
             filled ? 'bg-brand' : 'bg-primary-200 dark:bg-primary-600'
@@ -204,6 +218,28 @@ export function WorksheetImportPanel({ onImportComplete, disabled }: WorksheetIm
           ? 'We\u2019ll extract both the worksheet structure and the client\u2019s responses. You can review and edit everything before saving.'
           : 'We\u2019ll analyse the structure and convert it into an editable worksheet. You can review and edit everything before saving.'}
       </p>
+      {/* Client dropdown — shown when filled toggle is on */}
+      {filled && clients && clients.length > 0 && (
+        <div className="mt-3">
+          <label className="text-xs font-semibold text-primary-500">
+            Save responses to client (optional)
+          </label>
+          <select
+            value={selectedClientId || ''}
+            onChange={(e) => onClientChange(e.target.value || null)}
+            disabled={state === 'analysing'}
+            className="mt-1 w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-800 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+          >
+            <option value="">Don&apos;t save to a client</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>{c.client_label}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-primary-400">
+            If selected, the imported responses will be saved as a completed entry for this client.
+          </p>
+        </div>
+      )}
     </div>
   )
 }

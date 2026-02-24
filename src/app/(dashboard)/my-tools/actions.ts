@@ -5,6 +5,8 @@ import { getCurrentUser } from '@/lib/supabase/auth'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import { validateCustomSchema } from '@/lib/validation/custom-worksheet'
 import { revalidatePath } from 'next/cache'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { generateToken } from '@/lib/tokens'
 import type { SubscriptionTier } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
 
@@ -110,6 +112,108 @@ export async function createCustomWorksheet(
 
   revalidatePath('/my-tools')
   return { id: (data as { id: string }).id }
+}
+
+// ============================================================================
+// SAVE IMPORTED RESPONSE (filled worksheet import → client)
+// ============================================================================
+
+export async function saveImportedResponse(
+  worksheetId: string,
+  relationshipId: string,
+  responseData: Record<string, unknown>
+) {
+  const { user, profile } = await getCurrentUser()
+  if (!user || !profile) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  // Verify the relationship belongs to this therapist and is active
+  const { data: relationship } = await supabase
+    .from('therapeutic_relationships')
+    .select('id, therapist_id, status')
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .is('deleted_at', null)
+    .single()
+
+  if (!relationship) return { error: 'Client not found or access denied' }
+
+  // Verify the worksheet exists
+  const { data: worksheet } = await supabase
+    .from('worksheets')
+    .select('id')
+    .eq('id', worksheetId)
+    .is('deleted_at', null)
+    .single()
+
+  if (!worksheet) return { error: 'Worksheet not found' }
+
+  const now = new Date().toISOString()
+  const token = generateToken()
+
+  // 1. Create a completed assignment record (has INSERT RLS policy)
+  const { data: assignment, error: assignError } = await supabase
+    .from('worksheet_assignments')
+    .insert({
+      worksheet_id: worksheetId,
+      therapist_id: user.id,
+      relationship_id: relationshipId,
+      token,
+      status: 'completed',
+      assigned_at: now,
+      expires_at: now, // Already completed — no future expiry needed
+      completed_at: now,
+    })
+    .select()
+    .single()
+
+  if (assignError) return { error: `Failed to create assignment: ${assignError.message}` }
+
+  // 2. Create the response record (no INSERT RLS policy → use admin client)
+  const admin = createAdminClient()
+
+  const { data: response, error: respError } = await admin
+    .from('worksheet_responses')
+    .insert({
+      assignment_id: (assignment as { id: string }).id,
+      worksheet_id: worksheetId,
+      relationship_id: relationshipId,
+      response_data: responseData,
+      source: 'ai_generated',
+      started_at: now,
+      completed_at: now,
+    })
+    .select('id')
+    .single()
+
+  if (respError) {
+    // Clean up the orphaned assignment
+    await supabase
+      .from('worksheet_assignments')
+      .delete()
+      .eq('id', (assignment as { id: string }).id)
+
+    return { error: `Failed to save response: ${respError.message}` }
+  }
+
+  // 3. Audit log
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'create',
+    entity_type: 'worksheet_response',
+    entity_id: (response as { id: string }).id,
+    metadata: {
+      source: 'ai_generated',
+      worksheet_id: worksheetId,
+      relationship_id: relationshipId,
+      import_flow: true,
+    },
+  })
+
+  revalidatePath(`/clients/${relationshipId}`)
+  revalidatePath('/clients')
+  return { success: true, responseId: (response as { id: string }).id }
 }
 
 // ============================================================================
