@@ -4,6 +4,7 @@ import type { WorksheetAssignment, Worksheet, WorksheetResponse } from '@/types/
 import { HomeworkForm } from '@/components/homework/homework-form'
 import { ConsentGate } from '@/components/homework/consent-gate'
 import { LogoIcon } from '@/components/ui/logo'
+import { generatePortalToken } from '@/lib/tokens'
 
 export const metadata = {
   title: 'Homework — Formulate',
@@ -75,9 +76,17 @@ export default async function HomeworkPage({ params }: PageProps) {
     .is('deleted_at', null)
     .single()
 
-  const portalUrl = relationship?.client_portal_token
-    ? `/client/${relationship.client_portal_token}`
-    : null
+  // Auto-generate portal token if missing (backfills older relationships)
+  let portalToken = relationship?.client_portal_token
+  if (relationship && !portalToken) {
+    portalToken = generatePortalToken()
+    await supabase
+      .from('therapeutic_relationships')
+      .update({ client_portal_token: portalToken })
+      .eq('id', typedAssignment.relationship_id)
+  }
+
+  const portalUrl = portalToken ? `/client/${portalToken}` : null
 
   // Determine state
   const isExpired = new Date(typedAssignment.expires_at) < new Date()
