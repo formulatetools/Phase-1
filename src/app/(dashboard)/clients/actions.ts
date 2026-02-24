@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
-import { generateToken } from '@/lib/tokens'
+import { generateToken, generatePortalToken } from '@/lib/tokens'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import { revalidatePath } from 'next/cache'
 import type {
@@ -184,6 +184,20 @@ export async function createAssignment(
     entity_id: (data as WorksheetAssignment).id,
     metadata: { worksheet_id: worksheetId, relationship_id: relationshipId, token },
   })
+
+  // Lazy-generate client portal token if this relationship doesn't have one yet
+  const { data: rel } = await supabase
+    .from('therapeutic_relationships')
+    .select('client_portal_token')
+    .eq('id', relationshipId)
+    .single()
+
+  if (rel && !rel.client_portal_token) {
+    await supabase
+      .from('therapeutic_relationships')
+      .update({ client_portal_token: generatePortalToken() })
+      .eq('id', relationshipId)
+  }
 
   revalidatePath(`/clients/${relationshipId}`)
   return { data: data as WorksheetAssignment, token }

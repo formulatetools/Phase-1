@@ -5,3 +5,7 @@ import { customAlphabet } from 'nanoid'
 const alphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz'
 
 export const generateToken = customAlphabet(alphabet, 12)
+
+// Portal tokens are longer (16 chars) — they're permanent and higher-security
+// ~10^28 combinations — suitable for long-lived access tokens
+export const generatePortalToken = customAlphabet(alphabet, 16)

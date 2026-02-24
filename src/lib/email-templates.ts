@@ -189,3 +189,58 @@ export function promoExpiryEmail(
     `),
   }
 }
+
+// ─── Client Withdrawal Notification Email ──────────────────────
+
+export function withdrawalNotificationEmail(
+  therapistName: string | null,
+  clientLabel: string,
+  worksheetTitle?: string,
+  deletedCount?: number
+): { subject: string; html: string } {
+  const greeting = therapistName ? `Hi ${therapistName},` : 'Hi there,'
+
+  if (worksheetTitle) {
+    // Single response withdrawal
+    return {
+      subject: `${clientLabel} withdrew their response to ${worksheetTitle}`,
+      html: wrap(`
+        <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Client withdrew a response</h2>
+        <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+          ${greeting}
+        </p>
+        <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+          <strong>${clientLabel}</strong> has withdrawn their response to <strong>${worksheetTitle}</strong>. The response data has been permanently deleted.
+        </p>
+        <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+          The assignment record remains in your dashboard but the client's response content is no longer available. This action cannot be undone — it is the client's right under GDPR Article 17.
+        </p>
+        ${button('View Client Dashboard', `${APP_URL}/clients`)}
+        <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+          This is an automated notification. The client exercised their data rights.
+        </p>
+      `),
+    }
+  }
+
+  // Full data withdrawal
+  return {
+    subject: `${clientLabel} has withdrawn consent and deleted all their data`,
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Client withdrew all data</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        <strong>${clientLabel}</strong> has withdrawn consent and permanently deleted all their homework data${deletedCount ? ` (${deletedCount} response${deletedCount === 1 ? '' : 's'})` : ''}.
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        All existing homework links for this client have been expired. Future assignments will require the client to re-consent. The client relationship record itself remains intact for your clinical records.
+      </p>
+      ${button('View Client Dashboard', `${APP_URL}/clients`)}
+      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+        This is an automated notification. The client exercised their data rights under GDPR.
+      </p>
+    `),
+  }
+}

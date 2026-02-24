@@ -39,6 +39,7 @@ const statusColors: Record<string, string> = {
   completed: 'bg-green-50 text-green-700',
   reviewed: 'bg-primary-100 text-primary-600',
   pdf_downloaded: 'bg-purple-50 text-purple-700',
+  withdrawn: 'bg-red-50 text-red-600',
 }
 
 const statusLabels: Record<string, string> = {
@@ -47,6 +48,7 @@ const statusLabels: Record<string, string> = {
   completed: 'Completed',
   reviewed: 'Reviewed',
   pdf_downloaded: 'PDF downloaded',
+  withdrawn: 'Withdrawn',
 }
 
 export function SuperviseeDetail({
@@ -76,6 +78,7 @@ export function SuperviseeDetail({
     title: string
     dueDate?: string
   } | null>(null)
+  const [copiedPortalLink, setCopiedPortalLink] = useState(false)
 
   const canAssign = maxActiveAssignments === Infinity || totalActiveAssignments < maxActiveAssignments
 
@@ -386,6 +389,31 @@ export function SuperviseeDetail({
         </div>
       )}
 
+      {/* Supervisee Data Portal link */}
+      {relationship.client_portal_token && (
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-primary-800">Supervisee Data Portal</h3>
+          <p className="mt-1 text-xs text-primary-500">
+            Share this link so {relationship.client_label} can view their worksheets, download PDFs, or delete their data.
+          </p>
+          <div className="mt-3 flex items-center gap-2">
+            <code className="flex-1 truncate rounded-lg border border-primary-200 bg-primary-50 px-3 py-2 text-xs text-primary-600">
+              {appUrl}/client/{relationship.client_portal_token}
+            </code>
+            <button
+              onClick={async () => {
+                await navigator.clipboard.writeText(`${appUrl}/client/${relationship.client_portal_token}`)
+                setCopiedPortalLink(true)
+                setTimeout(() => setCopiedPortalLink(false), 3000)
+              }}
+              className="shrink-0 rounded-lg border border-primary-200 px-3 py-2 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+            >
+              {copiedPortalLink ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* GDPR Erasure */}
       <div className="rounded-2xl border border-red-100 bg-red-50/30 p-5">
         <div className="flex items-start justify-between">
@@ -467,6 +495,9 @@ export function SuperviseeDetail({
                         <span>Expires {new Date(a.expires_at).toLocaleDateString('en-GB')}</span>
                         {a.pdf_downloaded_at && (
                           <span>PDF downloaded {new Date(a.pdf_downloaded_at).toLocaleDateString('en-GB')}</span>
+                        )}
+                        {a.withdrawn_at && (
+                          <span className="text-red-500">Withdrawn {new Date(a.withdrawn_at).toLocaleDateString('en-GB')}</span>
                         )}
                       </div>
                     </div>

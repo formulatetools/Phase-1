@@ -11,7 +11,7 @@ export type FeatureRequestStatus = 'submitted' | 'under_review' | 'planned' | 's
 export type FeatureRequestCategory = 'new_worksheet_or_tool' | 'new_psychometric_measure' | 'platform_feature' | 'integration' | 'other'
 export type WorksheetVisibility = 'curated' | 'private' | 'organisation' | 'public'
 export type TrackingFrequency = 'daily' | 'weekly' | 'session' | 'custom'
-export type AssignmentStatus = 'assigned' | 'in_progress' | 'completed' | 'reviewed' | 'pdf_downloaded'
+export type AssignmentStatus = 'assigned' | 'in_progress' | 'completed' | 'reviewed' | 'pdf_downloaded' | 'withdrawn'
 export type CompletionMethod = 'digital' | 'paper'
 export type HomeworkEventType = 'consent_granted' | 'consent_declined' | 'consent_withdrawn' | 'pdf_downloaded'
 export type ResponseSource = 'manual' | 'assigned' | 'ai_generated'
@@ -133,6 +133,7 @@ export interface WorksheetAssignment {
   deleted_at: string | null
   completion_method: CompletionMethod
   pdf_downloaded_at: string | null
+  withdrawn_at: string | null
 }
 
 export interface WorksheetResponse {
@@ -166,6 +167,7 @@ export interface TherapeuticRelationship {
   client_label: string
   status: RelationshipStatus
   relationship_type: RelationshipType
+  client_portal_token: string | null
   started_at: string
   ended_at: string | null
   deleted_at: string | null
