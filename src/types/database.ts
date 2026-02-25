@@ -24,6 +24,10 @@ export type ConsentStatus = 'granted' | 'withdrawn'
 export type RequiredTier = 'standard' | 'professional'
 export type ContributorRole = 'clinical_contributor' | 'clinical_reviewer' | 'content_writer'
 export type LibraryStatus = 'draft' | 'submitted' | 'in_review' | 'changes_requested' | 'approved' | 'published' | 'rejected'
+export type ClinicalAccuracy = 'accurate' | 'minor_issues' | 'significant_concerns'
+export type ReviewCompleteness = 'complete' | 'missing_elements' | 'incomplete'
+export type ReviewUsability = 'ready' | 'needs_refinement' | 'major_issues'
+export type ReviewRecommendation = 'approve' | 'approve_with_edits' | 'revise_resubmit' | 'reject'
 
 export interface ContributorRoles {
   clinical_contributor: boolean
@@ -354,6 +358,22 @@ export interface HomeworkEvent {
   event_type: HomeworkEventType
   metadata: Record<string, unknown>
   created_at: string
+}
+
+export interface WorksheetReview {
+  id: string
+  worksheet_id: string
+  reviewer_id: string
+  assigned_at: string
+  completed_at: string | null
+  clinical_accuracy: ClinicalAccuracy | null
+  clinical_accuracy_notes: string | null
+  completeness: ReviewCompleteness | null
+  completeness_notes: string | null
+  usability: ReviewUsability | null
+  usability_notes: string | null
+  suggested_changes: string | null
+  recommendation: ReviewRecommendation | null
 }
 
 // Note: We use untyped Supabase clients and cast query results to our

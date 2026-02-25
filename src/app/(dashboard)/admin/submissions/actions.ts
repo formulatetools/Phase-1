@@ -6,7 +6,8 @@ import { getCurrentUser } from '@/lib/supabase/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
-import { submissionStatusEmail } from '@/lib/email-templates'
+import { submissionStatusEmail, reviewAssignedEmail } from '@/lib/email-templates'
+import type { ContributorRoles } from '@/types/database'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
 
@@ -220,4 +221,70 @@ export async function publishSubmission(worksheetId: string): Promise<void> {
   revalidatePath(`/admin/submissions/${worksheetId}`)
   revalidatePath('/admin/submissions')
   revalidatePath('/worksheets')
+}
+
+// ── Assign Reviewer ──────────────────────────────────────────────────
+
+export async function assignReviewer(worksheetId: string, reviewerId: string): Promise<void> {
+  const { user, profile } = await getCurrentUser()
+  if (!user || !profile || profile.role !== 'admin') redirect('/dashboard')
+
+  const admin = createAdminClient()
+  const supabase = await createClient()
+
+  // Validate reviewer has clinical_reviewer role
+  const { data: reviewer } = await admin
+    .from('profiles')
+    .select('id, email, full_name, contributor_roles')
+    .eq('id', reviewerId)
+    .single()
+
+  if (!reviewer) return
+
+  const r = reviewer as { id: string; email: string; full_name: string | null; contributor_roles: ContributorRoles | null }
+  if (!r.contributor_roles?.clinical_reviewer) return
+
+  // Fetch worksheet for title + status validation
+  const { data: worksheet } = await admin
+    .from('worksheets')
+    .select('id, title, library_status')
+    .eq('id', worksheetId)
+    .single()
+
+  if (!worksheet) return
+
+  const ws = worksheet as { id: string; title: string; library_status: string }
+  if (!['submitted', 'in_review'].includes(ws.library_status)) return
+
+  // Insert review assignment (UNIQUE constraint prevents duplicates)
+  const { error: insertError } = await admin
+    .from('worksheet_reviews')
+    .insert({ worksheet_id: worksheetId, reviewer_id: reviewerId })
+
+  if (insertError) return // Likely duplicate
+
+  // Move status to in_review if currently submitted
+  if (ws.library_status === 'submitted') {
+    await admin
+      .from('worksheets')
+      .update({ library_status: 'in_review' })
+      .eq('id', worksheetId)
+  }
+
+  // Audit log
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'assign',
+    entity_type: 'worksheet_review',
+    entity_id: worksheetId,
+    metadata: { reviewer_id: reviewerId, reviewer_name: r.full_name, title: ws.title },
+  })
+
+  // Send email
+  const reviewUrl = `${APP_URL}/reviews/${worksheetId}`
+  const email = reviewAssignedEmail(r.full_name, ws.title, reviewUrl)
+  sendEmail({ to: r.email, subject: email.subject, html: email.html, emailType: 'review_assigned' })
+
+  revalidatePath(`/admin/submissions/${worksheetId}`)
+  revalidatePath('/admin/submissions')
 }

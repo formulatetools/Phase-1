@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { SubmissionActions } from './submission-actions'
-import type { ContributorProfile } from '@/types/database'
+import type { ContributorProfile, ContributorRoles } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
 
 export const metadata = { title: 'Submission Detail — Admin — Formulate' }
@@ -86,6 +86,69 @@ export default async function AdminSubmissionDetailPage({
       .single()
     if (category) categoryName = (category as { name: string }).name
   }
+
+  // Fetch reviews for this worksheet
+  const { data: rawReviews } = await supabase
+    .from('worksheet_reviews')
+    .select('id, worksheet_id, reviewer_id, assigned_at, completed_at, clinical_accuracy, completeness, usability, recommendation')
+    .eq('worksheet_id', id)
+    .order('assigned_at', { ascending: true })
+
+  type RawReview = {
+    id: string; worksheet_id: string; reviewer_id: string; assigned_at: string
+    completed_at: string | null; clinical_accuracy: string | null
+    completeness: string | null; usability: string | null; recommendation: string | null
+  }
+
+  const typedReviews = (rawReviews || []) as RawReview[]
+
+  // Fetch reviewer profiles
+  const reviewerIds = typedReviews.map(r => r.reviewer_id)
+  let reviewerProfileMap: Record<string, string> = {}
+
+  if (reviewerIds.length > 0) {
+    const { data: reviewerProfiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, contributor_profile')
+      .in('id', reviewerIds)
+
+    reviewerProfileMap = Object.fromEntries(
+      (reviewerProfiles || []).map((p: { id: string; full_name: string | null; email: string; contributor_profile: ContributorProfile | null }) => {
+        const displayName = p.contributor_profile?.display_name || p.full_name || p.email
+        return [p.id, displayName]
+      })
+    )
+  }
+
+  const reviews = typedReviews.map(r => ({
+    id: r.id,
+    reviewer_id: r.reviewer_id,
+    reviewer_name: reviewerProfileMap[r.reviewer_id] || 'Unknown',
+    assigned_at: r.assigned_at,
+    completed_at: r.completed_at,
+    clinical_accuracy: r.clinical_accuracy,
+    completeness: r.completeness,
+    usability: r.usability,
+    recommendation: r.recommendation,
+  }))
+
+  // Fetch available reviewers (users with clinical_reviewer role, not already assigned)
+  const { data: allReviewerProfiles } = await supabase
+    .from('profiles')
+    .select('id, full_name, email, contributor_roles, contributor_profile')
+    .not('contributor_roles', 'is', null)
+
+  type ReviewerProfile = {
+    id: string; full_name: string | null; email: string
+    contributor_roles: ContributorRoles | null; contributor_profile: ContributorProfile | null
+  }
+
+  const availableReviewers = ((allReviewerProfiles || []) as ReviewerProfile[])
+    .filter(p => p.contributor_roles?.clinical_reviewer && !reviewerIds.includes(p.id))
+    .map(p => ({
+      id: p.id,
+      name: p.contributor_profile?.display_name || p.full_name || p.email,
+    }))
 
   const badge = STATUS_BADGES[ws.library_status] || STATUS_BADGES.submitted
 
@@ -200,11 +263,13 @@ export default async function AdminSubmissionDetailPage({
             </div>
           )}
 
-          {/* Action buttons */}
+          {/* Assign reviewer + reviews + action buttons */}
           <SubmissionActions
             worksheetId={ws.id}
             libraryStatus={ws.library_status}
             worksheetSlug={ws.slug}
+            reviews={reviews}
+            availableReviewers={availableReviewers}
           />
         </div>
 

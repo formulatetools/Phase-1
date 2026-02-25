@@ -35,6 +35,7 @@ export default async function DashboardPage() {
     { data: activeSubscription },
     { count: activeSuperviseeCount },
     { data: contributorSubmissions },
+    { data: reviewQueue },
   ] = await Promise.all([
     // Recently accessed worksheets
     supabase
@@ -138,6 +139,14 @@ export default async function DashboardPage() {
       .not('library_status', 'is', null)
       .is('deleted_at', null)
       .order('submitted_at', { ascending: false })
+      .limit(10),
+
+    // Review queue (for Clinical Reviewer section)
+    supabase
+      .from('worksheet_reviews')
+      .select('id, worksheet_id, assigned_at, completed_at, worksheets(title)')
+      .eq('reviewer_id', user.id)
+      .order('assigned_at', { ascending: false })
       .limit(10),
   ])
 
@@ -554,8 +563,8 @@ export default async function DashboardPage() {
               </div>
             )}
             {cRoles.clinical_reviewer && (
-              <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50/30 p-6">
-                <div className="flex items-center gap-3">
+              <div className="rounded-2xl border border-blue-200 bg-surface p-6 shadow-sm">
+                <div className="mb-4 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
                     <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -563,9 +572,49 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-primary-900">Review Queue</h3>
-                    <p className="text-xs text-primary-400">Review worksheets submitted by contributors — coming soon</p>
+                    <p className="text-xs text-primary-400">Worksheets assigned to you for clinical review</p>
                   </div>
                 </div>
+
+                {(() => {
+                  type ReviewItem = { id: string; worksheet_id: string; assigned_at: string; completed_at: string | null; worksheets: { title: string } | null }
+                  const typedReviews = (reviewQueue || []) as unknown as ReviewItem[]
+
+                  if (typedReviews.length > 0) {
+                    return (
+                      <div className="space-y-2">
+                        {typedReviews.map((review) => (
+                          <Link
+                            key={review.id}
+                            href={`/reviews/${review.worksheet_id}`}
+                            className="flex items-center justify-between rounded-xl bg-primary-50 px-4 py-3 hover:bg-primary-100 transition-colors"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="truncate text-sm font-medium text-primary-900">
+                                {review.worksheets?.title || 'Untitled worksheet'}
+                              </p>
+                              <p className="mt-0.5 text-xs text-primary-400">
+                                Assigned {new Date(review.assigned_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </p>
+                            </div>
+                            <span className={`ml-3 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                              review.completed_at ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'
+                            }`}>
+                              {review.completed_at ? 'Completed' : 'Pending'}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div className="rounded-xl bg-primary-50 px-4 py-6 text-center">
+                      <p className="text-sm text-primary-500">No reviews assigned yet</p>
+                      <p className="mt-1 text-xs text-primary-400">You&apos;ll see assigned worksheets here when an admin assigns one to you.</p>
+                    </div>
+                  )
+                })()}
               </div>
             )}
             {cRoles.content_writer && (

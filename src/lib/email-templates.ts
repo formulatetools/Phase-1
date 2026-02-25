@@ -302,6 +302,34 @@ export function roleGrantedEmail(
   }
 }
 
+// ─── Review Assigned Email ──────────────────────────────────
+
+export function reviewAssignedEmail(
+  name: string | null,
+  worksheetTitle: string,
+  reviewUrl: string
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  return {
+    subject: 'New worksheet ready for your review',
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Review a new worksheet</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        A new worksheet <strong>&ldquo;${worksheetTitle}&rdquo;</strong> has been submitted to the Formulate library and we&rsquo;d value your clinical review.
+      </p>
+      <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
+        Reviews typically take 5&ndash;10 minutes. You&rsquo;ll evaluate the clinical accuracy, completeness, and usability of the worksheet.
+      </p>
+      ${button('Review Worksheet', reviewUrl)}
+      <p style="margin:16px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
+    `),
+  }
+}
+
 // ─── Submission Status Email ────────────────────────────────
 
 export function submissionStatusEmail(
