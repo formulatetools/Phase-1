@@ -151,6 +151,72 @@ export function homeworkCompletedEmail(
   }
 }
 
+// ─── Subscription Cancelled Email ─────────────────────────────
+
+export function subscriptionCancelledEmail(
+  name: string | null,
+  tierLabel: string
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  return {
+    subject: 'Your Formulate subscription has been cancelled',
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Your subscription has been cancelled</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Your <strong>${tierLabel}</strong> subscription has ended and your account has been moved to the Free plan.
+      </p>
+      <p style="margin:0 0 8px;font-size:15px;color:#444;line-height:1.6;">
+        You can still:
+      </p>
+      <ul style="margin:0 0 16px;padding-left:20px;font-size:15px;color:#444;line-height:1.8;">
+        <li>Browse the full worksheet library</li>
+        <li>Use up to 5 worksheets per month</li>
+        <li>Manage up to 3 clients</li>
+      </ul>
+      <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
+        If you'd like to re-subscribe at any time:
+      </p>
+      ${button('View Plans', `${APP_URL}/pricing`)}
+      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+        If this was a mistake or you need help, just reply to this email.
+      </p>
+    `),
+  }
+}
+
+// ─── Payment Failed Email ─────────────────────────────────────
+
+export function paymentFailedEmail(
+  name: string | null,
+  tierLabel: string
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  return {
+    subject: 'Payment failed for your Formulate subscription',
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">We couldn&rsquo;t process your payment</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        We weren&rsquo;t able to process the latest payment for your <strong>${tierLabel}</strong> subscription.
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Your access remains active for now, but please update your payment method to avoid any interruption to your service.
+      </p>
+      ${button('Update Payment Method', `${APP_URL}/settings`)}
+      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+        Stripe will retry the payment automatically. If you believe this is an error, just reply to this email.
+      </p>
+    `),
+  }
+}
+
 // ─── Abandoned Checkout Recovery Email ─────────────────────────
 
 export function abandonedCheckoutEmail(

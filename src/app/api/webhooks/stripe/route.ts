@@ -4,7 +4,7 @@ import { stripe } from '@/lib/stripe/client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { STRIPE_PRICES, TIER_LABELS } from '@/lib/stripe/config'
 import { sendEmail } from '@/lib/email'
-import { abandonedCheckoutEmail } from '@/lib/email-templates'
+import { abandonedCheckoutEmail, subscriptionCancelledEmail, paymentFailedEmail } from '@/lib/email-templates'
 
 // Determine subscription tier from the Stripe price ID
 function getTierFromPriceId(priceId: string): 'starter' | 'standard' | 'professional' | null {
@@ -200,11 +200,16 @@ export async function POST(request: NextRequest) {
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, email, full_name')
           .eq('stripe_customer_id', customerId)
           .single()
 
         if (!profile) break
+
+        // Capture the tier label before reverting
+        const cancelledPriceId = subscription.items.data[0]?.price.id
+        const cancelledTier = getTierFromPriceId(cancelledPriceId || '')
+        const cancelledTierLabel = cancelledTier ? TIER_LABELS[cancelledTier] : 'Premium'
 
         // Update subscription record
         await supabase
@@ -231,6 +236,17 @@ export async function POST(request: NextRequest) {
           metadata: { reverted_to: 'free' },
         })
 
+        // Send cancellation email
+        if (profile.email) {
+          const cancelEmail = subscriptionCancelledEmail(profile.full_name, cancelledTierLabel)
+          sendEmail({
+            to: profile.email,
+            subject: cancelEmail.subject,
+            html: cancelEmail.html,
+            emailType: 'subscription_cancelled',
+          }).catch((e) => console.error('Failed to send cancellation email:', e))
+        }
+
         break
       }
 
@@ -240,7 +256,7 @@ export async function POST(request: NextRequest) {
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, email, full_name, subscription_tier')
           .eq('stripe_customer_id', customerId)
           .single()
 
@@ -260,6 +276,18 @@ export async function POST(request: NextRequest) {
             .from('subscriptions')
             .update({ status: 'past_due' })
             .eq('stripe_subscription_id', subIdStr)
+        }
+
+        // Send payment failed email
+        if (profile.email) {
+          const failedTierLabel = TIER_LABELS[profile.subscription_tier] || 'Premium'
+          const failedEmail = paymentFailedEmail(profile.full_name, failedTierLabel)
+          sendEmail({
+            to: profile.email,
+            subject: failedEmail.subject,
+            html: failedEmail.html,
+            emailType: 'payment_failed',
+          }).catch((e) => console.error('Failed to send payment failed email:', e))
         }
 
         break

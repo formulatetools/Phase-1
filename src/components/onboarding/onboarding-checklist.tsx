@@ -16,34 +16,41 @@ interface OnboardingChecklistProps {
   status: ChecklistStatus
 }
 
-const items = [
+const steps = [
   {
     key: 'browsedWorksheets' as const,
-    label: 'Browse the worksheet library',
+    title: 'Explore the worksheet library',
+    description:
+      'Browse evidence-based CBT worksheets organised by therapeutic domain — anxiety, depression, OCD, trauma, and more. Find the right tool for your client.',
+    cta: 'Browse worksheets',
     href: '/worksheets',
   },
   {
     key: 'addedClient' as const,
-    label: 'Add your first client',
+    title: 'Add your first client',
+    description:
+      'Use a non-identifiable label (e.g. "Client A" or initials). Formulate never stores real names — all homework is shared via anonymous links, keeping your practice GDPR-compliant.',
+    cta: 'Add a client',
     href: '/clients',
   },
   {
     key: 'assignedHomework' as const,
-    label: 'Assign a worksheet as homework',
+    title: 'Assign your first homework',
+    description:
+      'Choose a worksheet, assign it to your client, and share the secure link. They complete it in their browser at their own pace — you review their responses before the next session.',
+    cta: 'Assign homework',
     href: '/clients',
-  },
-  {
-    key: 'exportedWorksheet' as const,
-    label: 'Export or print a worksheet',
-    href: '/worksheets',
   },
 ]
 
 export function OnboardingChecklist({ status }: OnboardingChecklistProps) {
   const [visible, setVisible] = useState(false)
 
-  const completed = items.filter((item) => status[item.key]).length
-  const allDone = completed === items.length
+  const completedCount = steps.filter((s) => status[s.key]).length
+  const allDone = completedCount === steps.length
+
+  // The current step is the first incomplete step
+  const currentStepIndex = steps.findIndex((s) => !status[s.key])
 
   useEffect(() => {
     const dismissed = localStorage.getItem(DISMISS_KEY)
@@ -63,7 +70,14 @@ export function OnboardingChecklist({ status }: OnboardingChecklistProps) {
     <div className="mb-6 rounded-2xl border border-brand/20 bg-gradient-to-br from-brand-light to-white p-6 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-primary-900">Getting Started</h3>
+        <div>
+          <h3 className="text-sm font-semibold text-primary-900">
+            Get started in 3 steps
+          </h3>
+          <p className="mt-0.5 text-xs text-primary-400">
+            Set up your first homework assignment
+          </p>
+        </div>
         <button
           onClick={handleDismiss}
           className="rounded-lg p-1 text-primary-400 transition-colors hover:bg-primary-100 hover:text-primary-600"
@@ -80,57 +94,87 @@ export function OnboardingChecklist({ status }: OnboardingChecklistProps) {
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-primary-100">
           <div
             className="h-full rounded-full bg-brand transition-all duration-500"
-            style={{ width: `${(completed / items.length) * 100}%` }}
+            style={{ width: `${(completedCount / steps.length) * 100}%` }}
           />
         </div>
         <span className="shrink-0 text-xs font-medium text-primary-400">
-          {completed} of {items.length}
+          {completedCount} of {steps.length}
         </span>
       </div>
 
-      {/* Checklist items */}
-      <div className="mt-4 space-y-1">
-        {items.map((item) => {
-          const done = status[item.key]
+      {/* Funnel steps */}
+      <div className="mt-5 space-y-2">
+        {steps.map((step, index) => {
+          const done = status[step.key]
+          const isCurrent = index === currentStepIndex
+
           return (
-            <Link
-              key={item.key}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+            <div
+              key={step.key}
+              className={`rounded-xl border transition-all ${
                 done
-                  ? 'text-primary-400'
-                  : 'text-primary-700 hover:bg-surface/60'
+                  ? 'border-green-100 bg-green-50/50'
+                  : isCurrent
+                  ? 'border-brand/30 bg-surface shadow-sm'
+                  : 'border-primary-100 bg-primary-50/50 opacity-60'
               }`}
             >
-              {/* Check / circle icon */}
-              {done ? (
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100">
-                  <svg className="h-3 w-3 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
+              <div className="flex items-start gap-3 p-4">
+                {/* Step indicator */}
+                {done ? (
+                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100">
+                    <svg className="h-3.5 w-3.5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div
+                    className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                      isCurrent
+                        ? 'bg-brand text-primary-900'
+                        : 'bg-primary-200 text-primary-500'
+                    }`}
+                  >
+                    {index + 1}
+                  </div>
+                )}
+
+                {/* Content */}
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={`text-sm font-semibold ${
+                      done ? 'text-green-700' : 'text-primary-900'
+                    }`}
+                  >
+                    {step.title}
+                  </p>
+
+                  {/* Expanded description + CTA for current step only */}
+                  {isCurrent && !done && (
+                    <>
+                      <p className="mt-1.5 text-xs leading-relaxed text-primary-500">
+                        {step.description}
+                      </p>
+                      <Link
+                        href={step.href}
+                        className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary-800 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
+                      >
+                        {step.cta}
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                      </Link>
+                    </>
+                  )}
                 </div>
-              ) : (
-                <div className="h-5 w-5 shrink-0 rounded-full border-2 border-primary-200" />
-              )}
-
-              {/* Label */}
-              <span className={done ? 'line-through' : ''}>
-                {item.label}
-              </span>
-
-              {/* Arrow for incomplete items */}
-              {!done && (
-                <svg className="ml-auto h-3.5 w-3.5 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                </svg>
-              )}
-            </Link>
+              </div>
+            </div>
           )
         })}
       </div>
 
       {/* Tour + Dismiss links */}
-      <div className="mt-3 flex items-center justify-between">
+      <div className="mt-4 flex items-center justify-between">
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('formulate:start-tour'))}
           className="flex items-center gap-1 text-xs font-medium text-brand transition-colors hover:text-brand-dark"
