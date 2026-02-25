@@ -7,7 +7,7 @@ import { validateCustomSchema } from '@/lib/validation/custom-worksheet'
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { generateToken } from '@/lib/tokens'
-import type { SubscriptionTier } from '@/types/database'
+import type { SubscriptionTier, ContributorRoles, ContributorProfile } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
 
 // ============================================================================
@@ -422,4 +422,179 @@ export async function forkWorksheet(sourceWorksheetId: string) {
 
   revalidatePath('/my-tools')
   return { id: forkedId }
+}
+
+// ============================================================================
+// SUBMIT TO LIBRARY (contributor flow)
+// ============================================================================
+
+export async function submitToLibrary(
+  worksheetId: string,
+  clinicalContext: string,
+  suggestedCategory: string,
+  referencesSources: string,
+  acceptAgreement: boolean
+) {
+  const { user, profile } = await getCurrentUser()
+  if (!user || !profile) return { error: 'Not authenticated' }
+
+  // Must have clinical_contributor role
+  const roles = profile.contributor_roles as ContributorRoles | null
+  if (!roles?.clinical_contributor) {
+    return { error: 'You do not have the Clinical Contributor role.' }
+  }
+
+  // Must have contributor profile completed
+  const cp = profile.contributor_profile as ContributorProfile | null
+  if (!cp?.display_name?.trim() || !cp?.professional_title?.trim()) {
+    return { error: 'Please complete your contributor profile in Settings before submitting.' }
+  }
+
+  // Must accept agreement on first submission
+  if (!profile.contributor_agreement_accepted_at && !acceptAgreement) {
+    return { error: 'You must accept the contributor agreement before submitting.' }
+  }
+
+  // Validate clinical context
+  if (!clinicalContext || clinicalContext.trim().length < 200) {
+    return { error: 'Clinical context must be at least 200 characters.' }
+  }
+
+  const supabase = await createClient()
+  const admin = createAdminClient()
+
+  // Verify the user owns this worksheet
+  const { data: worksheet } = await supabase
+    .from('worksheets')
+    .select('id, created_by, library_status, title')
+    .eq('id', worksheetId)
+    .eq('created_by', user.id)
+    .is('deleted_at', null)
+    .single()
+
+  if (!worksheet) return { error: 'Worksheet not found or access denied' }
+
+  // Don't allow re-submission if already submitted/in_review/approved/published
+  const ws = worksheet as { library_status: string | null }
+  if (ws.library_status && !['draft', 'rejected'].includes(ws.library_status)) {
+    return { error: 'This worksheet has already been submitted.' }
+  }
+
+  // Record agreement acceptance if first time
+  if (!profile.contributor_agreement_accepted_at && acceptAgreement) {
+    await admin
+      .from('profiles')
+      .update({ contributor_agreement_accepted_at: new Date().toISOString() })
+      .eq('id', user.id)
+  }
+
+  // Update worksheet with submission data
+  const { error } = await admin
+    .from('worksheets')
+    .update({
+      library_status: 'submitted',
+      submitted_at: new Date().toISOString(),
+      submitted_by: user.id,
+      clinical_context: clinicalContext.trim(),
+      suggested_category: suggestedCategory.trim() || null,
+      references_sources: referencesSources.trim() || null,
+      admin_feedback: null,
+    })
+    .eq('id', worksheetId)
+
+  if (error) return { error: error.message }
+
+  // Audit log
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'create' as string,
+    entity_type: 'library_submission',
+    entity_id: worksheetId,
+    metadata: {
+      title: (worksheet as { title: string }).title,
+      suggested_category: suggestedCategory.trim() || null,
+    },
+  })
+
+  revalidatePath('/my-tools')
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
+// ============================================================================
+// RESUBMIT TO LIBRARY (after changes_requested)
+// ============================================================================
+
+export async function resubmitToLibrary(
+  worksheetId: string,
+  clinicalContext?: string,
+  suggestedCategory?: string,
+  referencesSources?: string
+) {
+  const { user, profile } = await getCurrentUser()
+  if (!user || !profile) return { error: 'Not authenticated' }
+
+  const roles = profile.contributor_roles as ContributorRoles | null
+  if (!roles?.clinical_contributor) {
+    return { error: 'You do not have the Clinical Contributor role.' }
+  }
+
+  const supabase = await createClient()
+  const admin = createAdminClient()
+
+  // Verify ownership and status
+  const { data: worksheet } = await supabase
+    .from('worksheets')
+    .select('id, created_by, library_status, title')
+    .eq('id', worksheetId)
+    .eq('created_by', user.id)
+    .is('deleted_at', null)
+    .single()
+
+  if (!worksheet) return { error: 'Worksheet not found or access denied' }
+
+  const ws = worksheet as { library_status: string | null }
+  if (ws.library_status !== 'changes_requested') {
+    return { error: 'This worksheet is not awaiting changes.' }
+  }
+
+  // Build update payload — optionally update submission metadata
+  const updatePayload: Record<string, unknown> = {
+    library_status: 'submitted',
+    submitted_at: new Date().toISOString(),
+    admin_feedback: null,
+  }
+
+  if (clinicalContext?.trim()) {
+    if (clinicalContext.trim().length < 200) {
+      return { error: 'Clinical context must be at least 200 characters.' }
+    }
+    updatePayload.clinical_context = clinicalContext.trim()
+  }
+  if (suggestedCategory !== undefined) {
+    updatePayload.suggested_category = suggestedCategory.trim() || null
+  }
+  if (referencesSources !== undefined) {
+    updatePayload.references_sources = referencesSources.trim() || null
+  }
+
+  const { error } = await admin
+    .from('worksheets')
+    .update(updatePayload)
+    .eq('id', worksheetId)
+
+  if (error) return { error: error.message }
+
+  // Audit log
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'update' as string,
+    entity_type: 'library_submission',
+    entity_id: worksheetId,
+    metadata: { title: (worksheet as { title: string }).title, resubmission: true },
+  })
+
+  revalidatePath('/my-tools')
+  revalidatePath('/dashboard')
+  return { success: true }
 }

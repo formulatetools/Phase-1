@@ -301,3 +301,83 @@ export function roleGrantedEmail(
     `),
   }
 }
+
+// ─── Submission Status Email ────────────────────────────────
+
+export function submissionStatusEmail(
+  name: string | null,
+  worksheetTitle: string,
+  status: 'approved' | 'changes_requested' | 'published' | 'rejected',
+  feedback?: string,
+  worksheetUrl?: string
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  const subjects: Record<string, string> = {
+    approved: 'Your worksheet has been approved',
+    changes_requested: 'Feedback on your worksheet submission',
+    published: 'Your worksheet is now live in the Formulate library',
+    rejected: 'Update on your worksheet submission',
+  }
+
+  const bodies: Record<string, string> = {
+    approved: `
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Great news! Your worksheet <strong>&ldquo;${worksheetTitle}&rdquo;</strong> has been approved. It will be published to the Formulate library shortly.
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        We&rsquo;ll send you another email once it&rsquo;s live, including a link to the published worksheet with your attribution.
+      </p>
+    `,
+    changes_requested: `
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        We&rsquo;ve reviewed your worksheet <strong>&ldquo;${worksheetTitle}&rdquo;</strong> and have some feedback before it can be approved.
+      </p>
+      ${feedback ? `
+        <div style="margin:0 0 16px;padding:12px 16px;background:#fff7ed;border-left:3px solid #f97316;border-radius:4px;">
+          <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#c2410c;text-transform:uppercase;">Feedback</p>
+          <p style="margin:0;font-size:14px;color:#9a3412;line-height:1.5;">${feedback}</p>
+        </div>
+      ` : ''}
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Please make the requested changes and resubmit when ready. You can find this worksheet in your dashboard.
+      </p>
+    `,
+    published: `
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Your worksheet <strong>&ldquo;${worksheetTitle}&rdquo;</strong> is now live in the Formulate library! Therapists around the world can now access and use your contribution.
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Your name and professional title are displayed as the contributor on the worksheet page.
+      </p>
+      ${worksheetUrl ? button('View Your Published Worksheet', worksheetUrl) : ''}
+    `,
+    rejected: `
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Thank you for submitting <strong>&ldquo;${worksheetTitle}&rdquo;</strong> to the Formulate library. After careful review, we&rsquo;re unable to include it in the library at this time.
+      </p>
+      ${feedback ? `
+        <div style="margin:0 0 16px;padding:12px 16px;background:#fef2f2;border-left:3px solid #ef4444;border-radius:4px;">
+          <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#991b1b;text-transform:uppercase;">Feedback</p>
+          <p style="margin:0;font-size:14px;color:#991b1b;line-height:1.5;">${feedback}</p>
+        </div>
+      ` : ''}
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        The worksheet remains available in your personal tools. You&rsquo;re welcome to revise and resubmit it in the future.
+      </p>
+    `,
+  }
+
+  return {
+    subject: subjects[status],
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">${subjects[status]}</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        ${greeting}
+      </p>
+      ${bodies[status]}
+      ${status !== 'published' ? button('Open Your Dashboard', `${APP_URL}/dashboard`) : ''}
+      <p style="margin:16px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
+    `),
+  }
+}

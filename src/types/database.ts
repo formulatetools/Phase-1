@@ -23,6 +23,7 @@ export type ConsentType = 'data_processing' | 'ema_notifications' | 'data_sharin
 export type ConsentStatus = 'granted' | 'withdrawn'
 export type RequiredTier = 'standard' | 'professional'
 export type ContributorRole = 'clinical_contributor' | 'clinical_reviewer' | 'content_writer'
+export type LibraryStatus = 'draft' | 'submitted' | 'in_review' | 'changes_requested' | 'approved' | 'published' | 'rejected'
 
 export interface ContributorRoles {
   clinical_contributor: boolean
@@ -111,6 +112,15 @@ export interface Worksheet {
   schema_version: number
   forked_from: string | null
   tracking_frequency: TrackingFrequency | null
+  library_status: LibraryStatus | null
+  submitted_at: string | null
+  submitted_by: string | null
+  published_by: string | null
+  published_at: string | null
+  admin_feedback: string | null
+  clinical_context: string | null
+  suggested_category: string | null
+  references_sources: string | null
   deleted_at: string | null
   created_at: string
   updated_at: string

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import { WorksheetDetail } from '@/components/worksheets/worksheet-detail'
+import type { ContributorProfile } from '@/types/database'
 
 // ── Dynamic SEO metadata per worksheet ───────────────────────────────────────
 export async function generateMetadata({
@@ -64,6 +65,26 @@ export default async function WorksheetPage({
     .single()
 
   if (!worksheet) notFound()
+
+  // Fetch contributor profile if this is a contributed worksheet
+  let contributorName: string | null = null
+  let contributorTitle: string | null = null
+  let contributorUrl: string | null = null
+
+  if (worksheet.submitted_by) {
+    const { data: contributor } = await supabase
+      .from('profiles')
+      .select('full_name, contributor_profile')
+      .eq('id', worksheet.submitted_by as string)
+      .single()
+
+    if (contributor) {
+      const cp = (contributor as { full_name: string | null; contributor_profile: ContributorProfile | null }).contributor_profile
+      contributorName = cp?.display_name || (contributor as { full_name: string | null }).full_name || null
+      contributorTitle = cp?.professional_title || null
+      contributorUrl = cp?.profile_url || null
+    }
+  }
 
   const { user, profile } = await getCurrentUser()
 
@@ -142,6 +163,34 @@ export default async function WorksheetPage({
             {worksheet.title}
           </h1>
           <p className="mt-2 text-primary-500">{worksheet.description}</p>
+
+          {/* Contributor attribution */}
+          {contributorName && (
+            <div className="mt-3 flex items-center gap-2 text-sm text-primary-500">
+              <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+              <span>
+                Contributed by{' '}
+                {contributorUrl ? (
+                  <a href={contributorUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-primary-700 hover:text-brand transition-colors">
+                    {contributorName}
+                  </a>
+                ) : (
+                  <span className="font-medium text-primary-700">{contributorName}</span>
+                )}
+                {contributorTitle && <span>, {contributorTitle}</span>}
+              </span>
+            </div>
+          )}
+
+          {/* Clinical context */}
+          {worksheet.clinical_context && (
+            <div className="mt-4 rounded-xl border border-green-200/50 bg-green-50/30 p-4">
+              <h2 className="text-sm font-semibold text-green-800">Clinical Context</h2>
+              <p className="mt-1 text-sm text-primary-600 leading-relaxed whitespace-pre-wrap">{worksheet.clinical_context}</p>
+            </div>
+          )}
 
           {worksheet.instructions && (
             <div className="mt-4 rounded-xl border border-brand/20 bg-brand/5 p-4">

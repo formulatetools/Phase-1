@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { TIER_LIMITS } from '@/lib/stripe/config'
-import type { SubscriptionTier } from '@/types/database'
+import type { SubscriptionTier, ContributorRoles } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { CustomWorksheetBuilder } from '@/components/my-tools/custom-worksheet-builder'
 
@@ -95,12 +95,17 @@ export default async function NewToolPage({ searchParams }: PageProps) {
     }
   }
 
+  const contributorRoles = profile.contributor_roles as ContributorRoles | null
+  const isContributor = !!contributorRoles?.clinical_contributor
+
   return (
     <CustomWorksheetBuilder
       mode="create"
       categories={(categories || []) as { id: string; name: string }[]}
       clients={(clients || []) as { id: string; client_label: string }[]}
       showImportPanel={!forkId}
+      isContributor={isContributor}
+      agreementAccepted={!!profile.contributor_agreement_accepted_at}
       initialData={initialData}
     />
   )

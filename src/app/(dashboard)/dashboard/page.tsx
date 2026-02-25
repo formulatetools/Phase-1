@@ -34,6 +34,7 @@ export default async function DashboardPage() {
     { data: latestRedemption },
     { data: activeSubscription },
     { count: activeSuperviseeCount },
+    { data: contributorSubmissions },
   ] = await Promise.all([
     // Recently accessed worksheets
     supabase
@@ -128,6 +129,16 @@ export default async function DashboardPage() {
       .eq('status', 'active')
       .eq('relationship_type', 'supervision')
       .is('deleted_at', null),
+
+    // Contributor submissions (for Library Contributions section)
+    supabase
+      .from('worksheets')
+      .select('id, title, slug, library_status, submitted_at, admin_feedback')
+      .eq('submitted_by', user.id)
+      .not('library_status', 'is', null)
+      .is('deleted_at', null)
+      .order('submitted_at', { ascending: false })
+      .limit(10),
   ])
 
   // Deduplicate recently accessed worksheets
@@ -430,25 +441,116 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Contributor sections (placeholder) ──────────────────────────── */}
+      {/* ── Contributor sections ───────────────────────────────────────── */}
       {(() => {
         const cRoles = profile.contributor_roles as { clinical_contributor?: boolean; clinical_reviewer?: boolean; content_writer?: boolean } | null
         if (!cRoles?.clinical_contributor && !cRoles?.clinical_reviewer && !cRoles?.content_writer) return null
+
+        const statusBadge = (status: string) => {
+          const styles: Record<string, string> = {
+            draft: 'bg-primary-100 text-primary-600',
+            submitted: 'bg-blue-50 text-blue-700',
+            in_review: 'bg-amber-50 text-amber-700',
+            changes_requested: 'bg-orange-50 text-orange-700',
+            approved: 'bg-green-50 text-green-700',
+            published: 'bg-green-100 text-green-800 font-semibold',
+            rejected: 'bg-red-50 text-red-600',
+          }
+          const labels: Record<string, string> = {
+            draft: 'Draft',
+            submitted: 'Submitted',
+            in_review: 'In Review',
+            changes_requested: 'Changes Requested',
+            approved: 'Approved',
+            published: 'Published',
+            rejected: 'Rejected',
+          }
+          return (
+            <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${styles[status] || styles.draft}`}>
+              {labels[status] || status}
+            </span>
+          )
+        }
+
+        type Submission = { id: string; title: string; slug: string; library_status: string; submitted_at: string; admin_feedback: string | null }
+        const submissions = (contributorSubmissions || []) as Submission[]
+
         return (
           <div className="space-y-4">
             {cRoles.clinical_contributor && (
-              <div className="rounded-2xl border border-dashed border-green-200 bg-green-50/30 p-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
-                    <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
+              <div className="rounded-2xl border border-green-200 bg-surface p-6 shadow-sm">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
+                      <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-primary-900">Library Contributions</h3>
+                      <p className="text-xs text-primary-400">Worksheets you&apos;ve submitted to the public library</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-primary-900">Library Contributions</h3>
-                    <p className="text-xs text-primary-400">Submit worksheets to the public library — coming soon</p>
-                  </div>
+                  <Link
+                    href="/my-tools/new"
+                    className="text-xs font-medium text-green-600 hover:text-green-700 transition-colors"
+                  >
+                    + New worksheet
+                  </Link>
                 </div>
+
+                {submissions.length > 0 ? (
+                  <div className="space-y-2">
+                    {submissions.map((sub) => (
+                      <div key={sub.id}>
+                        <div className="flex items-center justify-between rounded-xl bg-primary-50 px-4 py-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="truncate text-sm font-medium text-primary-900">{sub.title}</p>
+                              {statusBadge(sub.library_status)}
+                            </div>
+                            {sub.submitted_at && (
+                              <p className="mt-0.5 text-xs text-primary-400">
+                                Submitted {new Date(sub.submitted_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </p>
+                            )}
+                          </div>
+                          <div className="ml-3 flex items-center gap-2">
+                            {sub.library_status === 'published' && (
+                              <Link
+                                href={`/worksheets/${sub.slug}`}
+                                className="text-xs font-medium text-green-600 hover:text-green-700"
+                              >
+                                View live &rarr;
+                              </Link>
+                            )}
+                            {(sub.library_status === 'changes_requested' || sub.library_status === 'draft' || sub.library_status === 'rejected') && (
+                              <Link
+                                href={`/my-tools/${sub.id}/edit`}
+                                className="text-xs font-medium text-brand hover:text-brand-dark"
+                              >
+                                Edit &rarr;
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                        {sub.library_status === 'changes_requested' && sub.admin_feedback && (
+                          <div className="mt-1 ml-4 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2">
+                            <p className="text-xs font-medium text-orange-600">Feedback:</p>
+                            <p className="text-xs text-orange-800">{sub.admin_feedback}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-xl bg-primary-50 px-4 py-6 text-center">
+                    <p className="text-sm text-primary-500">No submissions yet</p>
+                    <p className="mt-1 text-xs text-primary-400">
+                      Create a worksheet in <Link href="/my-tools/new" className="text-brand hover:text-brand-dark font-medium">My Tools</Link> and submit it to the library.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             {cRoles.clinical_reviewer && (

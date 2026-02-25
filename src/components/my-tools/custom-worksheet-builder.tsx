@@ -8,6 +8,7 @@ import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { SectionEditor } from './section-editor'
 import { WorksheetImportPanel } from './worksheet-import-panel'
 import { createCustomWorksheet, updateCustomWorksheet, saveImportedResponse } from '@/app/(dashboard)/my-tools/actions'
+import { SubmitToLibraryModal } from './submit-to-library-modal'
 import { useToast } from '@/hooks/use-toast'
 
 interface CustomWorksheetBuilderProps {
@@ -16,6 +17,10 @@ interface CustomWorksheetBuilderProps {
   categories: { id: string; name: string }[]
   clients?: { id: string; client_label: string }[]
   showImportPanel?: boolean
+  isContributor?: boolean
+  agreementAccepted?: boolean
+  libraryStatus?: string | null
+  adminFeedback?: string | null
   initialData?: {
     title: string
     description: string
@@ -34,6 +39,10 @@ export function CustomWorksheetBuilder({
   categories,
   clients,
   showImportPanel,
+  isContributor,
+  agreementAccepted,
+  libraryStatus,
+  adminFeedback,
   initialData,
 }: CustomWorksheetBuilderProps) {
   const router = useRouter()
@@ -86,6 +95,10 @@ export function CustomWorksheetBuilder({
 
   // Preview toggle for mobile
   const [showPreview, setShowPreview] = useState(false)
+
+  // Submit-to-library modal state
+  const [showSubmitModal, setShowSubmitModal] = useState(false)
+  const [savedWorksheetId, setSavedWorksheetId] = useState<string | null>(worksheetId || null)
 
   // Build the schema object from state
   const schema: WorksheetSchema = { version: 1, sections }
@@ -147,6 +160,7 @@ export function CustomWorksheetBuilder({
         setError(result.error)
         setSaving(false)
       } else {
+        setSavedWorksheetId(result.id!)
         // If a client was selected and we have imported response values, save the response
         if (selectedClientId && importedValues && Object.keys(importedValues).length > 0) {
           const saveResult = await saveImportedResponse(
@@ -183,6 +197,56 @@ export function CustomWorksheetBuilder({
         router.push(`/my-tools/${worksheetId}`)
       }
     }
+  }
+
+  // ── Submit to Library ─────────────────────────────────────────────────
+  const handleSubmitToLibrary = async () => {
+    setSaving(true)
+    setError(null)
+
+    const tags = tagsInput
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean)
+
+    // Save the worksheet first (create or update)
+    if (mode === 'create' && !savedWorksheetId) {
+      const result = await createCustomWorksheet(
+        title,
+        description,
+        instructions,
+        schema,
+        categoryId,
+        tags,
+        estimatedMinutes
+      )
+      if (result.error) {
+        setError(result.error)
+        setSaving(false)
+        return
+      }
+      setSavedWorksheetId(result.id!)
+    } else if (worksheetId || savedWorksheetId) {
+      const id = worksheetId || savedWorksheetId!
+      const result = await updateCustomWorksheet(
+        id,
+        title,
+        description,
+        instructions,
+        schema,
+        categoryId,
+        tags,
+        estimatedMinutes
+      )
+      if (result.error) {
+        setError(result.error)
+        setSaving(false)
+        return
+      }
+    }
+
+    setSaving(false)
+    setShowSubmitModal(true)
   }
 
   return (
@@ -222,8 +286,26 @@ export function CustomWorksheetBuilder({
           >
             {saving ? 'Saving...' : mode === 'create' ? 'Create Tool' : 'Save Changes'}
           </button>
+          {isContributor && (!libraryStatus || libraryStatus === 'draft' || libraryStatus === 'rejected' || libraryStatus === 'changes_requested') && (
+            <button
+              onClick={handleSubmitToLibrary}
+              disabled={saving || !title.trim() || !description.trim() || sections.length === 0}
+              className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : libraryStatus === 'changes_requested' ? 'Resubmit to Library' : 'Submit to Library →'}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Admin feedback for changes_requested */}
+      {libraryStatus === 'changes_requested' && adminFeedback && (
+        <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-orange-600 mb-1">Changes Requested</p>
+          <p className="text-sm text-orange-800">{adminFeedback}</p>
+          <p className="mt-2 text-xs text-orange-600">Make your revisions below and click &quot;Resubmit to Library&quot; when ready.</p>
+        </div>
+      )}
 
       {/* Error */}
       {error && (
@@ -390,6 +472,16 @@ export function CustomWorksheetBuilder({
           </div>
         </div>
       </div>
+
+      {/* Submit to Library Modal */}
+      {showSubmitModal && savedWorksheetId && (
+        <SubmitToLibraryModal
+          worksheetId={savedWorksheetId}
+          categories={categories}
+          agreementAccepted={!!agreementAccepted}
+          onClose={() => setShowSubmitModal(false)}
+        />
+      )}
     </div>
   )
 }
