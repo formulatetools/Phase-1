@@ -23,6 +23,8 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
   const [message, setMessage] = useState<string | null>(null)
   const [showPromoField, setShowPromoField] = useState(false)
   const [promoCode, setPromoCode] = useState<string | null>(null)
+  const [acceptTerms, setAcceptTerms] = useState(false)
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false)
 
   const supabase = createClient()
 
@@ -39,6 +41,8 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
         options: {
           data: {
             full_name: fullName,
+            accepted_terms_at: new Date().toISOString(),
+            accepted_privacy_at: new Date().toISOString(),
             ...(promoCode ? { promo_code: promoCode } : {}),
             ...(referralCode ? { referral_code: referralCode } : {}),
           },
@@ -74,6 +78,12 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
+        ...(mode === 'signup' ? {
+          data: {
+            accepted_terms_at: new Date().toISOString(),
+            accepted_privacy_at: new Date().toISOString(),
+          },
+        } : {}),
         emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo || '/dashboard'}`,
       },
     })
@@ -198,6 +208,50 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
           </div>
         )}
 
+        {/* Terms & Privacy acceptance — signup only */}
+        {mode === 'signup' && (
+          <div className="space-y-2.5 pt-1">
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-primary-300 text-primary-800 focus:ring-brand/30"
+              />
+              <span className="text-sm text-primary-600">
+                I agree to the{' '}
+                <a
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-primary-800 underline underline-offset-2 hover:text-primary-900"
+                >
+                  Terms of Service
+                </a>
+              </span>
+            </label>
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acceptPrivacy}
+                onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-primary-300 text-primary-800 focus:ring-brand/30"
+              />
+              <span className="text-sm text-primary-600">
+                I agree to the{' '}
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-primary-800 underline underline-offset-2 hover:text-primary-900"
+                >
+                  Privacy Policy
+                </a>
+              </span>
+            </label>
+          </div>
+        )}
+
         {error && (
           <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
@@ -212,7 +266,7 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || (mode === 'signup' && (!acceptTerms || !acceptPrivacy))}
           className="w-full rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900 focus:outline-none focus:ring-2 focus:ring-brand/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading

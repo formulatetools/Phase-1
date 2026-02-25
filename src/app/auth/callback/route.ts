@@ -44,6 +44,19 @@ export async function GET(request: NextRequest) {
           const email = welcomeEmail(profile.full_name as string | null)
           sendEmail({ to: user.email, subject: email.subject, html: email.html, emailType: 'welcome' })
 
+          // Record terms/privacy acceptance from signup metadata
+          const acceptedTermsAt = user.user_metadata?.accepted_terms_at as string | undefined
+          const acceptedPrivacyAt = user.user_metadata?.accepted_privacy_at as string | undefined
+          if (acceptedTermsAt || acceptedPrivacyAt) {
+            await supabase
+              .from('profiles')
+              .update({
+                ...(acceptedTermsAt ? { terms_accepted_at: acceptedTermsAt } : {}),
+                ...(acceptedPrivacyAt ? { privacy_accepted_at: acceptedPrivacyAt } : {}),
+              })
+              .eq('id', user.id)
+          }
+
           // Track referral if user signed up via referral link (fire-and-forget)
           const referralCode = user.user_metadata?.referral_code as string | undefined
           if (referralCode) {
