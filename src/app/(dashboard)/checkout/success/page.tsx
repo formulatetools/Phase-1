@@ -71,7 +71,7 @@ export default async function CheckoutSuccessPage({
       <div className="w-full max-w-lg text-center">
         {/* Success icon */}
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand/10">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-800 text-white">
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
@@ -113,7 +113,7 @@ export default async function CheckoutSuccessPage({
               href={step.href}
               className="group rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
             >
-              <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-xl ${step.color} transition-colors group-hover:bg-brand group-hover:text-white`}>
+              <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-xl ${step.color} transition-colors group-hover:bg-primary-800 group-hover:text-white`}>
                 {step.icon}
               </div>
               <p className="mt-3 text-sm font-semibold text-primary-800">{step.title}</p>

@@ -218,7 +218,7 @@ export function CustomWorksheetBuilder({
           <button
             onClick={handleSave}
             disabled={saving || !title.trim() || !description.trim() || sections.length === 0}
-            className="rounded-lg bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark disabled:opacity-50"
+            className="rounded-lg bg-primary-800 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-900 disabled:opacity-50"
           >
             {saving ? 'Saving...' : mode === 'create' ? 'Create Tool' : 'Save Changes'}
           </button>

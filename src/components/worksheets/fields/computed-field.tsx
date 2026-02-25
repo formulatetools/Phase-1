@@ -84,7 +84,7 @@ export function ComputedField({ field, allValues }: Props) {
   return (
     <div className="rounded-lg border-[1.5px] border-dashed border-amber-400 bg-amber-50 px-4 py-3">
       <div className="flex items-center gap-3">
-        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-400 text-[10px] font-bold text-white">
+        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-800">
           f
         </div>
         <div className="flex items-baseline gap-2">

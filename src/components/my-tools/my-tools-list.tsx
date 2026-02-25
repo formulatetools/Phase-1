@@ -46,7 +46,7 @@ export function MyToolsList({ worksheets }: MyToolsListProps) {
         <div className="mt-5 flex items-center justify-center gap-3">
           <Link
             href="/my-tools/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
