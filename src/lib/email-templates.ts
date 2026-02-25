@@ -123,6 +123,34 @@ export function engagementEmail(name: string | null): { subject: string; html: s
   }
 }
 
+// ─── Homework Completed Email (therapist notification) ────────
+
+export function homeworkCompletedEmail(
+  therapistName: string | null,
+  clientLabel: string,
+  worksheetTitle: string,
+  clientDetailUrl: string
+): { subject: string; html: string } {
+  const greeting = therapistName ? `Hi ${therapistName},` : 'Hi there,'
+
+  return {
+    subject: `${clientLabel} completed their worksheet`,
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Homework completed</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;">
+        <strong>${clientLabel}</strong> has completed <strong>${worksheetTitle}</strong>. You can review their responses now.
+      </p>
+      ${button('Review responses', clientDetailUrl)}
+      <p style="margin:24px 0 0;font-size:13px;color:#888;">
+        You're receiving this because a client completed a worksheet you assigned on Formulate.
+      </p>
+    `),
+  }
+}
+
 // ─── Abandoned Checkout Recovery Email ─────────────────────────
 
 export function abandonedCheckoutEmail(

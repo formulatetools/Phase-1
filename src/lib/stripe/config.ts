@@ -16,15 +16,15 @@ export const STRIPE_PRICES = {
 export const TIER_LIMITS = {
   free: {
     monthlyUses: 5,
-    maxClients: 2,
+    maxClients: 3,
     maxActiveAssignments: 3,
     maxCustomWorksheets: 0,
     maxSupervisees: 0,
   },
   starter: {
     monthlyUses: Infinity,
-    maxClients: 0,
-    maxActiveAssignments: 0,
+    maxClients: 5,
+    maxActiveAssignments: 10,
     maxCustomWorksheets: 0,
     maxSupervisees: 0,
   },
@@ -64,21 +64,21 @@ export const TIER_FEATURES: Record<string, string[]> = {
   starter: [
     'Unlimited worksheet access',
     'Clean PDF export (no branding)',
+    'Client management (up to 5 clients)',
+    'Assign homework via shareable links',
     'Bookmark & favourite tools',
   ],
   standard: [
     'Everything in Starter',
-    'Client management dashboard',
-    'Share worksheets with clients',
+    'Unlimited clients',
     'Custom worksheet builder',
     'Fork & customise any tool',
     'Supervision portal',
   ],
   professional: [
     'Everything in Practice',
-    'CPD video training content',
+    'Up to 20 custom worksheets',
+    'Up to 8 supervisees',
     'Early access to new features',
-    'AI-assisted formulation (coming soon)',
-    'Psychometric tracking (coming soon)',
   ],
 }

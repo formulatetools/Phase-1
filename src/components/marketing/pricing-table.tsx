@@ -14,8 +14,8 @@ const tiers = [
     features: [
       'Browse the full worksheet library',
       '5 worksheet uses per month',
+      'Up to 3 clients',
       'PDF export (Formulate branding)',
-      'Read all descriptions & instructions',
     ],
     cta: 'Create Free Account',
     href: '/signup',
@@ -23,12 +23,13 @@ const tiers = [
   },
   {
     name: 'Starter',
-    description: 'Unlimited access for solo practitioners',
+    description: 'Homework links for a small caseload',
     monthlyPrice: 4.99,
     annualPrice: 47.90,
     features: [
       'Everything in Free',
       'Unlimited worksheet access',
+      'Up to 5 clients with homework links',
       'Clean PDF export (no branding)',
       'Bookmark & favourite tools',
     ],
@@ -38,15 +39,15 @@ const tiers = [
   },
   {
     name: 'Practice',
-    description: 'Client management & custom tools',
+    description: 'Custom tools & unlimited clients',
     monthlyPrice: 9.99,
     annualPrice: 95.90,
     features: [
       'Everything in Starter',
-      'Client management dashboard',
-      'Share worksheets with clients',
+      'Unlimited clients',
       'Custom worksheet builder',
       'Fork & customise any tool',
+      'Supervision portal',
     ],
     cta: 'Get Started',
     checkoutTier: 'standard' as const,
@@ -55,15 +56,14 @@ const tiers = [
   },
   {
     name: 'Specialist',
-    description: 'Advanced tools for specialist clinicians',
+    description: 'Full platform for specialist clinicians',
     monthlyPrice: 19.99,
     annualPrice: 191.90,
     features: [
       'Everything in Practice',
-      'CPD video training content',
+      'Up to 20 custom worksheets',
+      'Up to 8 supervisees',
       'Early access to new features',
-      'AI-assisted formulation (coming soon)',
-      'Psychometric tracking (coming soon)',
     ],
     cta: 'Get Started',
     checkoutTier: 'professional' as const,
@@ -146,7 +146,7 @@ export function PricingTable() {
                 ) : (
                   <div>
                     <p className="text-3xl font-bold text-primary-900">
-                      £{price}
+                      £{price.toFixed(2)}
                       <span className="text-base font-normal text-primary-500">
                         /{period === 'monthly' ? 'mo' : 'yr'}
                       </span>

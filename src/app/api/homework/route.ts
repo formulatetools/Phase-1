@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { sendEmail } from '@/lib/email'
+import { homeworkCompletedEmail } from '@/lib/email-templates'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
 
 // POST /api/homework — save or submit a homework response
 // Uses service role to bypass RLS (no auth required)
@@ -81,6 +85,13 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to update assignment status' }, { status: 500 })
       }
 
+      // Send therapist notification email on submission
+      if (action === 'submit') {
+        notifyTherapist(supabase, assignment).catch((e) =>
+          console.error('Failed to send homework completed email:', e)
+        )
+      }
+
       return NextResponse.json({ success: true, responseId: existingResponse.id })
     } else {
       // Create new response
@@ -119,10 +130,63 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to update assignment status' }, { status: 500 })
       }
 
+      // Send therapist notification email on submission
+      if (action === 'submit') {
+        notifyTherapist(supabase, assignment).catch((e) =>
+          console.error('Failed to send homework completed email:', e)
+        )
+      }
+
       return NextResponse.json({ success: true, responseId: newResponse?.id })
     }
   } catch (err) {
     console.error('Homework API error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
+}
+
+// ── Send "homework completed" email to the therapist ────────────────────────
+async function notifyTherapist(
+  supabase: ReturnType<typeof createServiceClient>,
+  assignment: Record<string, unknown>
+) {
+  // Look up the relationship to get the therapist and client label
+  const { data: relationship } = await supabase
+    .from('therapeutic_relationships')
+    .select('therapist_id, client_label')
+    .eq('id', assignment.relationship_id)
+    .single()
+
+  if (!relationship) return
+
+  // Look up therapist profile
+  const { data: therapist } = await supabase
+    .from('profiles')
+    .select('email, full_name')
+    .eq('id', relationship.therapist_id)
+    .single()
+
+  if (!therapist?.email) return
+
+  // Look up worksheet title
+  const { data: worksheet } = await supabase
+    .from('worksheets')
+    .select('title')
+    .eq('id', assignment.worksheet_id)
+    .single()
+
+  const clientDetailUrl = `${APP_URL}/clients/${assignment.relationship_id}`
+  const email = homeworkCompletedEmail(
+    therapist.full_name as string | null,
+    relationship.client_label as string,
+    (worksheet?.title as string) || 'Worksheet',
+    clientDetailUrl
+  )
+
+  await sendEmail({
+    to: therapist.email as string,
+    subject: email.subject,
+    html: email.html,
+    emailType: 'homework_completed',
+  })
 }
