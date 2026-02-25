@@ -5,6 +5,7 @@ import { HomeworkForm } from '@/components/homework/homework-form'
 import { ConsentGate } from '@/components/homework/consent-gate'
 import { LogoIcon } from '@/components/ui/logo'
 import { generatePortalToken } from '@/lib/tokens'
+import { isValidPreviewHash } from '@/lib/preview'
 
 export const metadata = {
   title: 'Homework — Formulate',
@@ -13,11 +14,16 @@ export const metadata = {
 
 interface PageProps {
   params: Promise<{ token: string }>
+  searchParams: Promise<{ preview?: string }>
 }
 
-export default async function HomeworkPage({ params }: PageProps) {
+export default async function HomeworkPage({ params, searchParams }: PageProps) {
   const { token } = await params
+  const { preview: previewHash } = await searchParams
   const supabase = createServiceClient()
+
+  // Detect preview mode via signed hash
+  const isPreview = !!previewHash && isValidPreviewHash(token, previewHash)
 
   // Look up assignment by token
   const { data: assignment } = await supabase
@@ -58,15 +64,17 @@ export default async function HomeworkPage({ params }: PageProps) {
     .single()
 
   // Check for existing consent (server-side, avoids flash for returning users)
-  const { data: existingConsent } = await supabase
-    .from('homework_consent')
-    .select('id')
-    .eq('relationship_id', typedAssignment.relationship_id)
-    .eq('consent_type', 'homework_digital_completion')
-    .is('withdrawn_at', null)
-    .single()
-
-  const hasConsent = !!existingConsent
+  // Skip consent check for previews — therapist doesn't need to consent
+  const hasConsent = isPreview
+    ? true
+    : !!(await supabase
+        .from('homework_consent')
+        .select('id')
+        .eq('relationship_id', typedAssignment.relationship_id)
+        .eq('consent_type', 'homework_digital_completion')
+        .is('withdrawn_at', null)
+        .single()
+      ).data
 
   // Fetch client portal token for linking to the data portal
   const { data: relationship } = await supabase
@@ -77,8 +85,9 @@ export default async function HomeworkPage({ params }: PageProps) {
     .single()
 
   // Auto-generate portal token if missing (backfills older relationships)
+  // Skip for previews — don't trigger side effects
   let portalToken = relationship?.client_portal_token
-  if (relationship && !portalToken) {
+  if (!isPreview && relationship && !portalToken) {
     portalToken = generatePortalToken()
     await supabase
       .from('therapeutic_relationships')
@@ -89,7 +98,8 @@ export default async function HomeworkPage({ params }: PageProps) {
   const portalUrl = portalToken ? `/client/${portalToken}` : null
 
   // Determine state
-  const isExpired = new Date(typedAssignment.expires_at) < new Date()
+  // For preview: skip expiry check (spec: "No expiry check for previews")
+  const isExpired = !isPreview && new Date(typedAssignment.expires_at) < new Date()
   const isLocked = !!typedAssignment.locked_at
   const isCompleted = typedAssignment.status === 'completed' || typedAssignment.status === 'reviewed'
 
@@ -127,8 +137,92 @@ export default async function HomeworkPage({ params }: PageProps) {
   // Read-only view (completed + locked)
   const readOnly = isLocked || (isCompleted && isLocked)
 
+  // Preview content — ConsentGate is skipped, form is disabled
+  const mainContent = (
+    <>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-primary-900">{typedWorksheet.title}</h1>
+        {typedWorksheet.description && (
+          <p className="mt-2 text-sm text-primary-500">{typedWorksheet.description}</p>
+        )}
+        {typedWorksheet.instructions && (
+          <div className="mt-4 rounded-xl border border-brand/20 bg-brand-light p-4 text-sm text-primary-700">
+            {typedWorksheet.instructions}
+          </div>
+        )}
+      </div>
+
+      {/* Custom worksheet disclaimer — non-curated tools */}
+      {!isCurated && (
+        <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-4 text-sm text-primary-600">
+          This worksheet was created by your therapist, not by Formulate.
+          Formulate does not review or validate custom clinical content.
+        </div>
+      )}
+
+      {/* Safety plan crisis disclaimer */}
+      {isSafetyPlan && (
+        <div className="mb-6 rounded-xl border-l-4 border-amber-400 bg-amber-50 p-4">
+          <p className="text-sm text-primary-700">
+            <strong>Important:</strong> This safety plan is designed to be completed with your therapist.
+            If you are in immediate danger or experiencing a mental health crisis, please contact:{' '}
+            <strong>999</strong> (emergency),{' '}
+            <strong>116 123</strong> (Samaritans, 24/7), or{' '}
+            <strong>0800 689 5555</strong> (SANEline, 4:30pm–10:30pm).
+            This worksheet is not a crisis service.
+          </p>
+        </div>
+      )}
+
+      {readOnly && !isPreview && (
+        <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-3 text-sm text-primary-600 flex items-center gap-2">
+          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+          <span className="flex-1">This worksheet has been submitted and reviewed. It is now read-only.</span>
+          {portalUrl && (
+            <a
+              href={portalUrl}
+              className="shrink-0 text-xs font-medium text-primary-600 underline underline-offset-2 hover:text-primary-800 transition-colors"
+            >
+              View all your data
+            </a>
+          )}
+        </div>
+      )}
+
+      <HomeworkForm
+        token={token}
+        schema={typedWorksheet.schema}
+        existingResponse={!isPreview && existingResponse ? (existingResponse as WorksheetResponse).response_data as Record<string, unknown> : undefined}
+        isCompleted={isPreview ? false : isCompleted}
+        readOnly={isPreview ? false : readOnly}
+        isPreview={isPreview}
+        worksheetTitle={typedWorksheet.title}
+        worksheetDescription={typedWorksheet.description}
+        worksheetInstructions={typedWorksheet.instructions}
+        portalUrl={isPreview ? null : portalUrl}
+      />
+    </>
+  )
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Preview banner */}
+      {isPreview && (
+        <div className="sticky top-0 z-50 border-b border-amber-300 bg-amber-50 px-4 py-3 text-center">
+          <div className="mx-auto flex max-w-2xl items-center justify-center gap-2">
+            <svg className="h-4 w-4 shrink-0 text-amber-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <p className="text-sm font-medium text-amber-800">
+              You&apos;re previewing this as your client will see it. Any data entered here won&apos;t be saved.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Minimal header */}
       <header className="border-b border-primary-100 bg-surface">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
@@ -144,77 +238,22 @@ export default async function HomeworkPage({ params }: PageProps) {
         </div>
       </header>
 
-      {/* Main content — wrapped in ConsentGate */}
+      {/* Main content */}
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <ConsentGate
-          token={token}
-          initialHasConsent={hasConsent}
-          worksheetTitle={typedWorksheet.title}
-          worksheetSchema={typedWorksheet.schema}
-        >
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-primary-900">{typedWorksheet.title}</h1>
-            {typedWorksheet.description && (
-              <p className="mt-2 text-sm text-primary-500">{typedWorksheet.description}</p>
-            )}
-            {typedWorksheet.instructions && (
-              <div className="mt-4 rounded-xl border border-brand/20 bg-brand-light p-4 text-sm text-primary-700">
-                {typedWorksheet.instructions}
-              </div>
-            )}
-          </div>
-
-          {/* Custom worksheet disclaimer — non-curated tools */}
-          {!isCurated && (
-            <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-4 text-sm text-primary-600">
-              This worksheet was created by your therapist, not by Formulate.
-              Formulate does not review or validate custom clinical content.
-            </div>
-          )}
-
-          {/* Safety plan crisis disclaimer */}
-          {isSafetyPlan && (
-            <div className="mb-6 rounded-xl border-l-4 border-amber-400 bg-amber-50 p-4">
-              <p className="text-sm text-primary-700">
-                <strong>Important:</strong> This safety plan is designed to be completed with your therapist.
-                If you are in immediate danger or experiencing a mental health crisis, please contact:{' '}
-                <strong>999</strong> (emergency),{' '}
-                <strong>116 123</strong> (Samaritans, 24/7), or{' '}
-                <strong>0800 689 5555</strong> (SANEline, 4:30pm–10:30pm).
-                This worksheet is not a crisis service.
-              </p>
-            </div>
-          )}
-
-          {readOnly && (
-            <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-3 text-sm text-primary-600 flex items-center gap-2">
-              <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-              </svg>
-              <span className="flex-1">This worksheet has been submitted and reviewed. It is now read-only.</span>
-              {portalUrl && (
-                <a
-                  href={portalUrl}
-                  className="shrink-0 text-xs font-medium text-primary-600 underline underline-offset-2 hover:text-primary-800 transition-colors"
-                >
-                  View all your data
-                </a>
-              )}
-            </div>
-          )}
-
-          <HomeworkForm
+        {isPreview ? (
+          // Preview mode: skip ConsentGate entirely
+          mainContent
+        ) : (
+          // Normal mode: wrap in ConsentGate
+          <ConsentGate
             token={token}
-            schema={typedWorksheet.schema}
-            existingResponse={existingResponse ? (existingResponse as WorksheetResponse).response_data as Record<string, unknown> : undefined}
-            isCompleted={isCompleted}
-            readOnly={readOnly}
+            initialHasConsent={hasConsent}
             worksheetTitle={typedWorksheet.title}
-            worksheetDescription={typedWorksheet.description}
-            worksheetInstructions={typedWorksheet.instructions}
-            portalUrl={portalUrl}
-          />
-        </ConsentGate>
+            worksheetSchema={typedWorksheet.schema}
+          >
+            {mainContent}
+          </ConsentGate>
+        )}
       </main>
 
       {/* Footer */}

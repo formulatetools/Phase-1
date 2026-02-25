@@ -14,6 +14,7 @@ interface HomeworkFormProps {
   existingResponse?: Record<string, unknown>
   isCompleted: boolean
   readOnly: boolean
+  isPreview?: boolean
   worksheetTitle?: string
   worksheetDescription?: string | null
   worksheetInstructions?: string | null
@@ -26,6 +27,7 @@ export function HomeworkForm({
   existingResponse,
   isCompleted,
   readOnly,
+  isPreview = false,
   worksheetTitle,
   worksheetDescription,
   worksheetInstructions,
@@ -44,7 +46,7 @@ export function HomeworkForm({
 
   // Auto-save every 30 seconds if there are changes
   useEffect(() => {
-    if (readOnly || submitted) return
+    if (readOnly || submitted || isPreview) return
 
     const interval = setInterval(() => {
       if (hasChangesRef.current) {
@@ -54,10 +56,10 @@ export function HomeworkForm({
 
     return () => clearInterval(interval)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [readOnly, submitted])
+  }, [readOnly, submitted, isPreview])
 
   const autoSave = useCallback(async () => {
-    if (readOnly || submitted) return
+    if (readOnly || submitted || isPreview) return
     setSaving(true)
     setError(null)
 
@@ -84,12 +86,15 @@ export function HomeworkForm({
     } finally {
       setSaving(false)
     }
-  }, [token, readOnly, submitted])
+  }, [token, readOnly, submitted, isPreview])
 
   const handleValuesChange = useCallback(
     (newValues: Record<string, FieldValue>) => {
       valuesRef.current = newValues
       hasChangesRef.current = true
+
+      // In preview mode, don't auto-save
+      if (isPreview) return
 
       // Debounced auto-save on change (reset timer)
       if (autoSaveTimerRef.current) {
@@ -99,11 +104,11 @@ export function HomeworkForm({
         autoSave()
       }, 5000) // Save 5s after last change
     },
-    [autoSave]
+    [autoSave, isPreview]
   )
 
   const handleSubmit = async () => {
-    if (readOnly || submitted) return
+    if (readOnly || submitted || isPreview) return
     setSubmitting(true)
     setError(null)
 
@@ -204,7 +209,7 @@ export function HomeworkForm({
       )}
 
       {/* Action bar */}
-      {!readOnly && (
+      {!readOnly && !isPreview && (
         <div className="flex items-center justify-between rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm">
           <div className="text-xs text-primary-400">
             {saving && 'Saving…'}
@@ -234,7 +239,7 @@ export function HomeworkForm({
       )}
 
       {/* Download options — subtle links below action bar */}
-      {!readOnly && !submitted && worksheetTitle && (
+      {!readOnly && !submitted && !isPreview && worksheetTitle && (
         <div className="flex items-center justify-center gap-3 text-xs text-primary-400">
           <button
             onClick={handleBlankPdfDownload}

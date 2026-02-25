@@ -11,6 +11,7 @@ import type {
   SubscriptionTier,
 } from '@/types/database'
 import { validateClientLabel } from '@/lib/validation/client-label'
+import { generatePreviewHash } from '@/lib/preview'
 
 // ============================================================================
 // CLIENT (THERAPEUTIC RELATIONSHIP) ACTIONS
@@ -209,6 +210,27 @@ export async function createAssignment(
 
   revalidatePath(`/clients/${relationshipId}`)
   return { data: data as WorksheetAssignment, token }
+}
+
+export async function getPreviewUrl(assignmentId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  const { data: assignment } = await supabase
+    .from('worksheet_assignments')
+    .select('id, token, therapist_id')
+    .eq('id', assignmentId)
+    .eq('therapist_id', user.id)
+    .is('deleted_at', null)
+    .single()
+
+  if (!assignment) return { error: 'Assignment not found' }
+
+  const hash = generatePreviewHash(assignment.token)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
+  return { url: `${appUrl}/hw/${assignment.token}?preview=${hash}` }
 }
 
 export async function lockAssignment(assignmentId: string) {
