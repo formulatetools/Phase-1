@@ -5,9 +5,11 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { revalidatePath } from 'next/cache'
 
+type ActionResult = { success: boolean; error?: string }
+
 // ── Create a new promo code (admin only) ─────────────────────────────────────
 
-export async function createPromoCode(formData: FormData): Promise<void> {
+export async function createPromoCode(formData: FormData): Promise<ActionResult> {
   const { user, profile } = await getCurrentUser()
   if (!user || !profile || profile.role !== 'admin') redirect('/dashboard')
 
@@ -17,10 +19,10 @@ export async function createPromoCode(formData: FormData): Promise<void> {
   const maxRedemptionsStr = formData.get('max_redemptions') as string
   const expiresAtStr = formData.get('expires_at') as string
 
-  // Validation — silently return on bad input (form has required attrs)
-  if (!code) return
-  if (!['starter', 'standard', 'professional'].includes(tier)) return
-  if (!durationDays || durationDays <= 0) return
+  // Validation
+  if (!code) return { success: false, error: 'Code is required' }
+  if (!['starter', 'standard', 'professional'].includes(tier)) return { success: false, error: 'Invalid tier' }
+  if (!durationDays || durationDays <= 0) return { success: false, error: 'Duration must be positive' }
 
   const maxRedemptions = maxRedemptionsStr ? parseInt(maxRedemptionsStr, 10) : null
   const expiresAt = expiresAtStr ? new Date(expiresAtStr).toISOString() : null
@@ -39,7 +41,7 @@ export async function createPromoCode(formData: FormData): Promise<void> {
     .select('id')
     .single()
 
-  if (error || !data) return
+  if (error || !data) return { success: false, error: error?.message || 'Failed to create promo code' }
 
   // Audit log
   await supabase.from('audit_log').insert({
@@ -51,31 +53,34 @@ export async function createPromoCode(formData: FormData): Promise<void> {
   })
 
   revalidatePath('/admin/promo-codes')
+  return { success: true }
 }
 
 // ── Toggle a promo code's active status (admin only) ─────────────────────────
 
-export async function togglePromoCodeActive(id: string): Promise<void> {
+export async function togglePromoCodeActive(id: string): Promise<ActionResult> {
   const { user, profile } = await getCurrentUser()
   if (!user || !profile || profile.role !== 'admin') redirect('/dashboard')
 
   const supabase = await createClient()
 
   // Fetch current state
-  const { data: promo } = await supabase
+  const { data: promo, error: fetchError } = await supabase
     .from('promo_codes')
     .select('is_active')
     .eq('id', id)
     .single()
 
-  if (!promo) return
+  if (fetchError || !promo) return { success: false, error: 'Promo code not found' }
 
   const newActive = !promo.is_active
 
-  await supabase
+  const { error: updateError } = await supabase
     .from('promo_codes')
     .update({ is_active: newActive })
     .eq('id', id)
+
+  if (updateError) return { success: false, error: 'Failed to update promo code' }
 
   // Audit log
   await supabase.from('audit_log').insert({
@@ -87,4 +92,5 @@ export async function togglePromoCodeActive(id: string): Promise<void> {
   })
 
   revalidatePath('/admin/promo-codes')
+  return { success: true }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { WorksheetSchema, WorksheetSection } from '@/types/worksheet'
@@ -102,6 +102,25 @@ export function CustomWorksheetBuilder({
 
   // Build the schema object from state
   const schema: WorksheetSchema = { version: 1, sections }
+
+  // Track unsaved changes — warn before navigating away
+  const initialSnapshot = useMemo(
+    () => JSON.stringify({ title: initialData?.title || '', description: initialData?.description || '', instructions: initialData?.instructions || '', sections: initialData?.schema?.sections || [] }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  )
+  const isDirty = useMemo(
+    () => JSON.stringify({ title, description, instructions, sections }) !== initialSnapshot,
+    [title, description, instructions, sections, initialSnapshot]
+  )
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) e.preventDefault()
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
 
   // Collect all number field IDs across all sections (for computed field sources)
   const allNumberFieldIds: { id: string; label: string }[] = []

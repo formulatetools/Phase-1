@@ -22,33 +22,43 @@ export async function GET(request: NextRequest) {
     .lt('created_at', threeDaysAgo)
     .gt('created_at', tenDaysAgo)
 
+  const candidateIds = (candidates ?? []).map((u) => u.id)
+  if (candidateIds.length === 0) {
+    return NextResponse.json({ ok: true, sent: 0, candidates: 0 })
+  }
+
+  // Batch: pre-fetch all dedup records
+  const { data: sentEmails } = await supabase
+    .from('audit_log')
+    .select('user_id')
+    .in('user_id', candidateIds)
+    .eq('entity_type', 'email')
+    .eq('entity_id', 'engagement_nudge')
+
+  const sentSet = new Set((sentEmails ?? []).map((e) => e.user_id))
+
+  // Batch: pre-fetch all users with worksheet activity
+  const { data: activeUsers } = await supabase
+    .from('worksheet_access_log')
+    .select('user_id')
+    .in('user_id', candidateIds)
+    .in('access_type', ['interact', 'export'])
+
+  const activeSet = new Set((activeUsers ?? []).map((u) => u.user_id))
+
   let sent = 0
 
   for (const user of candidates ?? []) {
-    // Check if we already sent this email (dedup via audit_log)
-    const { data: alreadySent } = await supabase
-      .from('audit_log')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('entity_type', 'email')
-      .eq('entity_id', 'engagement_nudge')
-      .limit(1)
-      .maybeSingle()
-
-    if (alreadySent) continue
-
-    // Check if user has any worksheet usage
-    const { count } = await supabase
-      .from('worksheet_access_log')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .in('access_type', ['interact', 'export'])
-
-    if ((count ?? 0) > 0) continue
+    if (sentSet.has(user.id) || activeSet.has(user.id)) continue
 
     // Send engagement email
     const email = engagementEmail(user.full_name as string | null)
-    sendEmail({ to: user.email, subject: email.subject, html: email.html, emailType: 'engagement' })
+    try {
+      await sendEmail({ to: user.email, subject: email.subject, html: email.html, emailType: 'engagement' })
+    } catch (emailError) {
+      console.error(`Failed to send engagement email to ${user.id}:`, emailError)
+      continue
+    }
 
     // Log to audit_log for dedup
     await supabase.from('audit_log').insert({

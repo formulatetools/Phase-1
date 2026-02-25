@@ -9,10 +9,12 @@ import { sendEmail } from '@/lib/email'
 import { roleGrantedEmail } from '@/lib/email-templates'
 import type { ContributorRole, ContributorRoles } from '@/types/database'
 
+type ActionResult = { success: boolean; error?: string }
+
 export async function toggleContributorRole(
   userId: string,
   role: ContributorRole
-): Promise<void> {
+): Promise<ActionResult> {
   const { user, profile } = await getCurrentUser()
   if (!user || !profile || profile.role !== 'admin') redirect('/dashboard')
 
@@ -26,7 +28,7 @@ export async function toggleContributorRole(
     .eq('id', userId)
     .single()
 
-  if (fetchError || !targetUser) return
+  if (fetchError || !targetUser) return { success: false, error: 'User not found' }
 
   const currentRoles = (targetUser.contributor_roles as ContributorRoles | null) || {
     clinical_contributor: false,
@@ -81,7 +83,7 @@ export async function toggleContributorRole(
     .update(updatePayload)
     .eq('id', userId)
 
-  if (updateError) return
+  if (updateError) return { success: false, error: 'Failed to update role' }
 
   // Audit log
   await admin.from('audit_log').insert({
@@ -108,14 +110,20 @@ export async function toggleContributorRole(
       grantedRoles
     )
 
-    sendEmail({
-      to: targetUser.email,
-      subject: email.subject,
-      html: email.html,
-      emailType: 'role_granted',
-    })
+    try {
+      await sendEmail({
+        to: targetUser.email,
+        subject: email.subject,
+        html: email.html,
+        emailType: 'role_granted',
+      })
+    } catch (emailError) {
+      console.error('Failed to send role granted email:', emailError)
+    }
   }
 
   revalidatePath(`/admin/users/${userId}`)
   revalidatePath('/admin/users')
+
+  return { success: true }
 }

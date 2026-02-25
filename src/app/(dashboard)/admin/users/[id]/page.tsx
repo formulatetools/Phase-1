@@ -141,6 +141,7 @@ export default async function AdminUserDetailPage({
             {ROLE_CONFIG.map(({ key, label, description, badgeClass }) => {
               const isActive = roles[key]
               const boundToggle = toggleContributorRole.bind(null, targetUser.id, key)
+              const formAction = async () => { 'use server'; await boundToggle() }
 
               return (
                 <div
@@ -160,7 +161,7 @@ export default async function AdminUserDetailPage({
                     </div>
                     <p className="mt-0.5 text-xs text-primary-400">{description}</p>
                   </div>
-                  <form action={boundToggle}>
+                  <form action={formAction}>
                     <button
                       type="submit"
                       className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${

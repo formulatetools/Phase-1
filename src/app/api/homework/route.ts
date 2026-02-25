@@ -54,10 +54,15 @@ export async function POST(request: NextRequest) {
         updates.completed_at = new Date().toISOString()
       }
 
-      await supabase
+      const { error: responseUpdateError } = await supabase
         .from('worksheet_responses')
         .update(updates)
         .eq('id', existingResponse.id)
+
+      if (responseUpdateError) {
+        console.error('Response update error:', responseUpdateError)
+        return NextResponse.json({ error: 'Failed to save response' }, { status: 500 })
+      }
 
       // Update assignment status
       const newStatus = action === 'submit' ? 'completed' : 'in_progress'
@@ -66,10 +71,15 @@ export async function POST(request: NextRequest) {
         assignmentUpdates.completed_at = new Date().toISOString()
       }
 
-      await supabase
+      const { error: assignmentUpdateError } = await supabase
         .from('worksheet_assignments')
         .update(assignmentUpdates)
         .eq('id', assignment.id)
+
+      if (assignmentUpdateError) {
+        console.error('Assignment update error:', assignmentUpdateError)
+        return NextResponse.json({ error: 'Failed to update assignment status' }, { status: 500 })
+      }
 
       return NextResponse.json({ success: true, responseId: existingResponse.id })
     } else {
@@ -99,10 +109,15 @@ export async function POST(request: NextRequest) {
         assignmentUpdates.completed_at = new Date().toISOString()
       }
 
-      await supabase
+      const { error: assignmentUpdateError2 } = await supabase
         .from('worksheet_assignments')
         .update(assignmentUpdates)
         .eq('id', assignment.id)
+
+      if (assignmentUpdateError2) {
+        console.error('Assignment update error:', assignmentUpdateError2)
+        return NextResponse.json({ error: 'Failed to update assignment status' }, { status: 500 })
+      }
 
       return NextResponse.json({ success: true, responseId: newResponse?.id })
     }

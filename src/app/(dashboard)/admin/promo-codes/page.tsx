@@ -49,7 +49,7 @@ export default async function AdminPromoCodesPage() {
       {/* Create form */}
       <div className="mb-8 rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
         <h2 className="mb-4 text-base font-semibold text-primary-900">Create New Code</h2>
-        <form action={createPromoCode} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <form action={async (formData: FormData) => { 'use server'; await createPromoCode(formData) }} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div>
             <label className="block text-xs font-medium text-primary-500 mb-1">Code</label>
             <input
@@ -122,7 +122,8 @@ export default async function AdminPromoCodesPage() {
             <tbody className="divide-y divide-primary-50">
               {promoCodes.map((pc) => {
                 const status = getStatus(pc)
-                const toggleAction = togglePromoCodeActive.bind(null, pc.id)
+                const boundToggle = togglePromoCodeActive.bind(null, pc.id)
+                const toggleAction = async () => { 'use server'; await boundToggle() }
                 return (
                   <tr key={pc.id} className="hover:bg-primary-50/50 transition-colors">
                     <td className="px-4 py-3 font-mono font-semibold text-primary-900 tracking-wider">

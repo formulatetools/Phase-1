@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type {
   TherapeuticRelationship,
@@ -21,6 +22,7 @@ import {
 } from '@/app/(dashboard)/clients/actions'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { ShareModal } from '@/components/ui/share-modal'
+import { useToast } from '@/hooks/use-toast'
 
 interface ClientDetailProps {
   relationship: TherapeuticRelationship
@@ -79,6 +81,30 @@ export function ClientDetail({
     dueDate?: string
   } | null>(null)
   const [copiedPortalLink, setCopiedPortalLink] = useState(false)
+
+  const router = useRouter()
+  const { toast } = useToast()
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+  const handleAction = useCallback(async (
+    key: string,
+    action: () => Promise<{ success?: boolean; error?: string }>,
+    successMessage: string,
+  ) => {
+    setActionLoading(key)
+    try {
+      const result = await action()
+      if (result.error) {
+        toast({ type: 'error', message: result.error })
+      } else {
+        toast({ type: 'success', message: successMessage })
+      }
+    } catch {
+      toast({ type: 'error', message: 'Something went wrong' })
+    } finally {
+      setActionLoading(null)
+    }
+  }, [toast])
 
   const canAssign = maxActiveAssignments === Infinity || totalActiveAssignments < maxActiveAssignments
 
@@ -154,9 +180,10 @@ export function ClientDetail({
     setGdprLoading(true)
     const result = await gdprErase(relationship.id)
     if (result.success) {
-      window.location.href = '/clients'
+      toast({ type: 'success', message: 'Client data permanently deleted.' })
+      router.push('/clients')
     } else {
-      alert(result.error || 'Failed to delete client data')
+      toast({ type: 'error', message: result.error || 'Failed to delete client data' })
       setGdprLoading(false)
       setShowGdprConfirm(false)
     }
@@ -203,6 +230,7 @@ export function ClientDetail({
                 <button
                   onClick={() => setEditingLabel(true)}
                   className="text-primary-400 hover:text-primary-600"
+                  aria-label="Edit label"
                   title="Edit label"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -231,10 +259,11 @@ export function ClientDetail({
             </button>
           ) : (
             <button
-              onClick={() => reactivateClient(relationship.id)}
-              className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
+              onClick={() => handleAction('reactivate', () => reactivateClient(relationship.id), 'Client reactivated')}
+              disabled={actionLoading === 'reactivate'}
+              className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50"
             >
-              Reactivate
+              {actionLoading === 'reactivate' ? 'Reactivating…' : 'Reactivate'}
             </button>
           )}
         </div>
@@ -287,8 +316,9 @@ export function ClientDetail({
 
           {/* Worksheet picker */}
           <div>
-            <label className="block text-sm font-medium text-primary-700 mb-1">Worksheet</label>
+            <label htmlFor="assign-worksheet" className="block text-sm font-medium text-primary-700 mb-1">Worksheet</label>
             <select
+              id="assign-worksheet"
               value={selectedWorksheet}
               onChange={(e) => setSelectedWorksheet(e.target.value)}
               className="w-full rounded-lg border border-primary-200 px-3 py-2 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none"
@@ -324,10 +354,11 @@ export function ClientDetail({
           <div className="grid grid-cols-2 gap-4">
             {/* Due date */}
             <div>
-              <label className="block text-sm font-medium text-primary-700 mb-1">
+              <label htmlFor="assign-due-date" className="block text-sm font-medium text-primary-700 mb-1">
                 Due date <span className="text-primary-400">(optional)</span>
               </label>
               <input
+                id="assign-due-date"
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
@@ -337,10 +368,11 @@ export function ClientDetail({
 
             {/* Expiry */}
             <div>
-              <label className="block text-sm font-medium text-primary-700 mb-1">
+              <label htmlFor="assign-expires" className="block text-sm font-medium text-primary-700 mb-1">
                 Link expires in
               </label>
               <select
+                id="assign-expires"
                 value={expiresInDays}
                 onChange={(e) => setExpiresInDays(Number(e.target.value))}
                 className="w-full rounded-lg border border-primary-200 px-3 py-2 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none"
@@ -528,31 +560,35 @@ export function ClientDetail({
                       {/* Mark as reviewed */}
                       {a.status === 'completed' && (
                         <button
-                          onClick={() => markAsReviewed(a.id)}
-                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
+                          onClick={() => handleAction(`review-${a.id}`, () => markAsReviewed(a.id), 'Marked as reviewed')}
+                          disabled={actionLoading === `review-${a.id}`}
+                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors disabled:opacity-50"
                         >
-                          Mark reviewed
+                          {actionLoading === `review-${a.id}` ? 'Saving…' : 'Mark reviewed'}
                         </button>
                       )}
 
                       {/* Lock */}
                       {a.status === 'completed' && !a.locked_at && (
                         <button
-                          onClick={() => lockAssignment(a.id)}
-                          className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-primary-50 transition-colors"
+                          onClick={() => handleAction(`lock-${a.id}`, () => lockAssignment(a.id), 'Assignment locked')}
+                          disabled={actionLoading === `lock-${a.id}`}
+                          className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-primary-50 transition-colors disabled:opacity-50"
+                          aria-label="Lock assignment"
                           title="Lock to prevent further edits"
                         >
-                          Lock
+                          {actionLoading === `lock-${a.id}` ? 'Locking…' : 'Lock'}
                         </button>
                       )}
 
                       {/* Mark as completed (paper) — shown when client downloaded PDF */}
                       {a.status === 'pdf_downloaded' && (
                         <button
-                          onClick={() => markAsPaperCompleted(a.id)}
-                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
+                          onClick={() => handleAction(`paper-${a.id}`, () => markAsPaperCompleted(a.id), 'Marked as completed (paper)')}
+                          disabled={actionLoading === `paper-${a.id}`}
+                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors disabled:opacity-50"
                         >
-                          Mark completed (paper)
+                          {actionLoading === `paper-${a.id}` ? 'Saving…' : 'Mark completed (paper)'}
                         </button>
                       )}
                     </div>
