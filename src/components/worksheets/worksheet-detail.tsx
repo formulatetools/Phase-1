@@ -126,6 +126,9 @@ export function WorksheetDetail({ worksheet, accessState, usesRemaining }: Props
             worksheetTitle={worksheet.title}
             onExport={handleExport}
             showBranding={accessState === 'free_available'}
+            schema={worksheet.schema as unknown as WorksheetSchema}
+            worksheetDescription={worksheet.description}
+            worksheetInstructions={worksheet.instructions}
           />
         </div>
       </div>

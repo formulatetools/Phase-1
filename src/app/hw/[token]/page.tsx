@@ -210,6 +210,8 @@ export default async function HomeworkPage({ params }: PageProps) {
             isCompleted={isCompleted}
             readOnly={readOnly}
             worksheetTitle={typedWorksheet.title}
+            worksheetDescription={typedWorksheet.description}
+            worksheetInstructions={typedWorksheet.instructions}
             portalUrl={portalUrl}
           />
         </ConsentGate>

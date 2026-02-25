@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from './blank-pdf-generator'
+import { downloadInteractiveHtml } from '@/lib/utils/html-worksheet-export'
 
 type FieldValue = string | number | '' | string[] | Record<string, string | number | ''>[]
 
@@ -14,6 +15,8 @@ interface HomeworkFormProps {
   isCompleted: boolean
   readOnly: boolean
   worksheetTitle?: string
+  worksheetDescription?: string | null
+  worksheetInstructions?: string | null
   portalUrl?: string | null
 }
 
@@ -24,6 +27,8 @@ export function HomeworkForm({
   isCompleted,
   readOnly,
   worksheetTitle,
+  worksheetDescription,
+  worksheetInstructions,
   portalUrl,
 }: HomeworkFormProps) {
   const [saving, setSaving] = useState(false)
@@ -228,15 +233,22 @@ export function HomeworkForm({
         </div>
       )}
 
-      {/* Prefer pen and paper? — subtle link below action bar */}
+      {/* Download options — subtle links below action bar */}
       {!readOnly && !submitted && worksheetTitle && (
-        <div className="text-center">
+        <div className="flex items-center justify-center gap-3 text-xs text-primary-400">
           <button
             onClick={handleBlankPdfDownload}
             disabled={generatingPdf}
-            className="text-xs text-primary-400 underline underline-offset-2 transition-colors hover:text-primary-600 disabled:opacity-50"
+            className="underline underline-offset-2 transition-colors hover:text-primary-600 disabled:opacity-50"
           >
-            {generatingPdf ? 'Generating PDF…' : 'Prefer pen and paper? Download blank PDF ↓'}
+            {generatingPdf ? 'Generating PDF…' : 'Download blank PDF ↓'}
+          </button>
+          <span>·</span>
+          <button
+            onClick={() => downloadInteractiveHtml(schema, worksheetTitle, worksheetDescription || undefined, worksheetInstructions || undefined)}
+            className="underline underline-offset-2 transition-colors hover:text-primary-600"
+          >
+            Download interactive version ↓
           </button>
         </div>
       )}
