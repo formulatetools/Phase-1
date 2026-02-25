@@ -86,6 +86,26 @@ export default async function WorksheetPage({
     }
   }
 
+  // Fetch content writer profile if clinical context is approved
+  let contentWriterName: string | null = null
+  let contentWriterTitle: string | null = null
+  let contentWriterUrl: string | null = null
+
+  if (worksheet.clinical_context_author && worksheet.clinical_context_status === 'approved') {
+    const { data: contentWriter } = await supabase
+      .from('profiles')
+      .select('full_name, contributor_profile')
+      .eq('id', worksheet.clinical_context_author as string)
+      .single()
+
+    if (contentWriter) {
+      const cp = (contentWriter as { full_name: string | null; contributor_profile: ContributorProfile | null }).contributor_profile
+      contentWriterName = cp?.display_name || (contentWriter as { full_name: string | null }).full_name || null
+      contentWriterTitle = cp?.professional_title || null
+      contentWriterUrl = cp?.profile_url || null
+    }
+  }
+
   const { user, profile } = await getCurrentUser()
 
   // Determine access state
@@ -189,6 +209,24 @@ export default async function WorksheetPage({
             <div className="mt-4 rounded-xl border border-green-200/50 bg-green-50/30 p-4">
               <h2 className="text-sm font-semibold text-green-800">Clinical Context</h2>
               <p className="mt-1 text-sm text-primary-600 leading-relaxed whitespace-pre-wrap">{worksheet.clinical_context}</p>
+              {contentWriterName && (
+                <div className="mt-3 flex items-center gap-2 text-sm text-primary-500">
+                  <svg className="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                  <span>
+                    Clinical context by{' '}
+                    {contentWriterUrl ? (
+                      <a href={contentWriterUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-primary-700 hover:text-brand transition-colors">
+                        {contentWriterName}
+                      </a>
+                    ) : (
+                      <span className="font-medium text-primary-700">{contentWriterName}</span>
+                    )}
+                    {contentWriterTitle && <span>, {contentWriterTitle}</span>}
+                  </span>
+                </div>
+              )}
             </div>
           )}
 

@@ -4,6 +4,8 @@ import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { AdminTabs } from '@/components/admin/admin-tabs'
 import { PopularWorksheetsChart } from '@/components/admin/popular-worksheets-chart'
+import { ContentReviewActions } from './content-review-actions'
+import type { ContributorProfile } from '@/types/database'
 
 export const metadata = { title: 'Content Analytics — Admin — Formulate' }
 
@@ -95,6 +97,7 @@ export default async function AdminContentPage() {
     { data: worksheetDetails },
     { data: categories },
     { data: searchLogs },
+    { data: contentSubmissions },
   ] = await Promise.all([
     // Totals
     supabase.from('worksheet_access_log').select('*', { count: 'exact', head: true }).in('access_type', ['view', 'interact']),
@@ -118,6 +121,15 @@ export default async function AdminContentPage() {
 
     // Search logs from audit
     supabase.from('audit_log').select('metadata').eq('entity_type', 'search').order('created_at', { ascending: false }).limit(500),
+
+    // Clinical context submissions (content writer queue)
+    supabase
+      .from('worksheets')
+      .select('id, title, slug, clinical_context, clinical_context_status, clinical_context_author')
+      .not('clinical_context_status', 'is', null)
+      .is('deleted_at', null)
+      .order('updated_at', { ascending: false })
+      .limit(20),
   ])
 
   const ranked = rankWorksheets(
@@ -164,6 +176,85 @@ export default async function AdminContentPage() {
       </div>
 
       <AdminTabs />
+
+      {/* ── Clinical Context Queue ────────────────────────────────── */}
+      {(() => {
+        type ContentSub = {
+          id: string; title: string; slug: string; clinical_context: string | null
+          clinical_context_status: string; clinical_context_author: string | null
+        }
+        const subs = (contentSubmissions || []) as ContentSub[]
+
+        if (subs.length === 0) return null
+
+        // We need to fetch writer names — inline in the IIFE
+        // Since we can't await here, we pass raw data to the client component
+        // The writer names are fetched server-side below
+        return null
+      })()}
+
+      {await (async () => {
+        type ContentSub = {
+          id: string; title: string; slug: string; clinical_context: string | null
+          clinical_context_status: string; clinical_context_author: string | null
+        }
+        const subs = (contentSubmissions || []) as ContentSub[]
+
+        if (subs.length === 0) return null
+
+        // Fetch writer profiles
+        const authorIds = [...new Set(subs.map(s => s.clinical_context_author).filter(Boolean))] as string[]
+        let writerMap: Record<string, string> = {}
+
+        if (authorIds.length > 0) {
+          const { data: writerProfiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, email, contributor_profile')
+            .in('id', authorIds)
+
+          writerMap = Object.fromEntries(
+            (writerProfiles || []).map((p: { id: string; full_name: string | null; email: string; contributor_profile: ContributorProfile | null }) => {
+              const name = p.contributor_profile?.display_name || p.full_name || p.email
+              return [p.id, name]
+            })
+          )
+        }
+
+        const submissions = subs.map(s => ({
+          id: s.id,
+          title: s.title,
+          slug: s.slug,
+          clinical_context: s.clinical_context || '',
+          clinical_context_status: s.clinical_context_status,
+          writer_name: s.clinical_context_author ? writerMap[s.clinical_context_author] || 'Unknown' : 'Unknown',
+        }))
+
+        // Sort: submitted first, then others
+        submissions.sort((a, b) => {
+          if (a.clinical_context_status === 'submitted' && b.clinical_context_status !== 'submitted') return -1
+          if (a.clinical_context_status !== 'submitted' && b.clinical_context_status === 'submitted') return 1
+          return 0
+        })
+
+        const pendingCount = submissions.filter(s => s.clinical_context_status === 'submitted').length
+
+        return (
+          <div className="mb-8 rounded-2xl border border-primary-100 bg-surface shadow-sm">
+            <div className="border-b border-primary-100 px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-primary-900">Clinical Context Queue</h3>
+                <p className="mt-0.5 text-xs text-primary-400">Review clinical context written by content writers</p>
+              </div>
+              {pendingCount > 0 && (
+                <span className="inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                  {pendingCount} pending
+                </span>
+              )}
+            </div>
+            <ContentReviewActions submissions={submissions} />
+          </div>
+        )
+      })()}
 
       {/* ── Stat cards ──────────────────────────────────────────────── */}
       <div className="mb-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

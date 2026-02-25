@@ -330,6 +330,66 @@ export function reviewAssignedEmail(
   }
 }
 
+// ─── Content Approved Email ─────────────────────────────────
+
+export function contentApprovedEmail(
+  name: string | null,
+  worksheetTitle: string,
+  worksheetUrl: string
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  return {
+    subject: 'Your clinical context is now live',
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Your clinical context is live</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        The clinical context you wrote for <strong>&ldquo;${worksheetTitle}&rdquo;</strong> has been approved and is now live on the worksheet page. Your name appears as the clinical context author.
+      </p>
+      <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
+        Thank you for helping therapists understand when and how to use this tool.
+      </p>
+      ${button('View Worksheet', worksheetUrl)}
+      <p style="margin:16px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
+    `),
+  }
+}
+
+// ─── Content Feedback Email ─────────────────────────────────
+
+export function contentFeedbackEmail(
+  name: string | null,
+  worksheetTitle: string,
+  feedback: string
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  return {
+    subject: 'Feedback on your clinical context',
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Feedback on your clinical context</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        We&rsquo;ve reviewed the clinical context you submitted for <strong>&ldquo;${worksheetTitle}&rdquo;</strong> and have some feedback before it can be approved.
+      </p>
+      <div style="margin:0 0 16px;padding:12px 16px;background:#fff7ed;border-left:3px solid #f97316;border-radius:4px;">
+        <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#c2410c;text-transform:uppercase;">Feedback</p>
+        <p style="margin:0;font-size:14px;color:#9a3412;line-height:1.5;">${feedback}</p>
+      </div>
+      <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
+        Please revise and resubmit when ready. You can find the worksheet in your dashboard.
+      </p>
+      ${button('Open Dashboard', `${APP_URL}/dashboard`)}
+      <p style="margin:16px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
+    `),
+  }
+}
+
 // ─── Submission Status Email ────────────────────────────────
 
 export function submissionStatusEmail(

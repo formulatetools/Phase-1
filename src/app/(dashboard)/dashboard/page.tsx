@@ -36,6 +36,8 @@ export default async function DashboardPage() {
     { count: activeSuperviseeCount },
     { data: contributorSubmissions },
     { data: reviewQueue },
+    { data: myContentItems },
+    { data: availableContent },
   ] = await Promise.all([
     // Recently accessed worksheets
     supabase
@@ -148,6 +150,27 @@ export default async function DashboardPage() {
       .eq('reviewer_id', user.id)
       .order('assigned_at', { ascending: false })
       .limit(10),
+
+    // Content writer: my claimed/submitted worksheets
+    supabase
+      .from('worksheets')
+      .select('id, title, slug, clinical_context_status, clinical_context_feedback')
+      .eq('clinical_context_author', user.id)
+      .not('clinical_context_status', 'is', null)
+      .is('deleted_at', null)
+      .order('updated_at', { ascending: false })
+      .limit(10),
+
+    // Content writer: available worksheets needing content
+    supabase
+      .from('worksheets')
+      .select('id, title, slug')
+      .eq('is_published', true)
+      .is('clinical_context', null)
+      .is('clinical_context_status', null)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(5),
   ])
 
   // Deduplicate recently accessed worksheets
@@ -618,8 +641,8 @@ export default async function DashboardPage() {
               </div>
             )}
             {cRoles.content_writer && (
-              <div className="rounded-2xl border border-dashed border-purple-200 bg-purple-50/30 p-6">
-                <div className="flex items-center gap-3">
+              <div className="rounded-2xl border border-purple-200 bg-surface p-6 shadow-sm">
+                <div className="mb-4 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100">
                     <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -627,9 +650,89 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-primary-900">Content Queue</h3>
-                    <p className="text-xs text-primary-400">Write clinical context for worksheets — coming soon</p>
+                    <p className="text-xs text-primary-400">Write clinical context for worksheets</p>
                   </div>
                 </div>
+
+                {(() => {
+                  type ContentItem = { id: string; title: string; slug: string; clinical_context_status: string; clinical_context_feedback: string | null }
+                  type AvailableItem = { id: string; title: string; slug: string }
+                  const myItems = (myContentItems || []) as unknown as ContentItem[]
+                  const available = (availableContent || []) as unknown as AvailableItem[]
+
+                  const CONTENT_STATUS_BADGES: Record<string, { label: string; className: string }> = {
+                    claimed: { label: 'Claimed', className: 'bg-purple-50 text-purple-700' },
+                    submitted: { label: 'Submitted', className: 'bg-blue-50 text-blue-700' },
+                    approved: { label: 'Approved', className: 'bg-green-50 text-green-700' },
+                    rejected: { label: 'Rejected', className: 'bg-red-50 text-red-600' },
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {/* My content items */}
+                      {myItems.length > 0 && (
+                        <div>
+                          <p className="mb-2 text-xs font-medium text-primary-500">Your Content</p>
+                          <div className="space-y-2">
+                            {myItems.map((item) => {
+                              const badge = CONTENT_STATUS_BADGES[item.clinical_context_status] || CONTENT_STATUS_BADGES.claimed
+                              const isEditable = ['claimed', 'rejected'].includes(item.clinical_context_status)
+                              const isApproved = item.clinical_context_status === 'approved'
+
+                              return (
+                                <div key={item.id}>
+                                  <Link
+                                    href={isApproved ? `/worksheets/${item.slug}` : `/content/${item.id}`}
+                                    className="flex items-center justify-between rounded-xl bg-primary-50 px-4 py-3 hover:bg-primary-100 transition-colors"
+                                  >
+                                    <div className="flex-1 min-w-0">
+                                      <p className="truncate text-sm font-medium text-primary-900">{item.title}</p>
+                                      {isEditable && <p className="mt-0.5 text-xs text-primary-400">Click to {item.clinical_context_status === 'rejected' ? 'revise' : 'write'} clinical context</p>}
+                                    </div>
+                                    <span className={`ml-3 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${badge.className}`}>
+                                      {badge.label}
+                                    </span>
+                                  </Link>
+                                  {item.clinical_context_status === 'rejected' && item.clinical_context_feedback && (
+                                    <div className="mt-1 ml-4 rounded-lg bg-orange-50 px-3 py-2">
+                                      <p className="text-xs text-orange-800">{item.clinical_context_feedback}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Available worksheets */}
+                      {available.length > 0 && (
+                        <div>
+                          <p className="mb-2 text-xs font-medium text-primary-500">Available Worksheets</p>
+                          <div className="space-y-2">
+                            {available.map((item) => (
+                              <Link
+                                key={item.id}
+                                href={`/worksheets/${item.slug}`}
+                                className="flex items-center justify-between rounded-xl bg-purple-50/50 px-4 py-3 hover:bg-purple-100/50 transition-colors"
+                              >
+                                <p className="truncate text-sm font-medium text-primary-900">{item.title}</p>
+                                <span className="ml-3 text-xs font-medium text-purple-600">Needs context</span>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {myItems.length === 0 && available.length === 0 && (
+                        <div className="rounded-xl bg-primary-50 px-4 py-6 text-center">
+                          <p className="text-sm text-primary-500">No worksheets need clinical context right now</p>
+                          <p className="mt-1 text-xs text-primary-400">Check back later — new worksheets are added regularly.</p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
             )}
           </div>

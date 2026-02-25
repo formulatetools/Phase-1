@@ -28,6 +28,7 @@ export type ClinicalAccuracy = 'accurate' | 'minor_issues' | 'significant_concer
 export type ReviewCompleteness = 'complete' | 'missing_elements' | 'incomplete'
 export type ReviewUsability = 'ready' | 'needs_refinement' | 'major_issues'
 export type ReviewRecommendation = 'approve' | 'approve_with_edits' | 'revise_resubmit' | 'reject'
+export type ContentStatus = 'claimed' | 'submitted' | 'approved' | 'rejected'
 
 export interface ContributorRoles {
   clinical_contributor: boolean
@@ -125,6 +126,9 @@ export interface Worksheet {
   clinical_context: string | null
   suggested_category: string | null
   references_sources: string | null
+  clinical_context_author: string | null
+  clinical_context_status: ContentStatus | null
+  clinical_context_feedback: string | null
   deleted_at: string | null
   created_at: string
   updated_at: string
