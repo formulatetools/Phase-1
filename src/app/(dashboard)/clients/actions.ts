@@ -143,6 +143,20 @@ export async function createAssignment(
   const supabase = await createClient()
   const tier = profile.subscription_tier as SubscriptionTier
 
+  // Guard: verify this is a clinical relationship (not supervision)
+  const { data: rel } = await supabase
+    .from('therapeutic_relationships')
+    .select('relationship_type, client_portal_token')
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .is('deleted_at', null)
+    .single()
+
+  if (!rel) return { error: 'Client not found' }
+  if (rel.relationship_type !== 'clinical') {
+    return { error: 'Cannot assign homework to a supervision relationship. Use the supervision portal instead.' }
+  }
+
   // Check freemium limits — count active assignments (assigned or in_progress)
   const { count } = await supabase
     .from('worksheet_assignments')
@@ -186,13 +200,7 @@ export async function createAssignment(
   })
 
   // Lazy-generate client portal token if this relationship doesn't have one yet
-  const { data: rel } = await supabase
-    .from('therapeutic_relationships')
-    .select('client_portal_token')
-    .eq('id', relationshipId)
-    .single()
-
-  if (rel && !rel.client_portal_token) {
+  if (!rel.client_portal_token) {
     await supabase
       .from('therapeutic_relationships')
       .update({ client_portal_token: generatePortalToken() })

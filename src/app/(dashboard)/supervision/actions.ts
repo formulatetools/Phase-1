@@ -149,6 +149,20 @@ export async function createSupervisionAssignment(
   const supabase = await createClient()
   const tier = profile.subscription_tier as SubscriptionTier
 
+  // Guard: verify this is a supervision relationship (not clinical)
+  const { data: rel } = await supabase
+    .from('therapeutic_relationships')
+    .select('relationship_type, client_portal_token')
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .is('deleted_at', null)
+    .single()
+
+  if (!rel) return { error: 'Supervisee not found' }
+  if (rel.relationship_type !== 'supervision') {
+    return { error: 'Cannot assign supervision worksheets to a clinical client. Use the clients page instead.' }
+  }
+
   // Check freemium limits — count active assignments (assigned or in_progress)
   const { count } = await supabase
     .from('worksheet_assignments')
@@ -192,13 +206,7 @@ export async function createSupervisionAssignment(
   })
 
   // Lazy-generate client portal token if this relationship doesn't have one yet
-  const { data: rel } = await supabase
-    .from('therapeutic_relationships')
-    .select('client_portal_token')
-    .eq('id', relationshipId)
-    .single()
-
-  if (rel && !rel.client_portal_token) {
+  if (!rel.client_portal_token) {
     await supabase
       .from('therapeutic_relationships')
       .update({ client_portal_token: generatePortalToken() })
