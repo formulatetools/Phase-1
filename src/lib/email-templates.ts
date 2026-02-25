@@ -484,6 +484,40 @@ export function contentFeedbackEmail(
   }
 }
 
+// ─── Free Tier Monthly Reset Email ────────────────────────────
+
+export function freeResetEmail(
+  name: string | null
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  return {
+    subject: 'Your 5 free worksheet uses have reset',
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Your free uses have reset</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Good news &mdash; your 5 free worksheet uses for the month have reset. You can interact with and export up to 5 professional CBT worksheets this month.
+      </p>
+      <p style="margin:0 0 8px;font-size:15px;color:#444;line-height:1.6;">
+        As a reminder, your free plan includes:
+      </p>
+      <ul style="margin:0 0 16px;padding-left:20px;font-size:15px;color:#444;line-height:1.8;">
+        <li>5 interactive worksheet uses per month</li>
+        <li>PDF export on every tool</li>
+        <li>Up to 3 clients with homework links</li>
+      </ul>
+      ${button('Open Your Dashboard', `${APP_URL}/dashboard`)}
+      <p style="margin:16px 0 0;font-size:13px;color:#888;line-height:1.5;">
+        Need unlimited access?
+        <a href="${APP_URL}/pricing" style="color:#c48d1e;text-decoration:underline;">Upgrade from &pound;4.99/month</a>.
+      </p>
+    `),
+  }
+}
+
 // ─── Submission Status Email ────────────────────────────────
 
 export function submissionStatusEmail(
