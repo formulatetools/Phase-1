@@ -33,10 +33,19 @@ export function ContentReviewActions({ submissions }: Props) {
 
   const handleApprove = async (worksheetId: string) => {
     setActing(true)
-    await approveContent(worksheetId)
-    toast({ type: 'success', message: 'Clinical context approved and published' })
-    setExpandedId(null)
-    setActing(false)
+    try {
+      const result = await approveContent(worksheetId)
+      if (!result.success) {
+        toast({ type: 'error', message: result.error || 'Failed to approve' })
+        return
+      }
+      toast({ type: 'success', message: 'Clinical context approved and published' })
+      setExpandedId(null)
+    } catch {
+      toast({ type: 'error', message: 'An unexpected error occurred' })
+    } finally {
+      setActing(false)
+    }
   }
 
   const handleReject = async (worksheetId: string) => {
@@ -45,11 +54,20 @@ export function ContentReviewActions({ submissions }: Props) {
       return
     }
     setActing(true)
-    await rejectContent(worksheetId, feedback)
-    toast({ type: 'success', message: 'Clinical context rejected — writer has been emailed' })
-    setFeedback('')
-    setExpandedId(null)
-    setActing(false)
+    try {
+      const result = await rejectContent(worksheetId, feedback)
+      if (!result.success) {
+        toast({ type: 'error', message: result.error || 'Failed to reject' })
+        return
+      }
+      toast({ type: 'success', message: 'Clinical context rejected — writer has been emailed' })
+      setFeedback('')
+      setExpandedId(null)
+    } catch {
+      toast({ type: 'error', message: 'An unexpected error occurred' })
+    } finally {
+      setActing(false)
+    }
   }
 
   if (submissions.length === 0) {

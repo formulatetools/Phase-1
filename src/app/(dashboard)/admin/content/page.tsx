@@ -113,8 +113,8 @@ export default async function AdminContentPage() {
     // Exports prev 30d
     supabase.from('worksheet_access_log').select('*', { count: 'exact', head: true }).eq('access_type', 'export').gte('created_at', sixtyDaysAgo).lt('created_at', thirtyDaysAgo),
 
-    // All access logs for ranking
-    supabase.from('worksheet_access_log').select('worksheet_id, access_type, created_at'),
+    // All access logs for ranking (bounded to last 60 days)
+    supabase.from('worksheet_access_log').select('worksheet_id, access_type, created_at').gte('created_at', sixtyDaysAgo).limit(10000),
     supabase.from('worksheet_assignments').select('worksheet_id').is('deleted_at', null),
     supabase.from('worksheets').select('id, title, slug, is_published, category_id').is('deleted_at', null),
     supabase.from('categories').select('id, name'),
@@ -178,21 +178,6 @@ export default async function AdminContentPage() {
       <AdminTabs />
 
       {/* ── Clinical Context Queue ────────────────────────────────── */}
-      {(() => {
-        type ContentSub = {
-          id: string; title: string; slug: string; clinical_context: string | null
-          clinical_context_status: string; clinical_context_author: string | null
-        }
-        const subs = (contentSubmissions || []) as ContentSub[]
-
-        if (subs.length === 0) return null
-
-        // We need to fetch writer names — inline in the IIFE
-        // Since we can't await here, we pass raw data to the client component
-        // The writer names are fetched server-side below
-        return null
-      })()}
-
       {await (async () => {
         type ContentSub = {
           id: string; title: string; slug: string; clinical_context: string | null

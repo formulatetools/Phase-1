@@ -133,44 +133,52 @@ export default async function DashboardPage() {
       .eq('relationship_type', 'supervision')
       .is('deleted_at', null),
 
-    // Contributor submissions (for Library Contributions section)
-    supabase
-      .from('worksheets')
-      .select('id, title, slug, library_status, submitted_at, admin_feedback')
-      .eq('submitted_by', user.id)
-      .not('library_status', 'is', null)
-      .is('deleted_at', null)
-      .order('submitted_at', { ascending: false })
-      .limit(10),
+    // Contributor submissions (only for clinical_contributors)
+    (profile.contributor_roles as { clinical_contributor?: boolean } | null)?.clinical_contributor
+      ? supabase
+          .from('worksheets')
+          .select('id, title, slug, library_status, submitted_at, admin_feedback')
+          .eq('submitted_by', user.id)
+          .not('library_status', 'is', null)
+          .is('deleted_at', null)
+          .order('submitted_at', { ascending: false })
+          .limit(10)
+      : Promise.resolve({ data: null }),
 
-    // Review queue (for Clinical Reviewer section)
-    supabase
-      .from('worksheet_reviews')
-      .select('id, worksheet_id, assigned_at, completed_at, worksheets(title)')
-      .eq('reviewer_id', user.id)
-      .order('assigned_at', { ascending: false })
-      .limit(10),
+    // Review queue (only for clinical_reviewers)
+    (profile.contributor_roles as { clinical_reviewer?: boolean } | null)?.clinical_reviewer
+      ? supabase
+          .from('worksheet_reviews')
+          .select('id, worksheet_id, assigned_at, completed_at, worksheets(title)')
+          .eq('reviewer_id', user.id)
+          .order('assigned_at', { ascending: false })
+          .limit(10)
+      : Promise.resolve({ data: null }),
 
-    // Content writer: my claimed/submitted worksheets
-    supabase
-      .from('worksheets')
-      .select('id, title, slug, clinical_context_status, clinical_context_feedback')
-      .eq('clinical_context_author', user.id)
-      .not('clinical_context_status', 'is', null)
-      .is('deleted_at', null)
-      .order('updated_at', { ascending: false })
-      .limit(10),
+    // Content writer: my claimed/submitted worksheets (only for content_writers)
+    (profile.contributor_roles as { content_writer?: boolean } | null)?.content_writer
+      ? supabase
+          .from('worksheets')
+          .select('id, title, slug, clinical_context_status, clinical_context_feedback')
+          .eq('clinical_context_author', user.id)
+          .not('clinical_context_status', 'is', null)
+          .is('deleted_at', null)
+          .order('updated_at', { ascending: false })
+          .limit(10)
+      : Promise.resolve({ data: null }),
 
-    // Content writer: available worksheets needing content
-    supabase
-      .from('worksheets')
-      .select('id, title, slug')
-      .eq('is_published', true)
-      .is('clinical_context', null)
-      .is('clinical_context_status', null)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .limit(5),
+    // Content writer: available worksheets needing content (only for content_writers)
+    (profile.contributor_roles as { content_writer?: boolean } | null)?.content_writer
+      ? supabase
+          .from('worksheets')
+          .select('id, title, slug')
+          .eq('is_published', true)
+          .is('clinical_context', null)
+          .is('clinical_context_status', null)
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+          .limit(5)
+      : Promise.resolve({ data: null }),
   ])
 
   // Deduplicate recently accessed worksheets
@@ -713,7 +721,7 @@ export default async function DashboardPage() {
                             {available.map((item) => (
                               <Link
                                 key={item.id}
-                                href={`/worksheets/${item.slug}`}
+                                href={`/content/${item.id}`}
                                 className="flex items-center justify-between rounded-xl bg-purple-50/50 px-4 py-3 hover:bg-purple-100/50 transition-colors"
                               >
                                 <p className="truncate text-sm font-medium text-primary-900">{item.title}</p>

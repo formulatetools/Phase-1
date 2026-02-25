@@ -10,9 +10,11 @@ import { contentApprovedEmail, contentFeedbackEmail } from '@/lib/email-template
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
 
+type ActionResult = { success: boolean; error?: string }
+
 // ── Approve Content ─────────────────────────────────────────────────
 
-export async function approveContent(worksheetId: string): Promise<void> {
+export async function approveContent(worksheetId: string): Promise<ActionResult> {
   const { user, profile } = await getCurrentUser()
   if (!user || !profile || profile.role !== 'admin') redirect('/dashboard')
 
@@ -25,10 +27,10 @@ export async function approveContent(worksheetId: string): Promise<void> {
     .eq('id', worksheetId)
     .single()
 
-  if (!worksheet) return
+  if (!worksheet) return { success: false, error: 'Worksheet not found' }
 
   const ws = worksheet as { id: string; title: string; slug: string; clinical_context_status: string; clinical_context_author: string }
-  if (ws.clinical_context_status !== 'submitted') return
+  if (ws.clinical_context_status !== 'submitted') return { success: false, error: 'Worksheet is not in submitted state' }
 
   await admin
     .from('worksheets')
@@ -54,21 +56,27 @@ export async function approveContent(worksheetId: string): Promise<void> {
     const w = writer as { email: string; full_name: string | null }
     const worksheetUrl = `${APP_URL}/worksheets/${ws.slug}`
     const email = contentApprovedEmail(w.full_name, ws.title, worksheetUrl)
-    sendEmail({ to: w.email, subject: email.subject, html: email.html, emailType: 'content_approved' })
+    try {
+      await sendEmail({ to: w.email, subject: email.subject, html: email.html, emailType: 'content_approved' })
+    } catch (emailError) {
+      console.error('Failed to send content approved email:', emailError)
+    }
   }
 
   revalidatePath('/admin/content')
   revalidatePath(`/worksheets/${ws.slug}`)
   revalidatePath('/dashboard')
+
+  return { success: true }
 }
 
 // ── Reject Content ──────────────────────────────────────────────────
 
-export async function rejectContent(worksheetId: string, feedback: string): Promise<void> {
+export async function rejectContent(worksheetId: string, feedback: string): Promise<ActionResult> {
   const { user, profile } = await getCurrentUser()
   if (!user || !profile || profile.role !== 'admin') redirect('/dashboard')
 
-  if (!feedback.trim()) return
+  if (!feedback.trim()) return { success: false, error: 'Feedback is required' }
 
   const admin = createAdminClient()
   const supabase = await createClient()
@@ -79,10 +87,10 @@ export async function rejectContent(worksheetId: string, feedback: string): Prom
     .eq('id', worksheetId)
     .single()
 
-  if (!worksheet) return
+  if (!worksheet) return { success: false, error: 'Worksheet not found' }
 
   const ws = worksheet as { id: string; title: string; slug: string; clinical_context_status: string; clinical_context_author: string }
-  if (ws.clinical_context_status !== 'submitted') return
+  if (ws.clinical_context_status !== 'submitted') return { success: false, error: 'Worksheet is not in submitted state' }
 
   await admin
     .from('worksheets')
@@ -106,9 +114,15 @@ export async function rejectContent(worksheetId: string, feedback: string): Prom
   if (writer) {
     const w = writer as { email: string; full_name: string | null }
     const email = contentFeedbackEmail(w.full_name, ws.title, feedback.trim())
-    sendEmail({ to: w.email, subject: email.subject, html: email.html, emailType: 'content_rejected' })
+    try {
+      await sendEmail({ to: w.email, subject: email.subject, html: email.html, emailType: 'content_rejected' })
+    } catch (emailError) {
+      console.error('Failed to send content rejected email:', emailError)
+    }
   }
 
   revalidatePath('/admin/content')
   revalidatePath('/dashboard')
+
+  return { success: true }
 }

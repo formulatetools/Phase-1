@@ -158,7 +158,7 @@ export default async function ContentWritingPage({
 
             <WorksheetRenderer
               schema={ws.schema}
-              readOnly={false}
+              readOnly={true}
             />
           </div>
 

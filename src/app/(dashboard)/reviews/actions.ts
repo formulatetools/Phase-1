@@ -18,7 +18,9 @@ interface ReviewData {
   recommendation: ReviewRecommendation
 }
 
-export async function submitReview(worksheetId: string, data: ReviewData): Promise<void> {
+type ActionResult = { success: boolean; error?: string }
+
+export async function submitReview(worksheetId: string, data: ReviewData): Promise<ActionResult> {
   const { user, profile } = await getCurrentUser()
   if (!user || !profile) redirect('/login')
 
@@ -37,13 +39,15 @@ export async function submitReview(worksheetId: string, data: ReviewData): Promi
     .eq('reviewer_id', user.id)
     .single()
 
-  if (!review) return
+  if (!review) return { success: false, error: 'Review assignment not found' }
 
   const r = review as { id: string; completed_at: string | null }
-  if (r.completed_at) return // Already completed
+  if (r.completed_at) return { success: false, error: 'Review already submitted' }
 
   // Validate required fields
-  if (!data.clinical_accuracy || !data.completeness || !data.usability || !data.recommendation) return
+  if (!data.clinical_accuracy || !data.completeness || !data.usability || !data.recommendation) {
+    return { success: false, error: 'All rating fields are required' }
+  }
 
   // Update the review
   await admin
@@ -79,4 +83,6 @@ export async function submitReview(worksheetId: string, data: ReviewData): Promi
   revalidatePath(`/reviews/${worksheetId}`)
   revalidatePath('/dashboard')
   revalidatePath(`/admin/submissions/${worksheetId}`)
+
+  return { success: true }
 }

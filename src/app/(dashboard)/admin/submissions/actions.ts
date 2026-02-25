@@ -58,7 +58,11 @@ export async function approveSubmission(worksheetId: string): Promise<void> {
   if (contributor) {
     const c = contributor as { email: string; full_name: string | null }
     const email = submissionStatusEmail(c.full_name, ws.title, 'approved')
-    sendEmail({ to: c.email, subject: email.subject, html: email.html, emailType: 'submission_approved' })
+    try {
+      await sendEmail({ to: c.email, subject: email.subject, html: email.html, emailType: 'submission_approved' })
+    } catch (emailError) {
+      console.error('Failed to send submission approved email:', emailError)
+    }
   }
 
   revalidatePath(`/admin/submissions/${worksheetId}`)
@@ -109,7 +113,11 @@ export async function requestChanges(worksheetId: string, feedback: string): Pro
   if (contributor) {
     const c = contributor as { email: string; full_name: string | null }
     const email = submissionStatusEmail(c.full_name, ws.title, 'changes_requested', feedback.trim())
-    sendEmail({ to: c.email, subject: email.subject, html: email.html, emailType: 'submission_changes_requested' })
+    try {
+      await sendEmail({ to: c.email, subject: email.subject, html: email.html, emailType: 'submission_changes_requested' })
+    } catch (emailError) {
+      console.error('Failed to send submission changes requested email:', emailError)
+    }
   }
 
   revalidatePath(`/admin/submissions/${worksheetId}`)
@@ -159,7 +167,11 @@ export async function rejectSubmission(worksheetId: string, feedback: string): P
   if (contributor) {
     const c = contributor as { email: string; full_name: string | null }
     const email = submissionStatusEmail(c.full_name, ws.title, 'rejected', feedback.trim())
-    sendEmail({ to: c.email, subject: email.subject, html: email.html, emailType: 'submission_rejected' })
+    try {
+      await sendEmail({ to: c.email, subject: email.subject, html: email.html, emailType: 'submission_rejected' })
+    } catch (emailError) {
+      console.error('Failed to send submission rejected email:', emailError)
+    }
   }
 
   revalidatePath(`/admin/submissions/${worksheetId}`)
@@ -215,7 +227,11 @@ export async function publishSubmission(worksheetId: string): Promise<void> {
     const c = contributor as { email: string; full_name: string | null }
     const worksheetUrl = `${APP_URL}/worksheets/${ws.slug}`
     const email = submissionStatusEmail(c.full_name, ws.title, 'published', undefined, worksheetUrl)
-    sendEmail({ to: c.email, subject: email.subject, html: email.html, emailType: 'submission_published' })
+    try {
+      await sendEmail({ to: c.email, subject: email.subject, html: email.html, emailType: 'submission_published' })
+    } catch (emailError) {
+      console.error('Failed to send submission published email:', emailError)
+    }
   }
 
   revalidatePath(`/admin/submissions/${worksheetId}`)
@@ -283,7 +299,11 @@ export async function assignReviewer(worksheetId: string, reviewerId: string): P
   // Send email
   const reviewUrl = `${APP_URL}/reviews/${worksheetId}`
   const email = reviewAssignedEmail(r.full_name, ws.title, reviewUrl)
-  sendEmail({ to: r.email, subject: email.subject, html: email.html, emailType: 'review_assigned' })
+  try {
+    await sendEmail({ to: r.email, subject: email.subject, html: email.html, emailType: 'review_assigned' })
+  } catch (emailError) {
+    console.error('Failed to send review assigned email:', emailError)
+  }
 
   revalidatePath(`/admin/submissions/${worksheetId}`)
   revalidatePath('/admin/submissions')

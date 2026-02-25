@@ -25,27 +25,26 @@ export default async function ReviewPage({
 
   const supabase = await createClient()
 
-  // Verify reviewer is assigned to this worksheet
-  const { data: review } = await supabase
-    .from('worksheet_reviews')
-    .select('*')
-    .eq('worksheet_id', worksheetId)
-    .eq('reviewer_id', user.id)
-    .single()
+  // Fetch review + worksheet in parallel
+  const [{ data: review }, { data: worksheet }] = await Promise.all([
+    supabase
+      .from('worksheet_reviews')
+      .select('*')
+      .eq('worksheet_id', worksheetId)
+      .eq('reviewer_id', user.id)
+      .single(),
+    supabase
+      .from('worksheets')
+      .select('id, title, description, instructions, schema, clinical_context, references_sources, category_id, tags, estimated_minutes')
+      .eq('id', worksheetId)
+      .is('deleted_at', null)
+      .single(),
+  ])
 
   if (!review) notFound()
+  if (!worksheet) notFound()
 
   const typedReview = review as WorksheetReview
-
-  // Fetch worksheet WITHOUT submitted_by (blind review)
-  const { data: worksheet } = await supabase
-    .from('worksheets')
-    .select('id, title, description, instructions, schema, clinical_context, references_sources, category_id, tags, estimated_minutes')
-    .eq('id', worksheetId)
-    .is('deleted_at', null)
-    .single()
-
-  if (!worksheet) notFound()
 
   type WorksheetData = {
     id: string; title: string; description: string; instructions: string
@@ -172,7 +171,7 @@ export default async function ReviewPage({
 
             <WorksheetRenderer
               schema={ws.schema}
-              readOnly={false}
+              readOnly={true}
             />
           </div>
 

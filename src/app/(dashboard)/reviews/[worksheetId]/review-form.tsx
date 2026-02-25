@@ -59,9 +59,11 @@ export function ReviewForm({ worksheetId, existingReview, isCompleted }: Props) 
       return
     }
 
+    if (!window.confirm('Submit your review? This cannot be changed afterwards.')) return
+
     setSubmitting(true)
     try {
-      await submitReview(worksheetId, {
+      const result = await submitReview(worksheetId, {
         clinical_accuracy: clinicalAccuracy as ClinicalAccuracy,
         clinical_accuracy_notes: clinicalAccuracyNotes || null,
         completeness: completeness as ReviewCompleteness,
@@ -71,6 +73,10 @@ export function ReviewForm({ worksheetId, existingReview, isCompleted }: Props) 
         suggested_changes: suggestedChanges || null,
         recommendation: recommendation as ReviewRecommendation,
       })
+      if (!result.success) {
+        toast({ type: 'error', message: result.error || 'Failed to submit review' })
+        return
+      }
       toast({ type: 'success', message: 'Review submitted successfully' })
       router.push('/dashboard')
     } catch {
@@ -163,6 +169,7 @@ export function ReviewForm({ worksheetId, existingReview, isCompleted }: Props) 
           <h3 className="text-sm font-semibold text-primary-900 mb-1">Suggested Changes</h3>
           <p className="text-xs text-primary-400 mb-3">Any other changes or improvements you would recommend</p>
           <textarea
+            aria-label="Suggested changes"
             value={suggestedChanges}
             onChange={(e) => setSuggestedChanges(e.target.value)}
             rows={4}
@@ -264,6 +271,7 @@ function RatingSection({
         ))}
       </div>
       <textarea
+        aria-label={`${title} notes`}
         value={notes}
         onChange={(e) => onNotesChange(e.target.value)}
         rows={2}

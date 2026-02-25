@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { submitContent, unclaimContent } from '../actions'
+import { CONTENT_WORD_MIN, CONTENT_WORD_MAX } from '../constants'
 import { useToast } from '@/hooks/use-toast'
 import type { ContentStatus } from '@/types/database'
 
@@ -23,17 +24,34 @@ export function ContentForm({ worksheetId, worksheetSlug, existingContent, statu
   const [submitting, setSubmitting] = useState(false)
 
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length
-  const isValidLength = wordCount >= 150 && wordCount <= 250
+  const isValidLength = wordCount >= CONTENT_WORD_MIN && wordCount <= CONTENT_WORD_MAX
+
+  // Unsaved changes warning
+  const isDirty = content !== existingContent
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
 
   const handleSubmit = async () => {
     if (!isValidLength) {
-      toast({ type: 'error', message: 'Clinical context must be 150–250 words' })
+      toast({ type: 'error', message: `Clinical context must be ${CONTENT_WORD_MIN}–${CONTENT_WORD_MAX} words` })
       return
     }
 
     setSubmitting(true)
     try {
-      await submitContent(worksheetId, content)
+      const result = await submitContent(worksheetId, content)
+      if (!result.success) {
+        toast({ type: 'error', message: result.error || 'Failed to submit' })
+        return
+      }
       toast({ type: 'success', message: 'Clinical context submitted for review' })
       router.push('/dashboard')
     } catch {
@@ -44,9 +62,15 @@ export function ContentForm({ worksheetId, worksheetSlug, existingContent, statu
   }
 
   const handleUnclaim = async () => {
+    if (!window.confirm('Unclaim this worksheet? Any draft content will be lost.')) return
+
     setSubmitting(true)
     try {
-      await unclaimContent(worksheetId)
+      const result = await unclaimContent(worksheetId)
+      if (!result.success) {
+        toast({ type: 'error', message: result.error || 'Failed to unclaim' })
+        return
+      }
       toast({ type: 'success', message: 'Worksheet unclaimed' })
       router.push('/dashboard')
     } catch {
@@ -116,6 +140,7 @@ export function ContentForm({ worksheetId, worksheetSlug, existingContent, statu
       <div className="space-y-4">
         <div>
           <textarea
+            aria-label="Clinical context"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={10}
@@ -126,12 +151,12 @@ export function ContentForm({ worksheetId, worksheetSlug, existingContent, statu
             <p className={`text-xs font-medium ${
               wordCount === 0 ? 'text-primary-400' :
               isValidLength ? 'text-green-600' :
-              wordCount < 150 ? 'text-amber-600' :
+              wordCount < CONTENT_WORD_MIN ? 'text-amber-600' :
               'text-red-500'
             }`}>
-              {wordCount} / 150–250 words
-              {wordCount > 0 && wordCount < 150 && ` (${150 - wordCount} more needed)`}
-              {wordCount > 250 && ` (${wordCount - 250} over limit)`}
+              {wordCount} / {CONTENT_WORD_MIN}–{CONTENT_WORD_MAX} words
+              {wordCount > 0 && wordCount < CONTENT_WORD_MIN && ` (${CONTENT_WORD_MIN - wordCount} more needed)`}
+              {wordCount > CONTENT_WORD_MAX && ` (${wordCount - CONTENT_WORD_MAX} over limit)`}
             </p>
             {isValidLength && (
               <p className="text-xs text-green-600">&#10003; Word count is good</p>
