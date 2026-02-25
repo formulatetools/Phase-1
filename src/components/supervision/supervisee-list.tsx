@@ -92,7 +92,7 @@ export function SuperviseeList({
         </p>
         <Link
           href="/pricing"
-          className="mt-4 inline-block rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900"
+          className="mt-4 inline-block rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
         >
           Upgrade to access
         </Link>
@@ -122,7 +122,7 @@ export function SuperviseeList({
             {atLimit && (
               <Link
                 href="/pricing"
-                className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900"
+                className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
               >
                 Upgrade
               </Link>
@@ -145,7 +145,7 @@ export function SuperviseeList({
               }
               setShowAdd(true)
             }}
-            className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 transition-colors"
+            className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
           >
             + Add supervisee
           </button>
@@ -185,7 +185,7 @@ export function SuperviseeList({
             <button
               onClick={handleAdd}
               disabled={loading || !newLabel.trim()}
-              className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 disabled:opacity-50 transition-colors"
+              className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50 transition-colors"
             >
               {loading ? 'Adding…' : 'Add'}
             </button>
@@ -211,7 +211,7 @@ export function SuperviseeList({
           </p>
           <button
             onClick={() => setShowAdd(true)}
-            className="mt-4 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900"
+            className="mt-4 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
           >
             Add your first supervisee
           </button>

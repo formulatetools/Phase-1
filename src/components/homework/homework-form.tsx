@@ -173,7 +173,7 @@ export function HomeworkForm({
         {portalUrl && (
           <a
             href={portalUrl}
-            className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-green-300 bg-white px-4 py-2 text-sm font-medium text-primary-700 hover:bg-green-50 transition-colors"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-green-300 bg-white dark:bg-surface px-4 py-2 text-sm font-medium text-primary-700 hover:bg-green-50 transition-colors"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
@@ -225,7 +225,7 @@ export function HomeworkForm({
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="rounded-lg bg-primary-800 px-6 py-2 text-sm font-medium text-white hover:bg-primary-900 disabled:opacity-50 transition-colors"
+              className="rounded-lg bg-primary-800 px-6 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50 transition-colors"
             >
               {submitting ? 'Submitting…' : 'Submit'}
             </button>

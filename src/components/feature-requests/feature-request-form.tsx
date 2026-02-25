@@ -132,7 +132,7 @@ export function FeatureRequestForm() {
         <button
           type="submit"
           disabled={loading || !title.trim()}
-          className="flex items-center gap-2 rounded-lg bg-primary-800 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-primary-800 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50"
         >
           {loading ? (
             'Submitting...'

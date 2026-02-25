@@ -99,7 +99,7 @@ export function ShareModal({
             </div>
             <button
               onClick={handleCopy}
-              className="shrink-0 rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-primary-900"
+              className="shrink-0 rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
             >
               Copy link
             </button>
@@ -147,7 +147,7 @@ export function ShareModal({
         {/* Done button */}
         <button
           onClick={onClose}
-          className="mt-4 w-full rounded-xl bg-primary-800 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-900"
+          className="mt-4 w-full rounded-xl bg-primary-800 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
         >
           Done
         </button>

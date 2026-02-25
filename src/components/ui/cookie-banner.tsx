@@ -36,7 +36,7 @@ export function CookieBanner() {
         <div className="mt-3">
           <button
             onClick={dismiss}
-            className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 transition-colors"
+            className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
           >
             Got it
           </button>

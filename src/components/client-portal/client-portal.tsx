@@ -292,7 +292,7 @@ export function ClientPortal({
                     {a.status === 'assigned' && !expired && !isWithdrawn && (
                       <a
                         href={`${appUrl}/hw/${a.token}`}
-                        className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 transition-colors"
+                        className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
                       >
                         Complete Now
                       </a>
@@ -302,7 +302,7 @@ export function ClientPortal({
                     {a.status === 'in_progress' && !expired && !isWithdrawn && (
                       <a
                         href={`${appUrl}/hw/${a.token}`}
-                        className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 transition-colors"
+                        className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
                       >
                         Continue
                       </a>
@@ -314,7 +314,7 @@ export function ClientPortal({
                         onClick={() => setViewingResponse(isViewing ? null : a.id)}
                         className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
                           isViewing
-                            ? 'bg-primary-800 text-white'
+                            ? 'bg-primary-800 text-white dark:bg-primary-200 dark:text-primary-900'
                             : 'border border-primary-200 text-primary-600 hover:bg-primary-50'
                         }`}
                       >

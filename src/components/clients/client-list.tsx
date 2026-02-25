@@ -107,7 +107,7 @@ export function ClientList({
             {atLimit && (
               <Link
                 href="/pricing"
-                className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900"
+                className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
               >
                 Upgrade
               </Link>
@@ -130,7 +130,7 @@ export function ClientList({
               }
               setShowAdd(true)
             }}
-            className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 transition-colors"
+            className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
           >
             + Add client
           </button>
@@ -170,7 +170,7 @@ export function ClientList({
             <button
               onClick={handleAdd}
               disabled={loading || !newLabel.trim()}
-              className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 disabled:opacity-50 transition-colors"
+              className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50 transition-colors"
             >
               {loading ? 'Adding…' : 'Add'}
             </button>
@@ -204,7 +204,7 @@ export function ClientList({
           </p>
           <button
             onClick={() => setShowAdd(true)}
-            className="mt-4 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900"
+            className="mt-4 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
           >
             Add your first client
           </button>

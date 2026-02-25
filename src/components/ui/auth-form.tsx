@@ -267,7 +267,7 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
         <button
           type="submit"
           disabled={loading || (mode === 'signup' && (!acceptTerms || !acceptPrivacy))}
-          className="w-full rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900 focus:outline-none focus:ring-2 focus:ring-brand/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 focus:outline-none focus:ring-2 focus:ring-brand/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading
             ? 'Please wait...'

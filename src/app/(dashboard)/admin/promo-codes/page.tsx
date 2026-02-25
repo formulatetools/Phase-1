@@ -96,7 +96,7 @@ export default async function AdminPromoCodesPage() {
           <div className="flex items-end">
             <button
               type="submit"
-              className="w-full rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900"
+              className="w-full rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
             >
               Create Code
             </button>

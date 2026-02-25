@@ -36,7 +36,7 @@ export function LandingNav() {
           </Link>
           <Link
             href="/signup"
-            className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900"
+            className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
           >
             Get Started Free
           </Link>
@@ -89,7 +89,7 @@ export function LandingNav() {
             <Link
               href="/signup"
               onClick={() => setOpen(false)}
-              className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white text-center transition-colors hover:bg-primary-900"
+              className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white text-center transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
             >
               Get Started Free
             </Link>

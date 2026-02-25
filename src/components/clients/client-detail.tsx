@@ -186,7 +186,7 @@ export function ClientDetail({
                 />
                 <button
                   onClick={handleSaveLabel}
-                  className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900"
+                  className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
                 >
                   Save
                 </button>
@@ -232,7 +232,7 @@ export function ClientDetail({
           ) : (
             <button
               onClick={() => reactivateClient(relationship.id)}
-              className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900"
+              className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
             >
               Reactivate
             </button>
@@ -260,7 +260,7 @@ export function ClientDetail({
             }
             setShowAssign(true)
           }}
-          className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-900 transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -357,7 +357,7 @@ export function ClientDetail({
             <button
               onClick={handleAssign}
               disabled={assignLoading || !selectedWorksheet}
-              className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50 transition-colors"
             >
               {assignLoading ? (
                 'Generating link…'
@@ -513,7 +513,7 @@ export function ClientDetail({
                           onClick={() => setViewingResponse(isViewing ? null : a.id)}
                           className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
                             isViewing
-                              ? 'bg-primary-800 text-white'
+                              ? 'bg-primary-800 text-white dark:bg-primary-200 dark:text-primary-900'
                               : 'border border-primary-200 text-primary-600 hover:bg-primary-50'
                           }`}
                         >
@@ -529,7 +529,7 @@ export function ClientDetail({
                       {a.status === 'completed' && (
                         <button
                           onClick={() => markAsReviewed(a.id)}
-                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 transition-colors"
+                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
                         >
                           Mark reviewed
                         </button>
@@ -550,7 +550,7 @@ export function ClientDetail({
                       {a.status === 'pdf_downloaded' && (
                         <button
                           onClick={() => markAsPaperCompleted(a.id)}
-                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 transition-colors"
+                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
                         >
                           Mark completed (paper)
                         </button>

@@ -65,7 +65,7 @@ export function PromoCodeInput({ mode, onValidated }: PromoCodeInputProps) {
           type="button"
           onClick={handleSubmit}
           disabled={loading || !code.trim() || (mode === 'validate' && !!success)}
-          className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? 'Checking...' : mode === 'validate' ? 'Apply' : 'Redeem'}
         </button>
