@@ -5,8 +5,12 @@ import type { WorksheetSchema } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from './blank-pdf-generator'
 import { downloadInteractiveHtml } from '@/lib/utils/html-worksheet-export'
+import { useOnlineStatus } from '@/hooks/use-online-status'
 
 type FieldValue = string | number | '' | string[] | Record<string, string | number | ''>[]
+
+// Connection states for the status indicator
+type ConnectionStatus = 'connected' | 'saving' | 'offline' | 'reconnecting' | 'error'
 
 interface HomeworkFormProps {
   token: string
@@ -21,6 +25,12 @@ interface HomeworkFormProps {
   portalUrl?: string | null
 }
 
+// Exponential backoff config
+const INITIAL_RETRY_DELAY = 2000 // 2s
+const MAX_RETRY_DELAY = 60000 // 60s
+const DEBOUNCE_DELAY = 5000 // 5s after last change
+const PERIODIC_SAVE_INTERVAL = 30000 // 30s
+
 export function HomeworkForm({
   token,
   schema,
@@ -33,35 +43,32 @@ export function HomeworkForm({
   worksheetInstructions,
   portalUrl,
 }: HomeworkFormProps) {
-  const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(isCompleted)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [generatingPdf, setGeneratingPdf] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected')
+  const [pendingSubmit, setPendingSubmit] = useState(false)
+
   const valuesRef = useRef<Record<string, FieldValue>>({})
-  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null)
   const hasChangesRef = useRef(false)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const retryTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const retryDelayRef = useRef(INITIAL_RETRY_DELAY)
+  const isSavingRef = useRef(false)
   const pdfRef = useRef<BlankPdfGeneratorHandle>(null)
 
-  // Auto-save every 30 seconds if there are changes
-  useEffect(() => {
-    if (readOnly || submitted || isPreview) return
+  const { isOnline, markOffline, markOnline } = useOnlineStatus()
 
-    const interval = setInterval(() => {
-      if (hasChangesRef.current) {
-        autoSave()
-      }
-    }, 30000)
+  // ── Core save function with error classification ────────────────────────
+  const doSave = useCallback(async (): Promise<boolean> => {
+    if (readOnly || submitted || isPreview) return true
+    if (isSavingRef.current) return false // already in flight
 
-    return () => clearInterval(interval)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [readOnly, submitted, isPreview])
-
-  const autoSave = useCallback(async () => {
-    if (readOnly || submitted || isPreview) return
-    setSaving(true)
-    setError(null)
+    isSavingRef.current = true
+    setConnectionStatus('saving')
+    setErrorMessage(null)
 
     try {
       const res = await fetch('/api/homework', {
@@ -75,47 +82,148 @@ export function HomeworkForm({
       })
 
       if (!res.ok) {
-        const data = await res.json()
+        const data = await res.json().catch(() => ({}))
         throw new Error(data.error || 'Failed to save')
       }
 
-      setLastSaved(new Date())
+      // Success — reset backoff, update state
+      retryDelayRef.current = INITIAL_RETRY_DELAY
       hasChangesRef.current = false
+      setLastSaved(new Date())
+      setConnectionStatus('connected')
+      markOnline()
+      return true
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save')
-    } finally {
-      setSaving(false)
-    }
-  }, [token, readOnly, submitted, isPreview])
+      const message = err instanceof Error ? err.message : 'Failed to save'
+      const isNetworkError = message === 'Failed to fetch' || message === 'Load failed' || !navigator.onLine
 
+      if (isNetworkError) {
+        setConnectionStatus('offline')
+        markOffline()
+      } else {
+        setConnectionStatus('error')
+        setErrorMessage(message)
+      }
+      return false
+    } finally {
+      isSavingRef.current = false
+    }
+  }, [token, readOnly, submitted, isPreview, markOffline, markOnline])
+
+  // ── Retry with exponential backoff ──────────────────────────────────────
+  const scheduleRetry = useCallback(() => {
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+
+    retryTimerRef.current = setTimeout(async () => {
+      if (!hasChangesRef.current) return
+      setConnectionStatus('reconnecting')
+      const success = await doSave()
+
+      if (!success && hasChangesRef.current) {
+        // Increase delay with exponential backoff
+        retryDelayRef.current = Math.min(retryDelayRef.current * 2, MAX_RETRY_DELAY)
+        scheduleRetry()
+      }
+    }, retryDelayRef.current)
+  }, [doSave])
+
+  // ── Auto-save: debounced on change ──────────────────────────────────────
+  const debouncedSave = useCallback(async () => {
+    const success = await doSave()
+    if (!success && hasChangesRef.current) {
+      scheduleRetry()
+    }
+  }, [doSave, scheduleRetry])
+
+  // ── Periodic save every 30s ─────────────────────────────────────────────
+  useEffect(() => {
+    if (readOnly || submitted || isPreview) return
+
+    const interval = setInterval(() => {
+      if (hasChangesRef.current && !isSavingRef.current) {
+        debouncedSave()
+      }
+    }, PERIODIC_SAVE_INTERVAL)
+
+    return () => clearInterval(interval)
+  }, [readOnly, submitted, isPreview, debouncedSave])
+
+  // ── When browser goes back online, retry immediately ────────────────────
+  useEffect(() => {
+    if (!isOnline || readOnly || submitted || isPreview) return
+
+    // If we have unsaved changes, save immediately on reconnect
+    if (hasChangesRef.current) {
+      retryDelayRef.current = INITIAL_RETRY_DELAY
+      setConnectionStatus('reconnecting')
+      debouncedSave()
+    }
+
+    // If we have a queued submit, fire it on reconnect
+    if (pendingSubmit) {
+      handleSubmitInternal()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline])
+
+  // ── beforeunload protection ─────────────────────────────────────────────
+  useEffect(() => {
+    if (readOnly || submitted || isPreview) return
+
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasChangesRef.current) {
+        e.preventDefault()
+      }
+    }
+
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [readOnly, submitted, isPreview])
+
+  // ── Cleanup timers on unmount ───────────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+    }
+  }, [])
+
+  // ── Values change handler ───────────────────────────────────────────────
   const handleValuesChange = useCallback(
     (newValues: Record<string, FieldValue>) => {
       valuesRef.current = newValues
       hasChangesRef.current = true
 
-      // In preview mode, don't auto-save
       if (isPreview) return
 
-      // Debounced auto-save on change (reset timer)
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current)
-      }
-      autoSaveTimerRef.current = setTimeout(() => {
-        autoSave()
-      }, 5000) // Save 5s after last change
+      // Debounce: restart the save timer on each change
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = setTimeout(() => {
+        debouncedSave()
+      }, DEBOUNCE_DELAY)
     },
-    [autoSave, isPreview]
+    [debouncedSave, isPreview]
   )
 
-  const handleSubmit = async () => {
+  // ── Manual "Save draft" button ──────────────────────────────────────────
+  const handleManualSave = useCallback(async () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    const success = await doSave()
+    if (!success && hasChangesRef.current) {
+      scheduleRetry()
+    }
+  }, [doSave, scheduleRetry])
+
+  // ── Submit (internal — handles offline queueing) ────────────────────────
+  const handleSubmitInternal = async () => {
     if (readOnly || submitted || isPreview) return
+    setPendingSubmit(false)
     setSubmitting(true)
-    setError(null)
+    setErrorMessage(null)
 
     // Clear any pending auto-save
-    if (autoSaveTimerRef.current) {
-      clearTimeout(autoSaveTimerRef.current)
-    }
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
 
     try {
       const res = await fetch('/api/homework', {
@@ -129,27 +237,52 @@ export function HomeworkForm({
       })
 
       if (!res.ok) {
-        const data = await res.json()
+        const data = await res.json().catch(() => ({}))
         throw new Error(data.error || 'Failed to submit')
       }
 
+      hasChangesRef.current = false
       setSubmitted(true)
+      setConnectionStatus('connected')
+      markOnline()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit')
+      const message = err instanceof Error ? err.message : 'Failed to submit'
+      const isNetworkError = message === 'Failed to fetch' || message === 'Load failed' || !navigator.onLine
+
+      if (isNetworkError) {
+        // Queue the submit for when we come back online
+        setPendingSubmit(true)
+        setConnectionStatus('offline')
+        markOffline()
+      } else {
+        setErrorMessage(message)
+        setConnectionStatus('error')
+      }
     } finally {
       setSubmitting(false)
     }
   }
 
+  // ── Public submit handler ───────────────────────────────────────────────
+  const handleSubmit = async () => {
+    if (readOnly || submitted || isPreview) return
+
+    if (!isOnline) {
+      // Queue submission for when we reconnect
+      setPendingSubmit(true)
+      return
+    }
+
+    await handleSubmitInternal()
+  }
+
   const handleBlankPdfDownload = async () => {
     setGeneratingPdf(true)
     try {
-      // Generate the blank PDF
       if (pdfRef.current) {
         await pdfRef.current.generatePdf()
       }
 
-      // Log the download event (does NOT change assignment status)
       await fetch('/api/homework/pdf-download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -162,7 +295,7 @@ export function HomeworkForm({
     }
   }
 
-  // Submitted confirmation
+  // ── Submitted confirmation ──────────────────────────────────────────────
   if (submitted && !existingResponse) {
     return (
       <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center">
@@ -202,27 +335,29 @@ export function HomeworkForm({
         />
       </div>
 
-      {error && (
+      {/* Server error message */}
+      {errorMessage && connectionStatus === 'error' && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error}
+          {errorMessage}
         </div>
       )}
 
       {/* Action bar */}
       {!readOnly && !isPreview && (
-        <div className="flex items-center justify-between rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm">
-          <div className="text-xs text-primary-400">
-            {saving && 'Saving…'}
-            {!saving && lastSaved && (
-              <>Saved {lastSaved.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</>
-            )}
-            {!saving && !lastSaved && existingResponse && 'Draft saved'}
-            {!saving && !lastSaved && !existingResponse && 'Your progress is saved automatically'}
-          </div>
-          <div className="flex items-center gap-3">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm space-y-3">
+          {/* Connection status indicator */}
+          <ConnectionIndicator
+            status={connectionStatus}
+            lastSaved={lastSaved}
+            pendingSubmit={pendingSubmit}
+            existingResponse={!!existingResponse}
+          />
+
+          {/* Action buttons */}
+          <div className="flex items-center justify-between">
             <button
-              onClick={autoSave}
-              disabled={saving}
+              onClick={handleManualSave}
+              disabled={connectionStatus === 'saving' || connectionStatus === 'offline'}
               className="rounded-lg border border-primary-200 px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 disabled:opacity-50 transition-colors"
             >
               Save draft
@@ -232,7 +367,7 @@ export function HomeworkForm({
               disabled={submitting}
               className="rounded-lg bg-primary-800 px-6 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50 transition-colors"
             >
-              {submitting ? 'Submitting…' : 'Submit'}
+              {submitting ? 'Submitting…' : pendingSubmit ? 'Submit queued — waiting for connection' : 'Submit'}
             </button>
           </div>
         </div>
@@ -286,4 +421,69 @@ export function HomeworkForm({
       )}
     </div>
   )
+}
+
+// ── Connection status indicator component ─────────────────────────────────
+
+function ConnectionIndicator({
+  status,
+  lastSaved,
+  pendingSubmit,
+  existingResponse,
+}: {
+  status: ConnectionStatus
+  lastSaved: Date | null
+  pendingSubmit: boolean
+  existingResponse: boolean
+}) {
+  switch (status) {
+    case 'connected':
+      return (
+        <div className="flex items-center gap-2 text-xs text-primary-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+          {lastSaved ? (
+            <span>Saved {lastSaved.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
+          ) : existingResponse ? (
+            <span>Draft saved</span>
+          ) : (
+            <span>Your progress is saved automatically</span>
+          )}
+        </div>
+      )
+
+    case 'saving':
+      return (
+        <div className="flex items-center gap-2 text-xs text-amber-600">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+          <span>Saving…</span>
+        </div>
+      )
+
+    case 'offline':
+      return (
+        <div className="flex items-center gap-2 text-xs text-red-600">
+          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+          <span>
+            Offline — your work is saved locally
+            {pendingSubmit && '. Submission will be sent when you reconnect.'}
+          </span>
+        </div>
+      )
+
+    case 'reconnecting':
+      return (
+        <div className="flex items-center gap-2 text-xs text-amber-600">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+          <span>Reconnecting…</span>
+        </div>
+      )
+
+    case 'error':
+      return (
+        <div className="flex items-center gap-2 text-xs text-red-600">
+          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+          <span>Save failed — will retry automatically</span>
+        </div>
+      )
+  }
 }
