@@ -94,6 +94,9 @@ export function ComputedField({ field, allValues }: Props) {
           </span>
         </div>
       </div>
+      <p className="mt-1.5 text-[10px] leading-tight text-amber-600/70">
+        This is a worksheet calculation, not a validated clinical score.
+      </p>
     </div>
   )
 }

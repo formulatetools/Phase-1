@@ -338,6 +338,9 @@ function ComputedConfig({
 
   return (
     <div className="space-y-2 rounded-lg border border-dashed border-brand/30 bg-brand/5 p-3">
+      <p className="text-[10px] text-primary-400">
+        Computed values are worksheet-level calculations. Remind clients they are not validated clinical scores.
+      </p>
       <div>
         <label className="text-[11px] font-medium text-primary-500">Operation</label>
         <select
