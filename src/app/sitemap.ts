@@ -10,14 +10,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  // Fetch published worksheets and categories in parallel
-  const [{ data: worksheets }, { data: categories }] = await Promise.all([
+  // Fetch published worksheets, categories, and blog posts in parallel
+  const [{ data: worksheets }, { data: categories }, { data: blogPosts }] = await Promise.all([
     supabase
       .from('worksheets')
       .select('slug, updated_at')
       .eq('is_published', true)
       .is('deleted_at', null),
     supabase.from('categories').select('slug'),
+    supabase
+      .from('blog_posts')
+      .select('slug, updated_at')
+      .eq('status', 'published')
+      .is('deleted_at', null),
   ])
 
   // ── Static pages ─────────────────────────────────────────────────────────
@@ -46,5 +51,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...staticPages, ...worksheetPages, ...categoryPages]
+  // ── Blog pages ──────────────────────────────────────────────────────────
+  const blogIndex: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+  ]
+
+  const blogPostPages: MetadataRoute.Sitemap = (blogPosts || []).map((p) => ({
+    url: `${baseUrl}/blog/${p.slug}`,
+    lastModified: new Date(p.updated_at),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }))
+
+  const blogCategoryPages: MetadataRoute.Sitemap = [
+    'clinical', 'worksheet-guide', 'practice', 'updates',
+  ].map((cat) => ({
+    url: `${baseUrl}/blog/category/${cat}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }))
+
+  return [...staticPages, ...worksheetPages, ...categoryPages, ...blogIndex, ...blogPostPages, ...blogCategoryPages]
 }

@@ -23,6 +23,12 @@ export function LandingNav() {
             Worksheets
           </Link>
           <Link
+            href="/blog"
+            className="text-sm text-primary-600 hover:text-primary-900 transition-colors"
+          >
+            Blog
+          </Link>
+          <Link
             href="#pricing"
             className="text-sm text-primary-600 hover:text-primary-900 transition-colors"
           >
@@ -71,6 +77,13 @@ export function LandingNav() {
               className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-1"
             >
               Worksheets
+            </Link>
+            <Link
+              href="/blog"
+              onClick={() => setOpen(false)}
+              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-1"
+            >
+              Blog
             </Link>
             <Link
               href="#pricing"

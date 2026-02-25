@@ -30,6 +30,10 @@ export type ReviewUsability = 'ready' | 'needs_refinement' | 'major_issues'
 export type ReviewRecommendation = 'approve' | 'approve_with_edits' | 'revise_resubmit' | 'reject'
 export type ContentStatus = 'claimed' | 'submitted' | 'approved' | 'rejected'
 
+// Blog types
+export type BlogCategory = 'clinical' | 'worksheet-guide' | 'practice' | 'updates'
+export type BlogPostStatus = 'draft' | 'submitted' | 'in_review' | 'changes_requested' | 'approved' | 'published' | 'rejected'
+
 export interface ContributorRoles {
   clinical_contributor: boolean
   clinical_reviewer: boolean
@@ -378,6 +382,36 @@ export interface WorksheetReview {
   usability_notes: string | null
   suggested_changes: string | null
   recommendation: ReviewRecommendation | null
+}
+
+export interface BlogPost {
+  id: string
+  author_id: string
+  title: string
+  slug: string
+  excerpt: string | null
+  cover_image_url: string | null
+  content: Record<string, unknown>
+  category: BlogCategory
+  tags: string[]
+  related_worksheet_ids: string[]
+  reading_time_minutes: number | null
+  status: BlogPostStatus
+  admin_feedback: string | null
+  submitted_at: string | null
+  published_at: string | null
+  published_by: string | null
+  helpful_count: number
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface BlogReaction {
+  id: string
+  post_id: string
+  user_id: string
+  created_at: string
 }
 
 // Note: We use untyped Supabase clients and cast query results to our

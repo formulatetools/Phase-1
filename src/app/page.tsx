@@ -261,6 +261,9 @@ export default function Home() {
               <Link href="/worksheets" className="hover:text-primary-600 transition-colors">
                 Worksheets
               </Link>
+              <Link href="/blog" className="hover:text-primary-600 transition-colors">
+                Blog
+              </Link>
               <Link href="/pricing" className="hover:text-primary-600 transition-colors">
                 Pricing
               </Link>

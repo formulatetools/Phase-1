@@ -597,3 +597,58 @@ export function submissionStatusEmail(
     `),
   }
 }
+
+// ── Blog Digest Email ────────────────────────────────────────────────
+
+const CATEGORY_LABELS: Record<string, string> = {
+  clinical: 'Clinical',
+  'worksheet-guide': 'Worksheet Guide',
+  practice: 'Practice Tips',
+  updates: 'Updates',
+}
+
+export function blogDigestEmail(
+  name: string | null,
+  posts: Array<{
+    title: string
+    slug: string
+    excerpt: string | null
+    category: string
+    reading_time_minutes: number | null
+  }>
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  const postList = posts
+    .map(
+      (p) => `
+    <tr><td style="padding:12px 0;border-bottom:1px solid #f1f0ee;">
+      <span style="display:inline-block;background:#fdf6e3;color:#c48d1e;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;text-transform:uppercase;margin-bottom:4px;">
+        ${CATEGORY_LABELS[p.category] || p.category}
+      </span>
+      <p style="margin:4px 0 0;font-size:16px;font-weight:600;color:#2d2d2d;">
+        <a href="${APP_URL}/blog/${p.slug}" style="color:#2d2d2d;text-decoration:none;">${p.title}</a>
+      </p>
+      ${p.excerpt ? `<p style="margin:4px 0 0;font-size:14px;color:#666;line-height:1.5;">${p.excerpt}</p>` : ''}
+      ${p.reading_time_minutes ? `<p style="margin:4px 0 0;font-size:12px;color:#999;">${p.reading_time_minutes} min read</p>` : ''}
+    </td></tr>`
+    )
+    .join('')
+
+  return {
+    subject: `This week on the Formulate blog (${posts.length} new article${posts.length !== 1 ? 's' : ''})`,
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">New on the blog</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">${greeting}</p>
+      <p style="margin:0 0 16px;font-size:15px;color:#444;line-height:1.6;">
+        Here&rsquo;s what&rsquo;s new on the Formulate blog this week:
+      </p>
+      <table width="100%" cellpadding="0" cellspacing="0">${postList}</table>
+      ${button('Read on the blog', `${APP_URL}/blog`)}
+      <p style="margin:16px 0 0;font-size:12px;color:#999;">
+        You&rsquo;re receiving this because you opted in to the blog digest.
+        <a href="${APP_URL}/settings" style="color:#999;">Manage preferences</a>
+      </p>
+    `),
+  }
+}
