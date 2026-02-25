@@ -24,10 +24,15 @@ export async function getCurrentUser(): Promise<{
   // ── Lazy promo expiry check ────────────────────────────────────────────
   // A promo user has subscription_status='free' but subscription_tier!='free'.
   // If their latest redemption has expired, revert them to the free tier.
+  // Contributors with active roles keep their tier regardless of promo status.
+  const roles = profile?.contributor_roles as { clinical_contributor?: boolean; clinical_reviewer?: boolean; content_writer?: boolean } | null
+  const hasContributorRole = roles?.clinical_contributor || roles?.clinical_reviewer || roles?.content_writer
+
   if (
     profile &&
     profile.subscription_status === 'free' &&
-    profile.subscription_tier !== 'free'
+    profile.subscription_tier !== 'free' &&
+    !hasContributorRole
   ) {
     const { data: latest } = await supabase
       .from('promo_redemptions')

@@ -430,6 +430,61 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* ── Contributor sections (placeholder) ──────────────────────────── */}
+      {(() => {
+        const cRoles = profile.contributor_roles as { clinical_contributor?: boolean; clinical_reviewer?: boolean; content_writer?: boolean } | null
+        if (!cRoles?.clinical_contributor && !cRoles?.clinical_reviewer && !cRoles?.content_writer) return null
+        return (
+          <div className="space-y-4">
+            {cRoles.clinical_contributor && (
+              <div className="rounded-2xl border border-dashed border-green-200 bg-green-50/30 p-6">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
+                    <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-primary-900">Library Contributions</h3>
+                    <p className="text-xs text-primary-400">Submit worksheets to the public library — coming soon</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {cRoles.clinical_reviewer && (
+              <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50/30 p-6">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
+                    <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-primary-900">Review Queue</h3>
+                    <p className="text-xs text-primary-400">Review worksheets submitted by contributors — coming soon</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {cRoles.content_writer && (
+              <div className="rounded-2xl border border-dashed border-purple-200 bg-purple-50/30 p-6">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100">
+                    <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-primary-900">Content Queue</h3>
+                    <p className="text-xs text-primary-400">Write clinical context for worksheets — coming soon</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
       {/* ── Recently accessed worksheets ─────────────────────────────────── */}
       <div>
         <div className="mb-4 flex items-center justify-between">

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
@@ -5,6 +6,7 @@ import { TIER_LABELS } from '@/lib/stripe/config'
 import { AdminTabs } from '@/components/admin/admin-tabs'
 import { SignupChart } from '@/components/admin/signup-chart'
 import { TierDistributionChart } from '@/components/admin/tier-distribution-chart'
+import type { ContributorRoles } from '@/types/database'
 
 export const metadata = { title: 'User Analytics — Admin — Formulate' }
 
@@ -127,7 +129,7 @@ export default async function AdminUsersPage() {
     // Audit logs from last 10 weeks (for retention)
     supabase.from('audit_log').select('user_id, created_at').gte('created_at', new Date(Date.now() - 70 * 24 * 60 * 60 * 1000).toISOString()),
     // All users for the table
-    supabase.from('profiles').select('id, email, full_name, subscription_tier, subscription_status, created_at').eq('role', 'therapist').order('created_at', { ascending: false }).limit(50),
+    supabase.from('profiles').select('id, email, full_name, subscription_tier, subscription_status, contributor_roles, created_at').eq('role', 'therapist').order('created_at', { ascending: false }).limit(50),
     // Paid users count
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'therapist').neq('subscription_tier', 'free'),
   ])
@@ -313,6 +315,7 @@ export default async function AdminUsersPage() {
               <tr>
                 <th className="px-3 sm:px-6 py-3 font-medium text-primary-500">User</th>
                 <th className="px-3 sm:px-6 py-3 font-medium text-primary-500">Plan</th>
+                <th className="hidden lg:table-cell px-3 sm:px-6 py-3 font-medium text-primary-500">Roles</th>
                 <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-primary-500">Status</th>
                 <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-primary-500">Last Active</th>
                 <th className="px-3 sm:px-6 py-3 font-medium text-primary-500">Joined</th>
@@ -326,21 +329,37 @@ export default async function AdminUsersPage() {
                   full_name: string | null
                   subscription_tier: string
                   subscription_status: string
+                  contributor_roles: ContributorRoles | null
                   created_at: string
                 }) => {
                   const lastActive = lastActiveMap[u.id]
+                  const cRoles = u.contributor_roles
+                  const roleBadges: { label: string; cls: string }[] = []
+                  if (cRoles?.clinical_contributor) roleBadges.push({ label: 'Contributor', cls: 'bg-green-50 text-green-700' })
+                  if (cRoles?.clinical_reviewer) roleBadges.push({ label: 'Reviewer', cls: 'bg-blue-50 text-blue-700' })
+                  if (cRoles?.content_writer) roleBadges.push({ label: 'Writer', cls: 'bg-purple-50 text-purple-700' })
+
                   return (
-                    <tr key={u.id} className="hover:bg-primary-50/50 transition-colors">
+                    <tr key={u.id} className="hover:bg-primary-50/50 transition-colors cursor-pointer">
                       <td className="px-3 sm:px-6 py-3">
-                        <div>
+                        <Link href={`/admin/users/${u.id}`} className="block">
                           <p className="font-medium text-primary-900">{u.full_name || 'No name'}</p>
                           <p className="text-xs text-primary-400">{u.email}</p>
-                        </div>
+                        </Link>
                       </td>
                       <td className="px-3 sm:px-6 py-3">
                         <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${tierColors[u.subscription_tier] || tierColors.free}`}>
                           {TIER_LABELS[u.subscription_tier] || u.subscription_tier}
                         </span>
+                      </td>
+                      <td className="hidden lg:table-cell px-3 sm:px-6 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {roleBadges.map((b) => (
+                            <span key={b.label} className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${b.cls}`}>
+                              {b.label}
+                            </span>
+                          ))}
+                        </div>
                       </td>
                       <td className="hidden sm:table-cell px-3 sm:px-6 py-3">
                         <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -366,7 +385,7 @@ export default async function AdminUsersPage() {
               )}
               {(!allUsers || allUsers.length === 0) && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-primary-400">No users yet</td>
+                  <td colSpan={6} className="px-6 py-10 text-center text-primary-400">No users yet</td>
                 </tr>
               )}
             </tbody>

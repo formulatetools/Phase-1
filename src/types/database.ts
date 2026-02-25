@@ -22,6 +22,20 @@ export type EmaScheduleStatus = 'active' | 'paused' | 'completed' | 'cancelled'
 export type ConsentType = 'data_processing' | 'ema_notifications' | 'data_sharing_with_therapist' | 'research_participation' | 'marketing'
 export type ConsentStatus = 'granted' | 'withdrawn'
 export type RequiredTier = 'standard' | 'professional'
+export type ContributorRole = 'clinical_contributor' | 'clinical_reviewer' | 'content_writer'
+
+export interface ContributorRoles {
+  clinical_contributor: boolean
+  clinical_reviewer: boolean
+  content_writer: boolean
+}
+
+export interface ContributorProfile {
+  display_name: string
+  professional_title: string
+  bio: string
+  profile_url: string
+}
 
 // Row types for each table
 
@@ -39,6 +53,9 @@ export interface Profile {
   onboarding_completed: boolean
   terms_accepted_at: string | null
   privacy_accepted_at: string | null
+  contributor_roles: ContributorRoles | null
+  contributor_profile: ContributorProfile | null
+  contributor_agreement_accepted_at: string | null
   deleted_at: string | null
   created_at: string
   updated_at: string

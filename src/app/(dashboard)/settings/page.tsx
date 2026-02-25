@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { ProfileForm } from '@/components/ui/profile-form'
 import { PromoCodeInput } from '@/components/ui/promo-code-input'
 import { SubscriptionDetails } from '@/components/ui/subscription-details'
+import { ContributorProfileForm } from '@/components/ui/contributor-profile-form'
+import type { ContributorRoles, ContributorProfile } from '@/types/database'
 
 export const metadata = {
   title: 'Settings — Formulate',
@@ -72,6 +74,20 @@ export default async function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {(() => {
+          const cRoles = profile.contributor_roles as ContributorRoles | null
+          const hasAnyRole = cRoles?.clinical_contributor || cRoles?.clinical_reviewer || cRoles?.content_writer
+          return hasAnyRole ? (
+            <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+              <h2 className="mb-1 text-base font-semibold text-primary-900">Contributor Profile</h2>
+              <p className="mb-5 text-sm text-primary-400">How you appear on contributed worksheets</p>
+              <ContributorProfileForm
+                initialProfile={(profile.contributor_profile as ContributorProfile | null) || null}
+              />
+            </div>
+          ) : null
+        })()}
 
         {profile.subscription_tier === 'free' && (
           <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">

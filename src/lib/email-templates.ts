@@ -244,3 +244,60 @@ export function withdrawalNotificationEmail(
     `),
   }
 }
+
+// ─── Contributor Role Granted Email ───────────────────────────
+
+const ROLE_DESCRIPTIONS: Record<string, string> = {
+  clinical_contributor:
+    'Build worksheets using the custom tool builder and submit them to the public library. Your contributions will be attributed to you by name.',
+  clinical_reviewer:
+    'Review worksheets submitted by other contributors. You\'ll find assigned reviews in your dashboard.',
+  content_writer:
+    'Write clinical context for existing worksheets to help therapists understand when and how to use them.',
+}
+
+const ROLE_DISPLAY_NAMES: Record<string, string> = {
+  clinical_contributor: 'Clinical Contributor',
+  clinical_reviewer: 'Clinical Reviewer',
+  content_writer: 'Content Writer',
+}
+
+export function roleGrantedEmail(
+  name: string | null,
+  roles: string[]
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  const roleList = roles
+    .map((role) => {
+      const displayName = ROLE_DISPLAY_NAMES[role] || role
+      const description = ROLE_DESCRIPTIONS[role] || ''
+      return `<li><strong>${displayName}</strong> — ${description}</li>`
+    })
+    .join('')
+
+  return {
+    subject: "You've been invited to contribute to Formulate",
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">You're now a Formulate contributor</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        You've been given contributor access on Formulate. Here's what you can do:
+      </p>
+      <ul style="margin:0 0 16px;padding-left:20px;font-size:15px;color:#444;line-height:1.8;">
+        ${roleList}
+      </ul>
+      <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
+        As a contributor, you also have free Practice-tier access for as long as your role is active.
+        Head to your dashboard to get started — and set up your contributor profile in Settings so your name appears on published worksheets.
+      </p>
+      ${button('Open Your Dashboard', `${APP_URL}/dashboard`)}
+      <p style="margin:0;font-size:14px;color:#444;">
+        Thank you for helping build better tools for therapists.
+      </p>
+      <p style="margin:16px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
+    `),
+  }
+}
