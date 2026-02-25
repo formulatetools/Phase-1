@@ -625,6 +625,9 @@ export function ClientDetail({
                     </div>
                   </div>
 
+                  {/* Traffic light progress bar */}
+                  <ProgressBar status={a.status} expired={expired} />
+
                   {/* Expanded response view */}
                   {isViewing && response && worksheet && (
                     <div className="border-t border-primary-100 bg-primary-50/50 p-6">
@@ -662,6 +665,76 @@ export function ClientDetail({
         clientLabel={relationship.client_label}
         dueDate={shareModal?.dueDate}
       />
+    </div>
+  )
+}
+
+// ── Traffic light progress bar ────────────────────────────────────────────
+
+function ProgressBar({ status, expired }: { status: string; expired: boolean }) {
+  // Map status to a 3-step progression
+  // Step 0 = Assigned (not started), Step 1 = In progress, Step 2 = Submitted
+  const step =
+    status === 'completed' || status === 'reviewed' ? 2
+    : status === 'in_progress' || status === 'pdf_downloaded' ? 1
+    : 0
+
+  const isWithdrawn = status === 'withdrawn'
+
+  const steps = [
+    { label: 'Assigned', color: 'red' as const },
+    { label: 'In progress', color: 'amber' as const },
+    { label: 'Submitted', color: 'green' as const },
+  ]
+
+  const dotColors = {
+    red: { active: 'bg-red-500', inactive: 'bg-primary-200' },
+    amber: { active: 'bg-amber-500', inactive: 'bg-primary-200' },
+    green: { active: 'bg-green-500', inactive: 'bg-primary-200' },
+  }
+
+  const lineColors = {
+    reached: 'bg-green-400',
+    unreached: 'bg-primary-200',
+  }
+
+  if (isWithdrawn) return null
+
+  return (
+    <div className="border-t border-primary-100 px-4 py-2.5">
+      <div className="flex items-center gap-0">
+        {steps.map((s, i) => {
+          const isReached = i <= step
+          const isCurrent = i === step
+          const palette = dotColors[s.color]
+
+          return (
+            <div key={s.label} className="flex items-center" style={{ flex: i < steps.length - 1 ? 1 : 0 }}>
+              {/* Dot + label */}
+              <div className="flex flex-col items-center" style={{ minWidth: '12px' }}>
+                <div
+                  className={`h-2.5 w-2.5 rounded-full transition-colors ${
+                    isReached ? palette.active : palette.inactive
+                  } ${isCurrent && !expired ? 'ring-2 ring-offset-1 ring-current' : ''}`}
+                  style={isCurrent && !expired ? { '--tw-ring-color': s.color === 'red' ? '#ef4444' : s.color === 'amber' ? '#f59e0b' : '#22c55e' } as React.CSSProperties : undefined}
+                />
+                <span className={`mt-1 text-[10px] leading-tight ${
+                  isCurrent ? 'font-semibold text-primary-700' : isReached ? 'text-primary-500' : 'text-primary-300'
+                }`}>
+                  {s.label}
+                </span>
+              </div>
+
+              {/* Connecting line */}
+              {i < steps.length - 1 && (
+                <div className={`h-0.5 flex-1 mx-1 rounded-full transition-colors ${
+                  i < step ? lineColors.reached : lineColors.unreached
+                }`} />
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
