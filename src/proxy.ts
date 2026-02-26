@@ -8,6 +8,13 @@ const publicRoutes = ['/', '/login', '/signup', '/pricing', '/privacy', '/terms'
 // Routes that are browse-only for unauthenticated users (worksheet library + homework links)
 const browseRoutes = ['/worksheets', '/hw', '/blog', '/client']
 
+// Routes that require authentication — redirect to login if unauthenticated
+const protectedPrefixes = [
+  '/dashboard', '/clients', '/my-tools', '/settings', '/admin',
+  '/checkout', '/supervision', '/referrals', '/reviews', '/content',
+  '/feature-requests', '/promo',
+]
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -81,6 +88,13 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Redirect authenticated users away from auth pages
+  if (user && (pathname === '/login' || pathname === '/signup')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
+  }
+
   // Allow public routes
   if (publicRoutes.some((route) => pathname === route)) {
     return supabaseResponse
@@ -91,18 +105,12 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse
   }
 
-  // Redirect unauthenticated users to login
-  if (!user) {
+  // Redirect unauthenticated users to login only for known protected routes
+  // Unknown routes pass through so Next.js can render the 404 page
+  if (!user && protectedPrefixes.some((prefix) => pathname.startsWith(prefix))) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(url)
-  }
-
-  // Redirect authenticated users away from auth pages
-  if (user && (pathname === '/login' || pathname === '/signup')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 
