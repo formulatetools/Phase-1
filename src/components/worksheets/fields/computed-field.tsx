@@ -10,18 +10,46 @@ interface Props {
   allValues: Record<string, unknown>
 }
 
-function getTableColumnValues(allValues: Record<string, unknown>, fieldRef: string): number[] {
-  const [tableId, columnId] = fieldRef.split('.')
-  const tableData = allValues[tableId]
-  if (!Array.isArray(tableData)) return []
+/**
+ * Resolve a field reference to an array of numeric values.
+ * Supported ref formats:
+ *   - "fieldId"                         → single top-level value
+ *   - "tableId.columnId"                → all row values for that column
+ *   - "formulationId.nodeId.fieldId"    → single value from a formulation node
+ */
+function resolveNumericValues(allValues: Record<string, unknown>, fieldRef: string): number[] {
+  const parts = fieldRef.split('.')
 
-  return (tableData as RowData[])
-    .map((row) => {
-      const val = row[columnId]
-      if (val === '' || val === undefined || val === null) return NaN
-      return Number(val)
-    })
-    .filter((v) => !isNaN(v))
+  // 3-part: formulation dot notation → formulationId.nodeId.fieldId
+  if (parts.length === 3) {
+    const [formulationId, nodeId, fieldId] = parts
+    const formulationData = allValues[formulationId] as Record<string, unknown> | undefined
+    const nodesData = formulationData?.nodes as Record<string, Record<string, unknown>> | undefined
+    const val = nodesData?.[nodeId]?.[fieldId]
+    if (val === '' || val === undefined || val === null) return []
+    const num = Number(val)
+    return isNaN(num) ? [] : [num]
+  }
+
+  // 2-part: table.column → aggregate all rows
+  if (parts.length === 2) {
+    const [tableId, columnId] = parts
+    const tableData = allValues[tableId]
+    if (!Array.isArray(tableData)) return []
+    return (tableData as RowData[])
+      .map((row) => {
+        const val = row[columnId]
+        if (val === '' || val === undefined || val === null) return NaN
+        return Number(val)
+      })
+      .filter((v) => !isNaN(v))
+  }
+
+  // 1-part: simple top-level field value
+  const val = allValues[fieldRef]
+  if (val === '' || val === undefined || val === null) return []
+  const num = Number(val)
+  return isNaN(num) ? [] : [num]
 }
 
 function compute(field: ComputedFieldType, allValues: Record<string, unknown>): string | null {
@@ -30,8 +58,8 @@ function compute(field: ComputedFieldType, allValues: Record<string, unknown>): 
   switch (computation.operation) {
     case 'difference': {
       if (!computation.field_a || !computation.field_b) return null
-      const valuesA = getTableColumnValues(allValues, computation.field_a)
-      const valuesB = getTableColumnValues(allValues, computation.field_b)
+      const valuesA = resolveNumericValues(allValues, computation.field_a)
+      const valuesB = resolveNumericValues(allValues, computation.field_b)
       if (valuesA.length === 0 || valuesB.length === 0) return null
 
       // Average of each column, then difference
@@ -48,7 +76,7 @@ function compute(field: ComputedFieldType, allValues: Record<string, unknown>): 
 
     case 'average': {
       if (!computation.field) return null
-      const values = getTableColumnValues(allValues, computation.field)
+      const values = resolveNumericValues(allValues, computation.field)
       if (values.length === 0) return null
       const avg = values.reduce((s, v) => s + v, 0) / values.length
       return avg.toFixed(1)
@@ -56,7 +84,7 @@ function compute(field: ComputedFieldType, allValues: Record<string, unknown>): 
 
     case 'sum': {
       if (!computation.field) return null
-      const values = getTableColumnValues(allValues, computation.field)
+      const values = resolveNumericValues(allValues, computation.field)
       if (values.length === 0) return null
       const sum = values.reduce((s, v) => s + v, 0)
       return computation.format === 'integer' ? sum.toFixed(0) : sum.toFixed(1)

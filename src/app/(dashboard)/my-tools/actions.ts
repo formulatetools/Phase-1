@@ -9,6 +9,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { generateToken } from '@/lib/tokens'
 import type { SubscriptionTier, ContributorRoles, ContributorProfile } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
+import { convertLegacyFormulation } from '@/lib/utils/convert-legacy-formulation'
 
 // ============================================================================
 // HELPERS
@@ -377,6 +378,9 @@ export async function forkWorksheet(sourceWorksheetId: string) {
     category_id: string | null
   }
 
+  // Convert legacy formulation schemas to the new generalised format
+  const convertedSchema = convertLegacyFormulation(typedSource.schema)
+
   const { data: forked, error } = await supabase
     .from('worksheets')
     .insert({
@@ -384,7 +388,7 @@ export async function forkWorksheet(sourceWorksheetId: string) {
       slug: `custom-temp-${Date.now()}`,
       description: typedSource.description,
       instructions: typedSource.instructions,
-      schema: typedSource.schema,
+      schema: convertedSchema,
       category_id: typedSource.category_id,
       tags: typedSource.tags || [],
       estimated_minutes: typedSource.estimated_minutes,

@@ -12,6 +12,7 @@ export type CustomFieldType =
   | 'select'
   | 'table'
   | 'computed'
+  | 'formulation'
 
 export type FieldType =
   | 'text'
@@ -166,19 +167,72 @@ export interface DecisionTreeField extends BaseField {
 }
 
 // Formulation field — spatial/diagrammatic layouts
+
+// Legacy layout names (used by curated worksheets in schema.layout)
 export type FormulationLayout =
   | 'cross_sectional'     // Hot cross bun: 5-area model
   | 'vicious_flower'      // Central problem with radial petals
   | 'longitudinal'        // Vertical Beckian developmental flow
 
+// New generalised layout patterns (used by custom formulations)
+export type FormulationLayoutPattern =
+  | 'cross_sectional'
+  | 'radial'
+  | 'vertical_flow'
+  | 'cycle'
+  | 'three_systems'
+
 export type DomainType =
   | 'situation' | 'thoughts' | 'emotions' | 'physical'
   | 'behaviour' | 'reassurance' | 'attention'
 
+// Field types allowed inside formulation nodes (subset — no table, formulation, etc.)
+export type FormulationNodeFieldType = 'text' | 'textarea' | 'number' | 'likert' | 'checklist' | 'select'
+
+export interface FormulationNodeField {
+  id: string
+  type: FormulationNodeFieldType
+  label?: string
+  placeholder?: string
+  min?: number
+  max?: number
+  step?: number
+  suffix?: string
+  options?: { id: string; label: string }[]
+  anchors?: Record<string, string>
+}
+
+export interface FormulationNode {
+  id: string
+  slot: string              // Position hint for layout engine (e.g. 'top', 'left', 'centre', 'petal-0')
+  label: string
+  domain_colour: string     // Hex colour — therapist picks from palette or custom
+  description?: string      // Tooltip/subtitle shown to client
+  fields: FormulationNodeField[]
+}
+
+export interface FormulationConnection {
+  from: string              // Node ID
+  to: string                // Node ID
+  style: 'arrow' | 'arrow_dashed' | 'line' | 'line_dashed' | 'inhibitory'
+  direction: 'one_way' | 'both' | 'none'
+  label?: string            // Optional text rendered at midpoint
+}
+
+export interface FormulationConfig {
+  title?: string
+  show_title?: boolean
+  background?: string
+}
+
 export interface FormulationField extends BaseField {
   type: 'formulation'
-  layout: FormulationLayout
-  // For vicious_flower: dynamic petals
+  // New generalised format (custom formulations)
+  layout: FormulationLayoutPattern | FormulationLayout
+  formulation_config?: FormulationConfig
+  nodes?: FormulationNode[]
+  connections?: FormulationConnection[]
+  // Legacy fields (curated worksheets — backward compat)
   dynamic?: boolean
   min_items?: number
   max_items?: number
@@ -186,9 +240,7 @@ export interface FormulationField extends BaseField {
     fields: { id: string; type: 'text' | 'textarea'; label: string; placeholder?: string }[]
   }
   default_items?: { petal_label: string; domain: DomainType }[]
-  // For longitudinal: highlight style
   highlight?: 'amber' | 'red_dashed'
-  // For all: domain colour coding
   domain?: DomainType
 }
 

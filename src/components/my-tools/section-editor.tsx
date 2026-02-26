@@ -9,13 +9,14 @@ interface SectionEditorProps {
   index: number
   totalSections: number
   allNumberFieldIds: { id: string; label: string }[]
+  hasFormulation?: boolean   // Whether any section already has a formulation field
   onUpdate: (section: WorksheetSection) => void
   onRemove: () => void
   onMoveUp: () => void
   onMoveDown: () => void
 }
 
-const FIELD_TYPES: { type: CustomFieldType; label: string; description: string }[] = [
+const BASE_FIELD_TYPES: { type: CustomFieldType; label: string; description: string }[] = [
   { type: 'text', label: 'Text', description: 'Single-line text input' },
   { type: 'textarea', label: 'Text Area', description: 'Multi-line text input' },
   { type: 'number', label: 'Number', description: 'Numeric input with min/max' },
@@ -27,6 +28,8 @@ const FIELD_TYPES: { type: CustomFieldType; label: string; description: string }
   { type: 'table', label: 'Table', description: 'Dynamic rows with columns' },
   { type: 'computed', label: 'Calculation', description: 'Auto-computed from other fields' },
 ]
+
+const FORMULATION_FIELD_TYPE = { type: 'formulation' as CustomFieldType, label: 'Formulation', description: 'Spatial diagram with nodes & arrows' }
 
 function createDefaultField(type: CustomFieldType): WorksheetField {
   const id = `f-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
@@ -63,6 +66,16 @@ function createDefaultField(type: CustomFieldType): WorksheetField {
         type: 'computed',
         computation: { operation: 'sum', fields: [] },
       } as WorksheetField
+    case 'formulation':
+      // Created with no layout — the configurator will set it
+      return {
+        ...base,
+        type: 'formulation',
+        layout: 'cross_sectional',
+        formulation_config: { title: '', show_title: false },
+        nodes: [],
+        connections: [],
+      } as WorksheetField
     default:
       return { ...base, type: 'text' }
   }
@@ -73,6 +86,7 @@ export function SectionEditor({
   index,
   totalSections,
   allNumberFieldIds,
+  hasFormulation = false,
   onUpdate,
   onRemove,
   onMoveUp,
@@ -80,6 +94,9 @@ export function SectionEditor({
 }: SectionEditorProps) {
   const [showFieldPicker, setShowFieldPicker] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+
+  // Build field types list — include formulation option (disabled if one already exists)
+  const FIELD_TYPES = [...BASE_FIELD_TYPES]
 
   const updateField = (fieldIndex: number, field: WorksheetField) => {
     const newFields = [...section.fields]
@@ -177,6 +194,22 @@ export function SectionEditor({
                     <p className="text-[10px] text-primary-400">{ft.description}</p>
                   </button>
                 ))}
+                {/* Formulation — always shown, disabled if one already exists */}
+                <button
+                  onClick={() => !hasFormulation && addField('formulation')}
+                  disabled={hasFormulation}
+                  className={`rounded-lg border px-3 py-2 text-left transition-colors ${
+                    hasFormulation
+                      ? 'cursor-not-allowed border-primary-100 opacity-40'
+                      : 'border-amber-200 bg-amber-50/30 hover:border-brand/40 hover:bg-brand/5'
+                  }`}
+                  title={hasFormulation ? 'One formulation per worksheet. Create a separate worksheet for additional formulations.' : undefined}
+                >
+                  <p className="text-xs font-semibold text-primary-700">{FORMULATION_FIELD_TYPE.label}</p>
+                  <p className="text-[10px] text-primary-400">
+                    {hasFormulation ? 'One per worksheet' : FORMULATION_FIELD_TYPE.description}
+                  </p>
+                </button>
               </div>
               <button onClick={() => setShowFieldPicker(false)} className="mt-2 text-xs text-primary-400 hover:text-primary-600">Cancel</button>
             </div>

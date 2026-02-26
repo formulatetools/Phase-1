@@ -1,6 +1,7 @@
 'use client'
 
-import type { WorksheetField, LikertField, ChecklistField, SelectField, TableField, NumberField, ComputedField } from '@/types/worksheet'
+import type { WorksheetField, LikertField, ChecklistField, SelectField, TableField, NumberField, ComputedField, FormulationField } from '@/types/worksheet'
+import { FormulationConfigurator } from './formulation-configurator'
 
 interface FieldEditorProps {
   field: WorksheetField
@@ -24,6 +25,7 @@ const FIELD_TYPE_LABELS: Record<string, string> = {
   time: 'Time',
   table: 'Table',
   computed: 'Calculation',
+  formulation: 'Formulation',
 }
 
 const FIELD_TYPE_COLORS: Record<string, string> = {
@@ -37,6 +39,7 @@ const FIELD_TYPE_COLORS: Record<string, string> = {
   time: 'bg-amber-50 text-amber-600',
   table: 'bg-indigo-50 text-indigo-600',
   computed: 'bg-brand/10 text-brand-dark',
+  formulation: 'bg-amber-100 text-amber-700',
 }
 
 export function FieldEditor({
@@ -74,56 +77,66 @@ export function FieldEditor({
         </div>
       </div>
 
-      {/* Common fields */}
-      <div className="mt-3 space-y-3">
-        <div>
-          <label className="text-[11px] font-medium text-primary-500">Label *</label>
-          <input
-            type="text"
-            value={field.label}
-            onChange={(e) => updateProp('label', e.target.value)}
-            className="mt-0.5 w-full rounded-lg border border-primary-200 px-3 py-1.5 text-sm text-primary-800 placeholder:text-primary-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-            placeholder="Field label"
+      {/* Formulation fields get their own configurator — no generic label/placeholder */}
+      {field.type === 'formulation' ? (
+        <div className="mt-3">
+          <FormulationConfigurator
+            field={field as FormulationField}
+            onChange={(f) => onUpdate(f as WorksheetField)}
           />
         </div>
-
-        {field.type !== 'computed' && (
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-medium text-primary-500">Placeholder</label>
-              <input
-                type="text"
-                value={field.placeholder || ''}
-                onChange={(e) => updateProp('placeholder', e.target.value || undefined)}
-                className="mt-0.5 w-full rounded-lg border border-primary-200 px-3 py-1.5 text-sm text-primary-800 placeholder:text-primary-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                placeholder="Optional"
-              />
-            </div>
-            <div className="flex items-end">
-              <label className="flex items-center gap-2 text-sm text-primary-600">
-                <input
-                  type="checkbox"
-                  checked={field.required || false}
-                  onChange={(e) => updateProp('required', e.target.checked)}
-                  className="h-4 w-4 rounded border-primary-300 text-brand focus:ring-brand"
-                />
-                Required
-              </label>
-            </div>
+      ) : (
+        /* Common fields */
+        <div className="mt-3 space-y-3">
+          <div>
+            <label className="text-[11px] font-medium text-primary-500">Label *</label>
+            <input
+              type="text"
+              value={field.label}
+              onChange={(e) => updateProp('label', e.target.value)}
+              className="mt-0.5 w-full rounded-lg border border-primary-200 px-3 py-1.5 text-sm text-primary-800 placeholder:text-primary-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+              placeholder="Field label"
+            />
           </div>
-        )}
 
-        {/* Type-specific configuration */}
-        {field.type === 'number' && <NumberConfig field={field as NumberField} onUpdate={onUpdate} />}
-        {field.type === 'likert' && <LikertConfig field={field as LikertField} onUpdate={onUpdate} />}
-        {(field.type === 'checklist' || field.type === 'select') && (
-          <OptionsConfig field={field as ChecklistField | SelectField} onUpdate={onUpdate} />
-        )}
-        {field.type === 'table' && <TableConfig field={field as TableField} onUpdate={onUpdate} />}
-        {field.type === 'computed' && (
-          <ComputedConfig field={field as ComputedField} allNumberFieldIds={allNumberFieldIds} onUpdate={onUpdate} />
-        )}
-      </div>
+          {field.type !== 'computed' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-medium text-primary-500">Placeholder</label>
+                <input
+                  type="text"
+                  value={field.placeholder || ''}
+                  onChange={(e) => updateProp('placeholder', e.target.value || undefined)}
+                  className="mt-0.5 w-full rounded-lg border border-primary-200 px-3 py-1.5 text-sm text-primary-800 placeholder:text-primary-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  placeholder="Optional"
+                />
+              </div>
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 text-sm text-primary-600">
+                  <input
+                    type="checkbox"
+                    checked={field.required || false}
+                    onChange={(e) => updateProp('required', e.target.checked)}
+                    className="h-4 w-4 rounded border-primary-300 text-brand focus:ring-brand"
+                  />
+                  Required
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* Type-specific configuration */}
+          {field.type === 'number' && <NumberConfig field={field as NumberField} onUpdate={onUpdate} />}
+          {field.type === 'likert' && <LikertConfig field={field as LikertField} onUpdate={onUpdate} />}
+          {(field.type === 'checklist' || field.type === 'select') && (
+            <OptionsConfig field={field as ChecklistField | SelectField} onUpdate={onUpdate} />
+          )}
+          {field.type === 'table' && <TableConfig field={field as TableField} onUpdate={onUpdate} />}
+          {field.type === 'computed' && (
+            <ComputedConfig field={field as ComputedField} allNumberFieldIds={allNumberFieldIds} onUpdate={onUpdate} />
+          )}
+        </div>
+      )}
     </div>
   )
 }

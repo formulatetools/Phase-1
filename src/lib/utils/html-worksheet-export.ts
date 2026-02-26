@@ -17,8 +17,10 @@ import type {
   SafetyPlanField,
   DecisionTreeField,
   FormulationField,
+  FormulationNode,
   TableColumn,
 } from '@/types/worksheet'
+import { getColourFromHex } from '@/lib/domain-colors'
 
 // ── Utilities ──
 
@@ -394,7 +396,7 @@ function generateCss(): string {
     .decision-outcome.green { background: var(--green-light); border: 1px solid var(--green-border); color: var(--green); }
     .decision-outcome.red { background: var(--red-light); border: 1px solid var(--red-border); color: var(--red); }
 
-    /* Formulation simplified */
+    /* Formulation simplified (legacy) */
     .formulation-section {
       border-left: 3px solid var(--brand);
       padding-left: 16px;
@@ -408,6 +410,34 @@ function generateCss(): string {
       color: var(--text-400);
       margin-bottom: 6px;
     }
+
+    /* Formulation nodes (new format) */
+    .formulation-nodes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .formulation-node {
+      border-radius: var(--radius);
+      padding: 16px;
+      border-width: 2px;
+      border-style: solid;
+    }
+    .formulation-node-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .formulation-node-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-900);
+      margin-bottom: 8px;
+    }
+    .formulation-node .field { margin-bottom: 12px; }
+    .formulation-node .field:last-child { margin-bottom: 0; }
 
     /* Footer */
     footer {
@@ -702,8 +732,75 @@ function renderDecisionTreeField(field: DecisionTreeField): string {
   </div>`
 }
 
+function renderFormulationNodeField(
+  fieldId: string,
+  nodeId: string,
+  nf: FormulationNode['fields'][0]
+): string {
+  const inputId = `${fieldId}_${nodeId}_${nf.id}`
+  const label = nf.label
+    ? `<label class="field-label" for="${esc(inputId)}">${esc(nf.label)}</label>`
+    : ''
+
+  switch (nf.type) {
+    case 'textarea':
+      return `<div class="field">${label}<textarea id="${esc(inputId)}" name="${esc(inputId)}" rows="3" placeholder="${esc(nf.placeholder || '')}"></textarea></div>`
+    case 'number':
+      return `<div class="field">${label}<input type="number" id="${esc(inputId)}" name="${esc(inputId)}" ${nf.min !== undefined ? `min="${nf.min}"` : ''} ${nf.max !== undefined ? `max="${nf.max}"` : ''} placeholder="${esc(nf.placeholder || '')}" /></div>`
+    case 'likert': {
+      const min = nf.min ?? 0
+      const max = nf.max ?? 10
+      const step = nf.step ?? 1
+      let anchorsHtml = ''
+      if (nf.anchors) {
+        const entries = Object.entries(nf.anchors)
+        if (entries.length >= 2) {
+          anchorsHtml = `<div class="likert-anchors"><span>${esc(entries[0][1])}</span><span>${esc(entries[entries.length - 1][1])}</span></div>`
+        }
+      }
+      return `<div class="field">${label}<div class="likert-wrap"><div class="likert-value"><span id="${esc(inputId)}-val">${min}</span> <small>/ ${max}</small></div><input type="range" id="${esc(inputId)}" name="${esc(inputId)}" min="${min}" max="${max}" step="${step}" value="${min}" data-likert="true" />${anchorsHtml}</div></div>`
+    }
+    case 'checklist': {
+      const items = (nf.options || []).map(o =>
+        `<div class="checklist-item"><input type="checkbox" id="${esc(inputId)}_${esc(o.id)}" name="${esc(inputId)}" value="${esc(o.id)}" /><label for="${esc(inputId)}_${esc(o.id)}">${esc(o.label)}</label></div>`
+      ).join('')
+      return `<div class="field">${label}<div class="checklist-group">${items}</div></div>`
+    }
+    case 'select': {
+      const opts = (nf.options || []).map(o =>
+        `<option value="${esc(o.id)}">${esc(o.label)}</option>`
+      ).join('')
+      return `<div class="field">${label}<select id="${esc(inputId)}" name="${esc(inputId)}"><option value="">Select…</option>${opts}</select></div>`
+    }
+    default:
+      return `<div class="field">${label}<input type="text" id="${esc(inputId)}" name="${esc(inputId)}" placeholder="${esc(nf.placeholder || '')}" /></div>`
+  }
+}
+
 function renderFormulationField(field: FormulationField): string {
-  // Simplified: show as labeled sections rather than the full visual diagram
+  // New format: nodes array present → render as domain-coloured node cards
+  if (field.nodes && field.nodes.length > 0) {
+    const nodeCards = field.nodes.map((node) => {
+      const colours = getColourFromHex(node.domain_colour)
+      const fields = node.fields.map((nf) =>
+        renderFormulationNodeField(field.id, node.id, nf)
+      ).join('')
+
+      return `<div class="formulation-node" style="background:${colours.bg};border-color:${colours.border};">
+        <div class="formulation-node-label" style="color:${colours.text};">${esc(node.label.toUpperCase())}</div>
+        ${node.description ? `<div class="section-description">${esc(node.description)}</div>` : ''}
+        ${fields}
+      </div>`
+    }).join('')
+
+    const title = field.formulation_config?.show_title && field.formulation_config?.title
+      ? `<div class="section-title" style="margin-bottom:12px;">${esc(field.formulation_config.title)}</div>`
+      : ''
+
+    return `<div class="field">${title}<div class="formulation-nodes">${nodeCards}</div></div>`
+  }
+
+  // Legacy format: single textarea with domain label
   const domainLabel = field.domain
     ? field.domain.charAt(0).toUpperCase() + field.domain.slice(1)
     : field.label

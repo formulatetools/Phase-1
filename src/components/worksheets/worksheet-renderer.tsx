@@ -11,6 +11,7 @@ import type {
   SelectField as SelectFieldSchema,
   ComputedField as ComputedFieldSchema,
   HierarchyField as HierarchyFieldSchema,
+  FormulationField as FormulationFieldSchema,
 } from '@/types/worksheet'
 import {
   TextField,
@@ -30,6 +31,7 @@ import {
   DecisionTreeReadOnly,
   FormulationLayout,
   FormulationReadOnly,
+  FormulationFieldRenderer,
 } from './fields'
 
 type FieldValue = string | number | '' | string[] | Record<string, string | number | ''>[]
@@ -115,6 +117,10 @@ export function WorksheetRenderer({
           }
           case 'computed':
             // Computed fields don't store a value — they compute from others
+            break
+          case 'formulation':
+            // New-format formulation: nested node values
+            initial[field.id] = { nodes: {} } as unknown as FieldValue
             break
           case 'number':
             initial[field.id] = ''
@@ -354,6 +360,24 @@ export function WorksheetRenderer({
               allValues={values}
             />
           )
+        }
+
+        case 'formulation': {
+          const ff = field as FormulationFieldSchema
+          // Only handle new-format formulations (with nodes array)
+          if (ff.nodes && ff.nodes.length > 0) {
+            const formulationValues = (values[field.id] as unknown as Record<string, unknown>) || { nodes: {} }
+            return (
+              <FormulationFieldRenderer
+                key={field.id}
+                field={ff}
+                values={formulationValues}
+                onChange={() => {}}
+                readOnly
+              />
+            )
+          }
+          return null
         }
 
         case 'checklist': {
@@ -653,6 +677,22 @@ export function WorksheetRenderer({
               onChange={(v) => updateValue(field.id, v)}
             />
           )
+        case 'formulation': {
+          const ff = field as FormulationFieldSchema
+          // Only handle new-format formulations (with nodes array)
+          if (ff.nodes && ff.nodes.length > 0) {
+            const formulationValues = (values[field.id] as unknown as Record<string, unknown>) || { nodes: {} }
+            return (
+              <FormulationFieldRenderer
+                key={field.id}
+                field={ff}
+                values={formulationValues}
+                onChange={(v) => updateValue(field.id, v as unknown as FieldValue)}
+              />
+            )
+          }
+          return null
+        }
         default:
           return null
       }
