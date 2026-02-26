@@ -52,7 +52,7 @@ export function ReferralLinkCard({
           className={`shrink-0 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
             copied
               ? 'bg-green-600 text-white'
-              : 'bg-primary-800 text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300'
+              : 'bg-primary-800 text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900'
           }`}
         >
           {copied ? 'Copied!' : 'Copy'}

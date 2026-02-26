@@ -167,7 +167,7 @@ export default async function AdminUserDetailPage({
                       className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                         isActive
                           ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                          : 'bg-primary-800 text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300'
+                          : 'bg-primary-800 text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900'
                       }`}
                     >
                       {isActive ? 'Revoke' : 'Grant'}

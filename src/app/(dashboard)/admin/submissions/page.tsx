@@ -101,7 +101,7 @@ export default async function AdminSubmissionsPage({ searchParams }: PageProps) 
             href={f.key === 'all' ? '/admin/submissions' : `/admin/submissions?status=${f.key}`}
             className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
               activeFilter === f.key
-                ? 'bg-primary-800 text-white dark:bg-primary-200 dark:text-primary-900'
+                ? 'bg-primary-800 text-white dark:bg-primary-800 dark:text-primary-50'
                 : 'bg-primary-50 text-primary-600 hover:bg-primary-100'
             }`}
           >

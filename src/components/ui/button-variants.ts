@@ -12,13 +12,13 @@ export const btnVariants: Record<ButtonVariant, string> = {
     'bg-primary-800 text-white font-semibold',
     'shadow-[var(--shadow-btn)]',
     'hover:bg-primary-900 hover:shadow-[var(--shadow-btn-hover)] hover:-translate-y-px',
-    'dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300',
+    'dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900',
   ].join(' '),
 
   secondary: [
     'border border-primary-200 bg-transparent text-primary-700',
     'hover:bg-primary-50 hover:border-primary-300',
-    'dark:border-primary-300 dark:text-primary-600 dark:hover:bg-primary-100',
+    'dark:border-primary-200 dark:text-primary-600 dark:hover:bg-primary-100',
   ].join(' '),
 
   accent: [
@@ -37,7 +37,7 @@ export const btnVariants: Record<ButtonVariant, string> = {
 export const btnSizes: Record<ButtonSize, string> = {
   sm: 'px-3 py-1.5 text-xs',
   md: 'px-4 py-2 text-sm',
-  lg: 'px-5 py-2.5 text-sm',
+  lg: 'px-6 py-3 text-sm',
 }
 
 /** Class string helpers for <Link>, <a>, and server components */

@@ -71,7 +71,7 @@ export default async function CheckoutSuccessPage({
       <div className="w-full max-w-lg text-center">
         {/* Success icon */}
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand/10">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-800 text-white dark:bg-primary-200 dark:text-primary-900">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-800 text-white dark:bg-primary-800 dark:text-primary-50">
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>

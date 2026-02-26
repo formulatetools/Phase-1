@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
+@theme {
   --color-background: #fafaf8;
   --color-foreground: #2d2d2d;
   --color-surface: #ffffff;
@@ -51,87 +51,87 @@
   --font-sans: var(--font-dm-sans);
 }
 
-/* ── Dark mode variable overrides ─────────────────────────── */
+/* ── Dark mode variable overrides — "Bourbon" warm palette ── */
 .dark {
-  --color-background: #1a1a1a;
-  --color-foreground: #e2e8f0;
-  --color-surface: #1e293b;
+  --color-background: #141210;
+  --color-foreground: #e8e5e0;
+  --color-surface: #1c1a17;
 
-  /* Inverted primary scale — warm slate tones */
-  --color-primary-50: #1e293b;
-  --color-primary-100: #253349;
-  --color-primary-200: #334155;
-  --color-primary-300: #475569;
-  --color-primary-400: #94a3b8;
-  --color-primary-500: #94a3b8;
-  --color-primary-600: #cbd5e1;
-  --color-primary-700: #e2e8f0;
-  --color-primary-800: #e2e8f0;
-  --color-primary-900: #f1f5f9;
-  --color-primary-950: #f8fafc;
+  /* Inverted primary scale — warm bourbon tones (never cold/blue) */
+  --color-primary-50: #1c1a17;
+  --color-primary-100: #1f1d1a;
+  --color-primary-200: #2a2725;
+  --color-primary-300: #3a3835;
+  --color-primary-400: #5c5853;
+  --color-primary-500: #7a7570;
+  --color-primary-600: #a8a49e;
+  --color-primary-700: #c4c0ba;
+  --color-primary-800: #e8e5e0;
+  --color-primary-900: #f0ede8;
+  --color-primary-950: #f5f3ee;
 
-  /* Accent — lighter greens for dark contrast */
+  /* Accent — brighter greens for dark contrast */
   --color-accent-50: #0d3b10;
   --color-accent-100: #145218;
   --color-accent-200: #1b5e20;
   --color-accent-300: #2e7d32;
-  --color-accent-400: #4ade80;
-  --color-accent-500: #4ade80;
-  --color-accent-600: #86efac;
-  --color-accent-700: #bbf7d0;
+  --color-accent-400: #22c55e;
+  --color-accent-500: #22c55e;
+  --color-accent-600: #4ade80;
+  --color-accent-700: #86efac;
 
   /* Button shadows — stronger on dark backgrounds */
   --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-btn-hover: 0 4px 6px rgba(0, 0, 0, 0.4);
 
-  /* Brand amber stays vibrant — 7.3:1 on slate = AAA */
+  /* Brand amber stays vibrant — unchanged, works on both */
   --color-brand: #e4a930;
-  --color-brand-light: #253349;
+  --color-brand-light: #1f1d1a;
   --color-brand-dark: #fbbf24;
   --color-brand-text: #fbbf24;
 
-  /* Semantic — lighter for dark backgrounds */
-  --color-success: #4ade80;
+  /* Semantic — slightly brighter for dark backgrounds */
+  --color-success: #22c55e;
   --color-warning: #fbbf24;
-  --color-danger: #f87171;
+  --color-danger: #ef4444;
 
-  /* ── Default palette overrides (mirror light↔dark ends) ── */
+  /* ── Default palette overrides (warm-tinted dark backgrounds) ── */
 
   /* Green — success states, active badges */
-  --color-green-50: #052e16;
+  --color-green-50: #0a1f0d;
   --color-green-100: #14532d;
   --color-green-200: #166534;
   --color-green-300: #15803d;
-  --color-green-600: #4ade80;
-  --color-green-700: #86efac;
-  --color-green-800: #bbf7d0;
+  --color-green-600: #22c55e;
+  --color-green-700: #4ade80;
+  --color-green-800: #86efac;
 
   /* Red — error states, destructive actions */
-  --color-red-50: #450a0a;
-  --color-red-100: #7f1d1d;
-  --color-red-200: #991b1b;
-  --color-red-300: #b91c1c;
-  --color-red-500: #f87171;
-  --color-red-600: #fca5a5;
-  --color-red-700: #fecaca;
-  --color-red-800: #fee2e2;
+  --color-red-50: #1f0a0a;
+  --color-red-100: #3b1111;
+  --color-red-200: #5c1717;
+  --color-red-300: #7f1d1d;
+  --color-red-500: #ef4444;
+  --color-red-600: #f87171;
+  --color-red-700: #fca5a5;
+  --color-red-800: #fecaca;
 
   /* Blue — info badges, link-like states */
-  --color-blue-50: #172554;
-  --color-blue-100: #1e3a8a;
-  --color-blue-200: #1e40af;
-  --color-blue-600: #93c5fd;
-  --color-blue-700: #bfdbfe;
+  --color-blue-50: #0f1a2e;
+  --color-blue-100: #172554;
+  --color-blue-200: #1e3a8a;
+  --color-blue-600: #3b82f6;
+  --color-blue-700: #60a5fa;
 
   /* Amber — warnings, pending states */
-  --color-amber-50: #451a03;
-  --color-amber-100: #78350f;
-  --color-amber-200: #92400e;
-  --color-amber-300: #b45309;
-  --color-amber-400: #fbbf24;
-  --color-amber-600: #fcd34d;
-  --color-amber-700: #fde68a;
-  --color-amber-800: #fef3c7;
+  --color-amber-50: #1f1507;
+  --color-amber-100: #3b2808;
+  --color-amber-200: #5c3d0d;
+  --color-amber-300: #78350f;
+  --color-amber-400: #e4a930;
+  --color-amber-600: #fbbf24;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde68a;
 }
 
 body {
@@ -155,6 +155,17 @@ select:focus {
   border-color: #e4a930 !important;
   box-shadow: 0 0 0 3px rgba(228, 169, 48, 0.15) !important;
   outline: none !important;
+}
+
+/* ── Mobile touch targets & iOS zoom prevention ──────────── */
+@media (max-width: 640px) {
+  /* Prevent iOS Safari auto-zoom on input focus (must be ≥16px) */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
 }
 
 /* Force light mode for print */

@@ -52,7 +52,7 @@ export default async function MyToolsPage() {
             className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors ${
               atLimit
                 ? 'bg-primary-100 text-primary-500'
-                : 'bg-primary-800 text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300'
+                : 'bg-primary-800 text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900'
             }`}
           >
             {atLimit ? (
@@ -89,7 +89,7 @@ export default async function MyToolsPage() {
           </p>
           <Link
             href="/pricing"
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary-800 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary-800 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900"
           >
             Upgrade to Standard — from &pound;4.99/mo
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">

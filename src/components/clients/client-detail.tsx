@@ -214,7 +214,7 @@ export function ClientDetail({
                 />
                 <button
                   onClick={handleSaveLabel}
-                  className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
+                  className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900"
                 >
                   Save
                 </button>
@@ -262,7 +262,7 @@ export function ClientDetail({
             <button
               onClick={() => handleAction('reactivate', () => reactivateClient(relationship.id), 'Client reactivated')}
               disabled={actionLoading === 'reactivate'}
-              className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50"
+              className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 disabled:opacity-50"
             >
               {actionLoading === 'reactivate' ? 'Reactivating…' : 'Reactivate'}
             </button>
@@ -290,7 +290,7 @@ export function ClientDetail({
             }
             setShowAssign(true)
           }}
-          className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -390,7 +390,7 @@ export function ClientDetail({
             <button
               onClick={handleAssign}
               disabled={assignLoading || !selectedWorksheet}
-              className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 disabled:opacity-50 transition-colors"
             >
               {assignLoading ? (
                 'Generating link…'
@@ -582,7 +582,7 @@ export function ClientDetail({
                           onClick={() => setViewingResponse(isViewing ? null : a.id)}
                           className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
                             isViewing
-                              ? 'bg-primary-800 text-white dark:bg-primary-200 dark:text-primary-900'
+                              ? 'bg-primary-800 text-white dark:bg-primary-800 dark:text-primary-50'
                               : 'border border-primary-200 text-primary-600 hover:bg-primary-50'
                           }`}
                         >
@@ -599,7 +599,7 @@ export function ClientDetail({
                         <button
                           onClick={() => handleAction(`review-${a.id}`, () => markAsReviewed(a.id), 'Marked as reviewed')}
                           disabled={actionLoading === `review-${a.id}`}
-                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors disabled:opacity-50"
+                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors disabled:opacity-50"
                         >
                           {actionLoading === `review-${a.id}` ? 'Saving…' : 'Mark reviewed'}
                         </button>
@@ -623,7 +623,7 @@ export function ClientDetail({
                         <button
                           onClick={() => handleAction(`paper-${a.id}`, () => markAsPaperCompleted(a.id), 'Marked as completed (paper)')}
                           disabled={actionLoading === `paper-${a.id}`}
-                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors disabled:opacity-50"
+                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors disabled:opacity-50"
                         >
                           {actionLoading === `paper-${a.id}` ? 'Saving…' : 'Mark completed (paper)'}
                         </button>

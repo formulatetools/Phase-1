@@ -124,7 +124,7 @@ export function PricingTable() {
             >
               {tier.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-primary-800 dark:bg-primary-200 px-3 py-1 text-xs font-medium text-white dark:text-primary-900 whitespace-nowrap">
+                  <span className="rounded-full bg-primary-800 dark:bg-primary-800 px-3 py-1 text-xs font-medium text-white dark:text-primary-50 whitespace-nowrap">
                     {tier.badge}
                   </span>
                 </div>
@@ -183,7 +183,7 @@ export function PricingTable() {
                     type="submit"
                     className={`w-full rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
                       tier.highlighted
-                        ? 'bg-primary-800 text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300'
+                        ? 'bg-primary-800 text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900'
                         : 'border border-primary-200 bg-surface text-primary-700 hover:bg-primary-50'
                     }`}
                   >
