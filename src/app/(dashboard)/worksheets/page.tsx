@@ -148,7 +148,7 @@ export default async function WorksheetsPage({
                         {worksheet.estimated_minutes && (
                           <span className="flex items-center gap-1 text-xs text-primary-400">
                             <svg
-                              className="h-3 w-3"
+                              className="h-4 w-4"
                               fill="none"
                               viewBox="0 0 24 24"
                               strokeWidth={1.5}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { Button } from '@/components/ui/button'
 
 interface Props {
   initialName: string
@@ -59,13 +60,12 @@ export function ProfileForm({ initialName, initialEmail }: Props) {
         <p className="mt-1 text-sm text-primary-500">{initialEmail}</p>
       </div>
 
-      <button
+      <Button
         type="submit"
         disabled={saving}
-        className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50"
       >
         {saving ? 'Saving...' : 'Save Changes'}
-      </button>
+      </Button>
     </form>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 
 interface ShareModalProps {
@@ -97,12 +98,13 @@ export function ShareModal({
             <div className="flex-1 min-w-0">
               <p className="truncate text-sm font-mono text-primary-700">{homeworkUrl}</p>
             </div>
-            <button
+            <Button
               onClick={handleCopy}
-              className="shrink-0 rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
+              size="sm"
+              className="shrink-0"
             >
               Copy link
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -145,12 +147,12 @@ export function ShareModal({
         </div>
 
         {/* Done button */}
-        <button
+        <Button
           onClick={onClose}
-          className="mt-4 w-full rounded-xl bg-primary-800 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
+          className="mt-4 w-full"
         >
           Done
-        </button>
+        </Button>
 
         <canvas ref={canvasRef} className="hidden" />
       </div>

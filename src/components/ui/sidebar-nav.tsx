@@ -7,6 +7,7 @@ import { useState, useRef, useCallback } from 'react'
 import { Logo } from '@/components/ui/logo'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useShortcutsModal } from '@/components/providers/keyboard-shortcuts-provider'
+import { buttonVariants } from '@/components/ui/button'
 
 interface SidebarNavProps {
   userEmail: string
@@ -171,7 +172,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
           <Link
             href="/pricing"
             onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-2 rounded-lg border border-brand/20 bg-brand/5 px-3 py-2 text-sm font-medium text-brand-dark transition-colors hover:bg-brand/10"
+            className={`${buttonVariants.accent('sm')} w-full`}
           >
             <svg className="h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
@@ -195,10 +196,10 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
               href={item.href}
               onClick={() => setMobileOpen(false)}
               data-tour={tourId}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-lg py-2.5 text-sm transition-colors ${
                 isActive(item.href)
-                  ? 'bg-brand/10 text-brand-dark'
-                  : 'text-primary-500 hover:bg-primary-50 hover:text-primary-700'
+                  ? 'border-l-[3px] border-brand bg-brand/10 pl-[calc(0.75rem-3px)] pr-3 font-semibold text-brand-dark'
+                  : 'border-l-[3px] border-transparent pl-[calc(0.75rem-3px)] pr-3 font-medium text-primary-600 hover:bg-primary-50 hover:text-primary-700'
               }`}
             >
               <span className={isActive(item.href) ? 'text-brand' : ''}>{item.icon}</span>
@@ -270,9 +271,9 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
         {tier === 'free' && (
           <Link
             href="/pricing"
-            className="flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/5 px-3 py-1.5 text-xs font-semibold text-brand-dark transition-colors hover:bg-brand/10"
+            className={`${buttonVariants.accent('sm')} rounded-full`}
           >
-            <svg className="h-3.5 w-3.5 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <svg className="h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
             </svg>
             Upgrade

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { completeOnboarding } from '@/app/(dashboard)/dashboard/actions'
+import { Button } from '@/components/ui/button'
 
 interface WelcomeModalProps {
   open: boolean
@@ -98,12 +99,9 @@ export function WelcomeModal({ open, onStartTour }: WelcomeModalProps) {
             ))}
           </div>
           {!isLast && (
-            <button
-              onClick={handleDismiss}
-              className="text-sm text-primary-400 transition-colors hover:text-primary-600"
-            >
+            <Button variant="ghost" size="sm" onClick={handleDismiss}>
               Skip
-            </button>
+            </Button>
           )}
         </div>
 
@@ -128,30 +126,21 @@ export function WelcomeModal({ open, onStartTour }: WelcomeModalProps) {
         {/* Navigation */}
         <div className="mt-8 flex items-center justify-between gap-3">
           {step > 0 ? (
-            <button
-              onClick={() => setStep(step - 1)}
-              className="rounded-lg border border-primary-200 px-4 py-2.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50"
-            >
+            <Button variant="secondary" size="lg" onClick={() => setStep(step - 1)}>
               Back
-            </button>
+            </Button>
           ) : (
             <div />
           )}
 
           {isLast ? (
-            <button
-              onClick={handleGetStarted}
-              className="rounded-lg bg-brand px-6 py-2.5 text-sm font-semibold text-primary-900 transition-colors hover:bg-brand-dark"
-            >
+            <Button variant="accent" size="lg" onClick={handleGetStarted}>
               Get Started
-            </button>
+            </Button>
           ) : (
-            <button
-              onClick={() => setStep(step + 1)}
-              className="rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
-            >
+            <Button size="lg" onClick={() => setStep(step + 1)}>
               Next
-            </button>
+            </Button>
           )}
         </div>
       </div>

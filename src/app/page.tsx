@@ -3,6 +3,7 @@ import { LogoIcon } from '@/components/ui/logo'
 import { LandingNav } from '@/components/marketing/landing-nav'
 import { WorksheetPreview } from '@/components/marketing/worksheet-preview'
 import { PricingTable } from '@/components/marketing/pricing-table'
+import { buttonVariants } from '@/components/ui/button-variants'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -47,13 +48,13 @@ export default function Home() {
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link
             href="/signup"
-            className="rounded-lg bg-primary-800 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
+            className={buttonVariants.primary('lg')}
           >
             Get Started Free
           </Link>
           <a
             href="#preview"
-            className="rounded-lg border border-primary-200 bg-surface px-6 py-3 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
+            className={buttonVariants.secondary('lg')}
           >
             See it in action &darr;
           </a>
@@ -259,7 +260,7 @@ export default function Home() {
           </p>
           <Link
             href="/signup"
-            className="mt-8 inline-block rounded-lg bg-primary-800 px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
+            className={`mt-8 inline-block ${buttonVariants.primary('lg')}`}
           >
             Get Started Free
           </Link>

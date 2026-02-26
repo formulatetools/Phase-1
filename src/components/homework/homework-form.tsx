@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from './blank-pdf-generator'
@@ -355,20 +356,19 @@ export function HomeworkForm({
 
           {/* Action buttons */}
           <div className="flex items-center justify-between">
-            <button
+            <Button
+              variant="secondary"
               onClick={handleManualSave}
               disabled={connectionStatus === 'saving' || connectionStatus === 'offline'}
-              className="rounded-lg border border-primary-200 px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 disabled:opacity-50 transition-colors"
             >
               Save draft
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleSubmit}
               disabled={submitting}
-              className="rounded-lg bg-primary-800 px-6 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50 transition-colors"
             >
               {submitting ? 'Submitting…' : pendingSubmit ? 'Submit queued — waiting for connection' : 'Submit'}
-            </button>
+            </Button>
           </div>
         </div>
       )}

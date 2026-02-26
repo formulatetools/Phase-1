@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import type { TherapeuticRelationship, SubscriptionTier } from '@/types/database'
 import { createClient_action, dischargeClient, reactivateClient } from '@/app/(dashboard)/clients/actions'
 import { validateClientLabel } from '@/lib/validation/client-label'
@@ -107,7 +109,7 @@ export function ClientList({
             {atLimit && (
               <Link
                 href="/pricing"
-                className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
+                className={buttonVariants.accent('sm')}
               >
                 Upgrade
               </Link>
@@ -122,7 +124,7 @@ export function ClientList({
           Active clients ({activeClients.length})
         </h2>
         {!showAdd && (
-          <button
+          <Button
             onClick={() => {
               if (atLimit) {
                 setError(`Free plan is limited to ${maxClients} clients. Upgrade to add more.`)
@@ -130,10 +132,9 @@ export function ClientList({
               }
               setShowAdd(true)
             }}
-            className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 transition-colors"
           >
             + Add client
-          </button>
+          </Button>
         )}
       </div>
 
@@ -167,23 +168,22 @@ export function ClientList({
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
               autoFocus
             />
-            <button
+            <Button
               onClick={handleAdd}
               disabled={loading || !newLabel.trim()}
-              className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50 transition-colors"
             >
               {loading ? 'Adding…' : 'Add'}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() => { setShowAdd(false); setNewLabel(''); setError(null); setPiiWarning(null) }}
-              className="rounded-lg border border-primary-200 px-4 py-2 text-sm text-primary-600 hover:bg-primary-50 transition-colors"
             >
               Cancel
-            </button>
+            </Button>
           </div>
           {piiWarning && (
             <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
-              <svg className="mt-0.5 h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
               </svg>
               {piiWarning}
@@ -202,12 +202,12 @@ export function ClientList({
           <p className="mt-1 text-sm text-primary-500">
             Add a client to start assigning homework worksheets.
           </p>
-          <button
+          <Button
             onClick={() => setShowAdd(true)}
-            className="mt-4 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
+            className="mt-4"
           >
             Add your first client
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="space-y-2">
@@ -277,16 +277,17 @@ export function ClientList({
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/clients/${r.id}`}
-                    className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-surface transition-colors"
+                    className={buttonVariants.secondary('sm')}
                   >
                     View
                   </Link>
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={(e) => { e.preventDefault(); handleReactivate(r.id) }}
-                    className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-surface transition-colors"
                   >
                     Reactivate
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}

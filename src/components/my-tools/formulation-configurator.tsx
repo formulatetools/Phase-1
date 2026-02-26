@@ -320,7 +320,7 @@ function NodeFieldEditor({
         className="rounded p-0.5 text-primary-300 hover:text-red-500"
         title="Remove field"
       >
-        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
@@ -380,7 +380,7 @@ function NodeConfigurator({
           className="text-primary-400 hover:text-primary-600"
         >
           <svg
-            className={`h-3.5 w-3.5 transition-transform ${collapsed ? '' : 'rotate-90'}`}
+            className={`h-4 w-4 transition-transform ${collapsed ? '' : 'rotate-90'}`}
             fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -404,7 +404,7 @@ function NodeConfigurator({
             className="rounded p-1 text-primary-300 hover:text-red-500"
             title="Remove node"
           >
-            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -462,7 +462,7 @@ function NodeConfigurator({
                 onClick={() => setShowFieldPicker(true)}
                 className="flex items-center gap-1 text-[10px] font-medium text-primary-400 hover:text-brand"
               >
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
                 Add field
@@ -595,7 +595,7 @@ function ConnectionEditor({
         disabled={nodes.length < 2}
         className="mt-1 flex items-center gap-1 text-[10px] font-medium text-primary-400 hover:text-brand disabled:opacity-30"
       >
-        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
         Add connection
@@ -716,7 +716,7 @@ export function FormulationConfigurator({ field, onChange }: FormulationConfigur
                   formulation_config: { ...field.formulation_config, show_title: e.target.checked },
                 })
               }
-              className="h-3.5 w-3.5 rounded border-primary-300"
+              className="h-4 w-4 rounded border-primary-300"
             />
             Show title
           </label>

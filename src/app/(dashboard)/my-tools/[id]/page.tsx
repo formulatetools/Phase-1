@@ -53,7 +53,7 @@ export default async function MyToolDetailPage({ params }: PageProps) {
             href="/my-tools"
             className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors"
           >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
             My Tools
@@ -82,7 +82,7 @@ export default async function MyToolDetailPage({ params }: PageProps) {
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-primary-400">
             {typedWorksheet.forked_from && (
               <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600">
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
                 </svg>
                 Customised from library

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { Button } from '@/components/ui/button'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from './blank-pdf-generator'
 
@@ -174,20 +175,23 @@ export function ConsentGate({
 
         {/* Action buttons — equally prominent */}
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <button
+          <Button
             onClick={handleAccept}
             disabled={accepting || declining}
-            className="flex-1 rounded-lg bg-primary-800 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50"
+            size="lg"
+            className="flex-1"
           >
             {accepting ? 'Processing…' : 'Complete Online'}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={handleDecline}
             disabled={accepting || declining}
-            className="flex-1 rounded-lg border border-primary-300 bg-surface px-5 py-3 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50 disabled:opacity-50"
+            size="lg"
+            className="flex-1"
           >
             {declining ? 'Generating PDF…' : 'Download Blank PDF Instead'}
-          </button>
+          </Button>
         </div>
 
         {/* Legal text */}

@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import type { WorksheetSchema, WorksheetSection } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { SectionEditor } from './section-editor'
@@ -302,13 +303,12 @@ export function CustomWorksheetBuilder({
           >
             {showPreview ? 'Editor' : 'Preview'}
           </button>
-          <button
+          <Button
             onClick={handleSave}
             disabled={saving || !title.trim() || !description.trim() || sections.length === 0}
-            className="rounded-lg bg-primary-800 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 disabled:opacity-50"
           >
             {saving ? 'Saving...' : mode === 'create' ? 'Create Tool' : 'Save Changes'}
-          </button>
+          </Button>
           {isContributor && (!libraryStatus || libraryStatus === 'draft' || libraryStatus === 'rejected' || libraryStatus === 'changes_requested') && (
             <button
               onClick={handleSubmitToLibrary}
@@ -475,7 +475,7 @@ export function CustomWorksheetBuilder({
               )}
               {importedValues && (
                 <div className="mb-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-                  <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                   </svg>
                   Preview shows imported client responses

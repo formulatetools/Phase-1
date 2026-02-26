@@ -217,7 +217,7 @@ function ViciousFlowerLayout({
                   className="absolute right-2 top-2 text-primary-300 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
                   aria-label="Remove petal"
                 >
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>

@@ -59,7 +59,7 @@ export default async function CategoryPage({
           href="/worksheets"
           className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors"
         >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
           All categories
@@ -89,7 +89,7 @@ export default async function CategoryPage({
               </p>
               {worksheet.estimated_minutes && (
                 <p className="mt-2 flex items-center gap-1 text-xs text-primary-400">
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   ~{worksheet.estimated_minutes} min

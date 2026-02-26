@@ -52,7 +52,7 @@ export default async function AdminBlogDetailPage({
           href="/admin/blog"
           className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors"
         >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
           All Blog Posts

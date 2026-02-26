@@ -9,6 +9,7 @@ import { activityLabel, activityIcon, timeAgo, type ActivityItem } from '@/lib/u
 import { DashboardTour } from '@/components/onboarding/dashboard-tour'
 import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist'
 import { PromoAutoRedeem } from '@/components/ui/promo-auto-redeem'
+import { buttonVariants } from '@/components/ui/button-variants'
 
 export const metadata = {
   title: 'Dashboard — Formulate',
@@ -261,7 +262,7 @@ export default async function DashboardPage() {
             </div>
             <Link
               href="/pricing"
-              className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300"
+              className={buttonVariants.accent()}
             >
               View plans
             </Link>
@@ -399,12 +400,9 @@ export default async function DashboardPage() {
             {isFreeTier ? (
               <Link
                 href="/pricing"
-                className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors"
+                className={buttonVariants.accent('sm')}
               >
-                Upgrade plan
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
+                Upgrade plan →
               </Link>
             ) : (
               <ManageSubscriptionButton />
@@ -756,7 +754,7 @@ export default async function DashboardPage() {
           {recentWorksheets.length > 0 && (
             <Link
               href="/worksheets"
-              className="text-sm font-medium text-brand hover:text-brand-dark transition-colors"
+              className={buttonVariants.ghost('sm')}
             >
               View all →
             </Link>
@@ -801,12 +799,9 @@ export default async function DashboardPage() {
             <p className="mt-1 text-xs text-primary-400">Browse the library to get started</p>
             <Link
               href="/worksheets"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark"
+              className={`mt-4 ${buttonVariants.ghost('sm')}`}
             >
-              Browse worksheets
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
+              Browse worksheets →
             </Link>
           </div>
         )}

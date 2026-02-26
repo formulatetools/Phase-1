@@ -420,7 +420,7 @@ function NodeFieldRenderer({
                     const current = Array.isArray(value) ? value : []
                     onChange(e.target.checked ? [...current, opt.id] : current.filter(v => v !== opt.id))
                   }}
-                  className="h-3.5 w-3.5 rounded border-primary-300"
+                  className="h-4 w-4 rounded border-primary-300"
                 />
                 {opt.label}
               </label>

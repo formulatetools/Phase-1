@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { PromoCodeInput } from '@/components/ui/promo-code-input'
+import { Button } from '@/components/ui/button'
 
 type AuthMode = 'login' | 'signup'
 type AuthMethod = 'password' | 'magic-link'
@@ -264,10 +265,11 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
           </div>
         )}
 
-        <button
+        <Button
           type="submit"
+          size="lg"
+          className="w-full"
           disabled={loading || (mode === 'signup' && (!acceptTerms || !acceptPrivacy))}
-          className="w-full rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-300 focus:outline-none focus:ring-2 focus:ring-brand/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading
             ? 'Please wait...'
@@ -276,7 +278,7 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
               : mode === 'signup'
                 ? 'Create Account'
                 : 'Sign In'}
-        </button>
+        </Button>
       </form>
     </div>
   )

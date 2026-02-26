@@ -66,13 +66,13 @@ export function FieldEditor({
         <span className="flex-1 truncate text-xs font-medium text-primary-500">{field.label || 'Untitled field'}</span>
         <div className="flex items-center gap-0.5">
           <button onClick={onMoveUp} disabled={index === 0} className="rounded p-1 text-primary-300 hover:bg-primary-50 hover:text-primary-500 disabled:opacity-30" title="Move up">
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
           </button>
           <button onClick={onMoveDown} disabled={index === totalFields - 1} className="rounded p-1 text-primary-300 hover:bg-primary-50 hover:text-primary-500 disabled:opacity-30" title="Move down">
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
           </button>
           <button onClick={onRemove} className="rounded p-1 text-primary-300 hover:bg-red-50 hover:text-red-500" title="Remove field">
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
       </div>
@@ -204,7 +204,7 @@ function LikertConfig({ field, onUpdate }: { field: LikertField; onUpdate: (f: W
                 }}
                 className="text-primary-300 hover:text-red-500"
               >
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
           ))}
@@ -249,7 +249,7 @@ function OptionsConfig({ field, onUpdate }: { field: ChecklistField | SelectFiel
               }}
               className="text-primary-300 hover:text-red-500"
             >
-              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
         ))}
@@ -306,7 +306,7 @@ function TableConfig({ field, onUpdate }: { field: TableField; onUpdate: (f: Wor
               }}
               className="text-primary-300 hover:text-red-500"
             >
-              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
         ))}
@@ -418,7 +418,7 @@ function ComputedConfig({
                       : fields.filter((id: string) => id !== f.id)
                     onUpdate({ ...field, computation: { ...computation, fields: newFields } } as WorksheetField)
                   }}
-                  className="h-3.5 w-3.5 rounded border-primary-300 text-brand focus:ring-brand"
+                  className="h-4 w-4 rounded border-primary-300 text-brand focus:ring-brand"
                 />
                 {f.label}
               </label>
