@@ -3,6 +3,25 @@ import { LogoIcon } from '@/components/ui/logo'
 import { LandingNav } from '@/components/marketing/landing-nav'
 import { WorksheetPreview } from '@/components/marketing/worksheet-preview'
 import { PricingTable } from '@/components/marketing/pricing-table'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Formulate — Professional CBT Worksheets for Therapists',
+  description:
+    'Interactive, evidence-based CBT worksheets that clients complete digitally. Assign homework via a link, track progress, and review responses before the next session.',
+  openGraph: {
+    title: 'Formulate — Professional CBT Worksheets for Therapists',
+    description:
+      'Interactive CBT worksheets your clients complete digitally — structured, evidence-based, and ready to review.',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Formulate — Professional CBT Worksheets for Therapists',
+    description:
+      'Interactive CBT worksheets your clients complete digitally — structured, evidence-based, and ready to review.',
+  },
+}
 
 export default function Home() {
   return (

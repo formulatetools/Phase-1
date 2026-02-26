@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { deleteCustomWorksheet } from '@/app/(dashboard)/my-tools/actions'
+import { useToast } from '@/components/providers/toast-provider'
 
 interface Props {
   worksheetId: string
@@ -13,6 +14,7 @@ export function MyToolPreviewActions({ worksheetId }: Props) {
   const router = useRouter()
   const [showConfirm, setShowConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const { toast } = useToast()
 
   const handleDelete = async () => {
     setDeleting(true)
@@ -20,7 +22,7 @@ export function MyToolPreviewActions({ worksheetId }: Props) {
     if (result.success) {
       router.push('/my-tools')
     } else {
-      alert(result.error || 'Failed to delete')
+      toast({ type: 'error', message: result.error || 'Failed to delete' })
       setDeleting(false)
       setShowConfirm(false)
     }

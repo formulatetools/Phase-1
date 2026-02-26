@@ -31,7 +31,6 @@ const tiers = [
       'Unlimited worksheet access',
       'Up to 5 clients with homework links',
       'Clean PDF export (no branding)',
-      'Bookmark & favourite tools',
     ],
     cta: 'Get Started',
     checkoutTier: 'starter' as const,

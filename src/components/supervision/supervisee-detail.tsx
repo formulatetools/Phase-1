@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useToast } from '@/components/providers/toast-provider'
 import type {
   TherapeuticRelationship,
   WorksheetAssignment,
@@ -73,6 +74,7 @@ export function SuperviseeDetail({
   const [viewingResponse, setViewingResponse] = useState<string | null>(null)
   const [showGdprConfirm, setShowGdprConfirm] = useState(false)
   const [gdprLoading, setGdprLoading] = useState(false)
+  const { toast } = useToast()
   const [shareModal, setShareModal] = useState<{
     url: string
     title: string
@@ -147,7 +149,7 @@ export function SuperviseeDetail({
     if (result.success) {
       window.location.href = '/supervision'
     } else {
-      alert(result.error || 'Failed to delete supervisee data')
+      toast({ type: 'error', message: result.error || 'Failed to delete supervisee data' })
       setGdprLoading(false)
       setShowGdprConfirm(false)
     }

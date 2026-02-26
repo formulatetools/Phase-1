@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function trackAccess(
   worksheetId: string,
@@ -26,7 +27,7 @@ export async function trackAccess(
   const countsAsDownload =
     isFreeTier && (accessType === 'interact' || accessType === 'export')
 
-  // Log the access
+  // Log the access (user client — RLS-aware)
   await supabase.from('worksheet_access_log').insert({
     user_id: user.id,
     worksheet_id: worksheetId,
@@ -34,12 +35,15 @@ export async function trackAccess(
     counted_as_download: countsAsDownload,
   })
 
-  // Update download counter for free tier users
+  // Update download counter for free tier users (admin client — bypasses
+  // the protect_profile_fields trigger that blocks user-client writes
+  // to monthly_download_count)
   if (countsAsDownload) {
+    const admin = createAdminClient()
     const resetAt = profile.download_count_reset_at as string | null
     if (resetAt && new Date(resetAt) <= new Date()) {
       // Reset counter and set new reset date
-      await supabase
+      await admin
         .from('profiles')
         .update({
           monthly_download_count: 1,
@@ -51,7 +55,7 @@ export async function trackAccess(
     } else {
       // Increment counter
       const currentCount = (profile.monthly_download_count as number) ?? 0
-      await supabase
+      await admin
         .from('profiles')
         .update({ monthly_download_count: currentCount + 1 })
         .eq('id', user.id)

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { deleteCustomWorksheet } from '@/app/(dashboard)/my-tools/actions'
+import { useToast } from '@/components/providers/toast-provider'
 
 interface CustomWorksheetItem {
   id: string
@@ -22,12 +23,13 @@ interface MyToolsListProps {
 export function MyToolsList({ worksheets }: MyToolsListProps) {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const handleDelete = async (id: string) => {
     setDeleting(id)
     const result = await deleteCustomWorksheet(id)
     if (result.error) {
-      alert(result.error)
+      toast({ type: 'error', message: result.error })
     }
     setDeleting(null)
     setConfirmId(null)

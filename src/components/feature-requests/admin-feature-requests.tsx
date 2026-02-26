@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { updateFeatureRequestStatus } from '@/app/(dashboard)/feature-requests/actions'
+import { useToast } from '@/components/providers/toast-provider'
 import type { FeatureRequest, FeatureRequestCategory, FeatureRequestStatus } from '@/types/database'
 
 const CATEGORY_LABELS: Record<FeatureRequestCategory, string> = {
@@ -45,6 +46,7 @@ export function AdminFeatureRequests({ requests, voteCounts, userMap }: Props) {
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>('all')
+  const { toast } = useToast()
 
   // Sort requests
   const sorted = [...requests].sort((a, b) => {
@@ -95,7 +97,7 @@ export function AdminFeatureRequests({ requests, voteCounts, userMap }: Props) {
     const result = await updateFeatureRequestStatus(selectedId, editStatus, editNotes)
 
     if (result.error) {
-      alert(result.error)
+      toast({ type: 'error', message: result.error })
     } else {
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 3000)

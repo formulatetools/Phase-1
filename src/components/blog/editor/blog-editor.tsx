@@ -10,6 +10,7 @@ import Underline from '@tiptap/extension-underline'
 import { WorksheetEmbedExtension } from './worksheet-embed-extension'
 import { EditorToolbar } from './editor-toolbar'
 import { WorksheetPickerModal } from './worksheet-picker-modal'
+import { useToast } from '@/components/providers/toast-provider'
 
 interface BlogEditorProps {
   content: Record<string, unknown>
@@ -17,6 +18,7 @@ interface BlogEditorProps {
 }
 
 export function BlogEditor({ content, onChange }: BlogEditorProps) {
+  const { toast } = useToast()
   const [showWorksheetPicker, setShowWorksheetPicker] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -62,11 +64,11 @@ export function BlogEditor({ content, onChange }: BlogEditorProps) {
 
       // Validate
       if (file.size > 5 * 1024 * 1024) {
-        alert('Image must be under 5MB')
+        toast({ type: 'error', message: 'Image must be under 5MB' })
         return
       }
       if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-        alert('Only PNG, JPEG, and WebP images are supported')
+        toast({ type: 'error', message: 'Only PNG, JPEG, and WebP images are supported' })
         return
       }
 
@@ -79,13 +81,13 @@ export function BlogEditor({ content, onChange }: BlogEditorProps) {
         const data = await res.json()
 
         if (!res.ok) {
-          alert(data.error || 'Upload failed')
+          toast({ type: 'error', message: data.error || 'Upload failed' })
           return
         }
 
         editor.chain().focus().setImage({ src: data.url }).run()
       } catch {
-        alert('Upload failed')
+        toast({ type: 'error', message: 'Upload failed' })
       } finally {
         setUploading(false)
         // Reset input so same file can be re-selected
