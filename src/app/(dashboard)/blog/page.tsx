@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { BLOG_CATEGORY_LABELS } from '@/lib/utils/blog'
 import type { BlogPost } from '@/types/database'
 import type { Metadata } from 'next'
@@ -47,10 +48,11 @@ export default async function BlogIndexPage({
     )
   }
 
-  // Fetch author names
+  // Fetch author names (use admin client to bypass profiles RLS for anonymous visitors)
   const authorIds = [...new Set(blogPosts.map((p) => p.author_id))]
+  const admin = createAdminClient()
   const { data: authors } = authorIds.length > 0
-    ? await supabase
+    ? await admin
         .from('profiles')
         .select('id, full_name, contributor_profile')
         .in('id', authorIds)

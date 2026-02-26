@@ -6,7 +6,7 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 const publicRoutes = ['/', '/login', '/signup', '/pricing', '/privacy', '/terms', '/auth/callback']
 
 // Routes that are browse-only for unauthenticated users (worksheet library + homework links)
-const browseRoutes = ['/worksheets', '/hw']
+const browseRoutes = ['/worksheets', '/hw', '/blog']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

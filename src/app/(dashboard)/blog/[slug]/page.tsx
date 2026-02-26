@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { BlogPostContent } from '@/components/blog/blog-post-content'
 import { BLOG_CATEGORY_LABELS } from '@/lib/utils/blog'
 import type { BlogPost } from '@/types/database'
@@ -66,8 +67,9 @@ export default async function BlogPostPage({
 
   const p = post as BlogPost
 
-  // Fetch author info
-  const { data: author } = await supabase
+  // Fetch author info (use admin client to bypass profiles RLS for anonymous visitors)
+  const admin = createAdminClient()
+  const { data: author } = await admin
     .from('profiles')
     .select('full_name, contributor_profile')
     .eq('id', p.author_id)
