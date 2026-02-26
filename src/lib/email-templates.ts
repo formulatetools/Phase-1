@@ -1,12 +1,40 @@
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
-const LOGO_URL = `${APP_URL}/logo.png`
+const LOGO_URL = `${APP_URL}/logo-email.png`
 
-// Shared email wrapper — branded header with logo, clean body, muted footer
-function wrap(body: string) {
+// ─── Shared helpers ─────────────────────────────────────────────
+
+interface WrapOptions {
+  preheader?: string
+  signature?: boolean          // default true — "— The Formulate Team"
+  footerContext?: string       // default: "You have a Formulate account"
+  showPreferencesLink?: boolean // default false — "Manage email preferences" link
+}
+
+function wrap(body: string, options: WrapOptions = {}) {
+  const {
+    preheader,
+    signature = true,
+    footerContext = `You received this email because you have a <a href="${APP_URL}" style="color:#999;">Formulate</a> account.`,
+    showPreferencesLink = false,
+  } = options
+
+  const preheaderHtml = preheader
+    ? `<div style="display:none;font-size:1px;color:#f5f5f3;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${preheader}${'&zwnj;&nbsp;'.repeat(30)}</div>`
+    : ''
+
+  const signatureHtml = signature
+    ? '<p style="margin:24px 0 0;font-size:14px;color:#444;">&mdash; The Formulate Team</p>'
+    : ''
+
+  const prefsHtml = showPreferencesLink
+    ? `<p style="margin:8px 0 0;font-size:12px;color:#999;"><a href="${APP_URL}/settings" style="color:#999;">Manage email preferences</a></p>`
+    : ''
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:0;background:#f5f5f3;font-family:'DM Sans',Arial,Helvetica,sans-serif;">
+  ${preheaderHtml}
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f3;padding:32px 16px;">
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
@@ -17,16 +45,18 @@ function wrap(body: string) {
         <!-- Body -->
         <tr><td style="background:#ffffff;padding:32px;border-radius:12px;">
           ${body}
+          ${signatureHtml}
         </td></tr>
         <!-- Footer -->
         <tr><td style="padding:24px 32px;text-align:center;">
+          <div style="width:24px;height:2px;background:#e4a930;border-radius:2px;margin:0 auto 12px;"></div>
           <p style="margin:0 0 4px;font-size:12px;color:#999;">
-            Formulate — Professional CBT tools for clinicians
+            Formulate &mdash; Professional CBT tools for clinicians
           </p>
           <p style="margin:0;font-size:12px;color:#999;">
-            You received this email because you created an account at
-            <a href="${APP_URL}" style="color:#999;">formulatetools.co.uk</a>.
+            ${footerContext}
           </p>
+          ${prefsHtml}
         </td></tr>
       </table>
     </td></tr>
@@ -45,7 +75,7 @@ function button(text: string, href: string) {
 
 function buttonSecondary(text: string, href: string) {
   return `<table cellpadding="0" cellspacing="0" style="margin:8px 0;">
-    <tr><td style="border:1.5px solid #ddd;border-radius:6px;padding:10px 24px;">
+    <tr><td style="border:1.5px solid #e8e8e6;border-radius:6px;padding:10px 24px;">
       <a href="${href}" style="color:#2d2d2d;font-size:14px;font-weight:500;text-decoration:none;display:inline-block;">${text}</a>
     </td></tr>
   </table>`
@@ -72,22 +102,23 @@ export function welcomeEmail(name: string | null): { subject: string; html: stri
       <ul style="margin:0 0 16px;padding-left:20px;font-size:15px;color:#444;line-height:1.8;">
         <li>5 interactive worksheet uses per month</li>
         <li>PDF export on every tool</li>
-        <li>1 client for homework links — assign a worksheet, share a link, review their response</li>
+        <li>Up to 3 clients for homework links &mdash; assign a worksheet, share a link, review their response</li>
       </ul>
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
         The quickest way to see what Formulate can do: pick a worksheet, assign it to a client, and share the link.
       </p>
-      ${button('Assign Your First Homework →', `${APP_URL}/dashboard`)}
+      ${button('Assign Your First Homework &rarr;', `${APP_URL}/dashboard`)}
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
-        Want to explore first? Browse the full library — every tool is free to preview.
+        Want to explore first? Browse the full library &mdash; every tool is free to preview.
       </p>
-      ${buttonSecondary('Browse Worksheets →', `${APP_URL}/worksheets`)}
+      ${buttonSecondary('Browse Worksheets &rarr;', `${APP_URL}/worksheets`)}
       <p style="margin:16px 0 0;font-size:13px;color:#888;line-height:1.5;">
         Need more than 5 tools a month?
-        <a href="${APP_URL}/pricing" style="color:#c48d1e;text-decoration:underline;">Upgrade anytime</a> from £4.99/month.
+        <a href="${APP_URL}/pricing" style="color:#c48d1e;text-decoration:underline;">Upgrade anytime</a> from &pound;4.99/month.
       </p>
-      <p style="margin:24px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
-    `),
+    `, {
+      preheader: 'Your free toolkit is ready — 5 worksheet uses per month',
+    }),
   }
 }
 
@@ -104,22 +135,26 @@ export function engagementEmail(name: string | null): { subject: string; html: s
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        You signed up for Formulate a few days ago but haven't tried a worksheet yet.
-        We've built a library of professional CBT tools that are ready to use — here are a few to get started:
+        You signed up for Formulate a few days ago but haven&rsquo;t tried a worksheet yet.
+        We&rsquo;ve built a library of professional CBT tools that are ready to use &mdash; here are a few to get started:
       </p>
       <ul style="margin:0 0 12px;padding-left:20px;font-size:15px;color:#444;line-height:1.8;">
-        <li><strong>Thought Record</strong> — the classic CBT tool for examining automatic thoughts</li>
-        <li><strong>Behavioural Activation Planner</strong> — schedule meaningful activities step by step</li>
-        <li><strong>Formulation Template</strong> — build a shared understanding with your client</li>
+        <li><strong>Thought Record</strong> &mdash; the classic CBT tool for examining automatic thoughts</li>
+        <li><strong>Behavioural Activation Planner</strong> &mdash; schedule meaningful activities step by step</li>
+        <li><strong>Formulation Template</strong> &mdash; build a shared understanding with your client</li>
       </ul>
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
         Each worksheet can be completed on-screen and exported as a clean PDF.
       </p>
       ${button('Try Your First Worksheet', `${APP_URL}/worksheets`)}
       <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
-        Your free plan includes 5 worksheet uses per month — no credit card required.
+        Your free plan includes 5 worksheet uses per month &mdash; no credit card required.
       </p>
-    `),
+    `, {
+      preheader: 'Professional CBT worksheets ready to use',
+      signature: false,
+      showPreferencesLink: true,
+    }),
   }
 }
 
@@ -144,10 +179,11 @@ export function homeworkCompletedEmail(
         <strong>${clientLabel}</strong> has completed <strong>${worksheetTitle}</strong>. You can review their responses now.
       </p>
       ${button('Review responses', clientDetailUrl)}
-      <p style="margin:24px 0 0;font-size:13px;color:#888;">
-        You're receiving this because a client completed a worksheet you assigned on Formulate.
-      </p>
-    `),
+    `, {
+      preheader: `${clientLabel} completed ${worksheetTitle}`,
+      signature: false,
+      footerContext: 'You received this because your client completed a worksheet you assigned on Formulate.',
+    }),
   }
 }
 
@@ -178,13 +214,16 @@ export function subscriptionCancelledEmail(
         <li>Manage up to 3 clients</li>
       </ul>
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
-        If you'd like to re-subscribe at any time:
+        If you&rsquo;d like to re-subscribe at any time:
       </p>
       ${button('View Plans', `${APP_URL}/pricing`)}
       <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
         If this was a mistake or you need help, just reply to this email.
       </p>
-    `),
+    `, {
+      preheader: 'Your account has been moved to the Free plan',
+      signature: false,
+    }),
   }
 }
 
@@ -213,7 +252,10 @@ export function paymentFailedEmail(
       <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
         Stripe will retry the payment automatically. If you believe this is an error, just reply to this email.
       </p>
-    `),
+    `, {
+      preheader: 'Update your payment method to avoid interruption',
+      signature: false,
+    }),
   }
 }
 
@@ -233,17 +275,21 @@ export function abandonedCheckoutEmail(
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        You were checking out the <strong>${tierLabel}</strong> plan on Formulate but didn't finish.
-        No worries — your toolkit is still ready when you are.
+        You were checking out the <strong>${tierLabel}</strong> plan on Formulate but didn&rsquo;t finish.
+        No worries &mdash; your toolkit is still ready when you are.
       </p>
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
         Pick up where you left off and unlock unlimited access to professional CBT worksheets:
       </p>
       ${button('Complete Your Upgrade', `${APP_URL}/pricing`)}
       <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
-        If you ran into any issues during checkout, just reply to this email and we'll help.
+        If you ran into any issues during checkout, just reply to this email and we&rsquo;ll help.
       </p>
-    `),
+    `, {
+      preheader: 'Your upgrade is still waiting',
+      signature: false,
+      showPreferencesLink: true,
+    }),
   }
 }
 
@@ -280,7 +326,10 @@ export function promoExpiryEmail(
       <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
         If you have any questions, just reply to this email.
       </p>
-    `),
+    `, {
+      preheader: `Your ${tierLabel} promo access ends in 3 days`,
+      signature: false,
+    }),
   }
 }
 
@@ -293,6 +342,7 @@ export function withdrawalNotificationEmail(
   deletedCount?: number
 ): { subject: string; html: string } {
   const greeting = therapistName ? `Hi ${therapistName},` : 'Hi there,'
+  const footerContext = 'You received this because your client exercised their data rights on Formulate.'
 
   if (worksheetTitle) {
     // Single response withdrawal
@@ -307,13 +357,14 @@ export function withdrawalNotificationEmail(
           <strong>${clientLabel}</strong> has withdrawn their response to <strong>${worksheetTitle}</strong>. The response data has been permanently deleted.
         </p>
         <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-          The assignment record remains in your dashboard but the client's response content is no longer available. This action cannot be undone — it is the client's right under GDPR Article 17.
+          The assignment record remains in your dashboard but the client&rsquo;s response content is no longer available. This action cannot be undone &mdash; it is the client&rsquo;s right under GDPR Article 17.
         </p>
         ${button('View Client Dashboard', `${APP_URL}/clients`)}
-        <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
-          This is an automated notification. The client exercised their data rights.
-        </p>
-      `),
+      `, {
+        preheader: `${clientLabel} withdrew their response to ${worksheetTitle}`,
+        signature: false,
+        footerContext,
+      }),
     }
   }
 
@@ -332,10 +383,11 @@ export function withdrawalNotificationEmail(
         All existing homework links for this client have been expired. Future assignments will require the client to re-consent. The client relationship record itself remains intact for your clinical records.
       </p>
       ${button('View Client Dashboard', `${APP_URL}/clients`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
-        This is an automated notification. The client exercised their data rights under GDPR.
-      </p>
-    `),
+    `, {
+      preheader: `${clientLabel} has withdrawn consent and deleted all their data`,
+      signature: false,
+      footerContext,
+    }),
   }
 }
 
@@ -366,33 +418,34 @@ export function roleGrantedEmail(
     .map((role) => {
       const displayName = ROLE_DISPLAY_NAMES[role] || role
       const description = ROLE_DESCRIPTIONS[role] || ''
-      return `<li><strong>${displayName}</strong> — ${description}</li>`
+      return `<li><strong>${displayName}</strong> &mdash; ${description}</li>`
     })
     .join('')
 
   return {
     subject: "You've been invited to contribute to Formulate",
     html: wrap(`
-      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">You're now a Formulate contributor</h2>
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">You&rsquo;re now a Formulate contributor</h2>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        You've been given contributor access on Formulate. Here's what you can do:
+        You&rsquo;ve been given contributor access on Formulate. Here&rsquo;s what you can do:
       </p>
       <ul style="margin:0 0 16px;padding-left:20px;font-size:15px;color:#444;line-height:1.8;">
         ${roleList}
       </ul>
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
         As a contributor, you also have free Practice-tier access for as long as your role is active.
-        Head to your dashboard to get started — and set up your contributor profile in Settings so your name appears on published worksheets.
+        Head to your dashboard to get started &mdash; and set up your contributor profile in Settings so your name appears on published worksheets.
       </p>
       ${button('Open Your Dashboard', `${APP_URL}/dashboard`)}
       <p style="margin:0;font-size:14px;color:#444;">
         Thank you for helping build better tools for therapists.
       </p>
-      <p style="margin:16px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
-    `),
+    `, {
+      preheader: 'You now have contributor access on Formulate',
+    }),
   }
 }
 
@@ -419,8 +472,9 @@ export function reviewAssignedEmail(
         Reviews typically take 5&ndash;10 minutes. You&rsquo;ll evaluate the clinical accuracy, completeness, and usability of the worksheet.
       </p>
       ${button('Review Worksheet', reviewUrl)}
-      <p style="margin:16px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
-    `),
+    `, {
+      preheader: 'A worksheet is waiting for your clinical review',
+    }),
   }
 }
 
@@ -447,8 +501,9 @@ export function contentApprovedEmail(
         Thank you for helping therapists understand when and how to use this tool.
       </p>
       ${button('View Worksheet', worksheetUrl)}
-      <p style="margin:16px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
-    `),
+    `, {
+      preheader: 'Your clinical context is live on the worksheet page',
+    }),
   }
 }
 
@@ -479,8 +534,9 @@ export function contentFeedbackEmail(
         Please revise and resubmit when ready. You can find the worksheet in your dashboard.
       </p>
       ${button('Open Dashboard', `${APP_URL}/dashboard`)}
-      <p style="margin:16px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
-    `),
+    `, {
+      preheader: 'Please review the feedback and revise',
+    }),
   }
 }
 
@@ -514,7 +570,11 @@ export function freeResetEmail(
         Need unlimited access?
         <a href="${APP_URL}/pricing" style="color:#c48d1e;text-decoration:underline;">Upgrade from &pound;4.99/month</a>.
       </p>
-    `),
+    `, {
+      preheader: 'Your 5 free worksheet uses are ready',
+      signature: false,
+      showPreferencesLink: true,
+    }),
   }
 }
 
@@ -534,6 +594,13 @@ export function submissionStatusEmail(
     changes_requested: 'Feedback on your worksheet submission',
     published: 'Your worksheet is now live in the Formulate library',
     rejected: 'Update on your worksheet submission',
+  }
+
+  const preheaders: Record<string, string> = {
+    approved: 'Great news about your worksheet submission',
+    changes_requested: 'Please review the feedback on your submission',
+    published: 'Your worksheet is live in the Formulate library',
+    rejected: 'An update on your worksheet submission',
   }
 
   const bodies: Record<string, string> = {
@@ -593,14 +660,15 @@ export function submissionStatusEmail(
       </p>
       ${bodies[status]}
       ${status !== 'published' ? button('Open Your Dashboard', `${APP_URL}/dashboard`) : ''}
-      <p style="margin:16px 0 0;font-size:14px;color:#444;">— The Formulate Team</p>
-    `),
+    `, {
+      preheader: preheaders[status],
+    }),
   }
 }
 
 // ── Blog Digest Email ────────────────────────────────────────────────
 
-const CATEGORY_LABELS: Record<string, string> = {
+const BLOG_CATEGORY_LABELS: Record<string, string> = {
   clinical: 'Clinical',
   'worksheet-guide': 'Worksheet Guide',
   practice: 'Practice Tips',
@@ -624,7 +692,7 @@ export function blogDigestEmail(
       (p) => `
     <tr><td style="padding:12px 0;border-bottom:1px solid #f1f0ee;">
       <span style="display:inline-block;background:#fdf6e3;color:#c48d1e;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;text-transform:uppercase;margin-bottom:4px;">
-        ${CATEGORY_LABELS[p.category] || p.category}
+        ${BLOG_CATEGORY_LABELS[p.category] || p.category}
       </span>
       <p style="margin:4px 0 0;font-size:16px;font-weight:600;color:#2d2d2d;">
         <a href="${APP_URL}/blog/${p.slug}" style="color:#2d2d2d;text-decoration:none;">${p.title}</a>
@@ -645,10 +713,99 @@ export function blogDigestEmail(
       </p>
       <table width="100%" cellpadding="0" cellspacing="0">${postList}</table>
       ${button('Read on the blog', `${APP_URL}/blog`)}
-      <p style="margin:16px 0 0;font-size:12px;color:#999;">
-        You&rsquo;re receiving this because you opted in to the blog digest.
-        <a href="${APP_URL}/settings" style="color:#999;">Manage preferences</a>
+    `, {
+      preheader: `${posts.length} new article${posts.length !== 1 ? 's' : ''} this week on the Formulate blog`,
+      signature: false,
+      showPreferencesLink: true,
+      footerContext: `You&rsquo;re receiving this because you opted in to the blog digest. <a href="${APP_URL}/settings" style="color:#999;">Unsubscribe</a>`,
+    }),
+  }
+}
+
+// ── Blog Post Status Email ───────────────────────────────────────────
+
+export function blogPostStatusEmail(
+  name: string | null,
+  postTitle: string,
+  status: 'approved' | 'changes_requested' | 'published' | 'rejected',
+  feedback?: string,
+  postUrl?: string
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+
+  const subjects: Record<string, string> = {
+    approved: 'Your blog post has been approved',
+    changes_requested: 'Feedback on your blog post',
+    published: 'Your blog post is now live',
+    rejected: 'Update on your blog post',
+  }
+
+  const preheaders: Record<string, string> = {
+    approved: 'Great news about your blog post',
+    changes_requested: 'Please review the feedback on your blog post',
+    published: 'Your blog post is live on the Formulate blog',
+    rejected: 'An update on your blog post submission',
+  }
+
+  const bodies: Record<string, string> = {
+    approved: `
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Great news! Your blog post <strong>&ldquo;${postTitle}&rdquo;</strong> has been approved. It will be published to the Formulate blog shortly.
       </p>
-    `),
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        We&rsquo;ll send you another email once it&rsquo;s live with a link to the published article.
+      </p>
+    `,
+    changes_requested: `
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        We&rsquo;ve reviewed your blog post <strong>&ldquo;${postTitle}&rdquo;</strong> and have some feedback before it can be published.
+      </p>
+      ${feedback ? `
+        <div style="margin:0 0 16px;padding:12px 16px;background:#fff7ed;border-left:3px solid #f97316;border-radius:4px;">
+          <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#c2410c;text-transform:uppercase;">Feedback</p>
+          <p style="margin:0;font-size:14px;color:#9a3412;line-height:1.5;">${feedback}</p>
+        </div>
+      ` : ''}
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Please make the requested changes and resubmit when ready. You can find this post in your blog posts list.
+      </p>
+    `,
+    published: `
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Your blog post <strong>&ldquo;${postTitle}&rdquo;</strong> is now live on the Formulate blog! Therapists can now read and share your article.
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Your name and professional title are displayed as the author on the post.
+      </p>
+      ${postUrl ? button('View Your Published Post', postUrl) : ''}
+    `,
+    rejected: `
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        Thank you for submitting <strong>&ldquo;${postTitle}&rdquo;</strong> to the Formulate blog. After careful review, we&rsquo;re unable to publish it at this time.
+      </p>
+      ${feedback ? `
+        <div style="margin:0 0 16px;padding:12px 16px;background:#fef2f2;border-left:3px solid #ef4444;border-radius:4px;">
+          <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#991b1b;text-transform:uppercase;">Feedback</p>
+          <p style="margin:0;font-size:14px;color:#991b1b;line-height:1.5;">${feedback}</p>
+        </div>
+      ` : ''}
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        The post remains available in your drafts. You&rsquo;re welcome to revise and resubmit it in the future.
+      </p>
+    `,
+  }
+
+  return {
+    subject: subjects[status],
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">${subjects[status]}</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
+        ${greeting}
+      </p>
+      ${bodies[status]}
+      ${status !== 'published' ? button('View Your Blog Posts', `${APP_URL}/blog/write`) : ''}
+    `, {
+      preheader: preheaders[status],
+    }),
   }
 }

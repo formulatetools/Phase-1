@@ -5,6 +5,7 @@ import { ProfileForm } from '@/components/ui/profile-form'
 import { PromoCodeInput } from '@/components/ui/promo-code-input'
 import { SubscriptionDetails } from '@/components/ui/subscription-details'
 import { ContributorProfileForm } from '@/components/ui/contributor-profile-form'
+import { BlogDigestToggle } from '@/components/ui/blog-digest-toggle'
 import type { ContributorRoles, ContributorProfile } from '@/types/database'
 
 export const metadata = {
@@ -73,6 +74,12 @@ export default async function SettingsPage() {
               </a>
             </div>
           </div>
+        </div>
+
+        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+          <h2 className="mb-1 text-base font-semibold text-primary-900">Email Preferences</h2>
+          <p className="mb-5 text-sm text-primary-400">Control which emails you receive from Formulate</p>
+          <BlogDigestToggle initialValue={profile.blog_digest_opt_in ?? false} />
         </div>
 
         {(() => {

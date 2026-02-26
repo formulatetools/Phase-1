@@ -5,7 +5,11 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { sendEmail } from '@/lib/email'
+import { blogPostStatusEmail } from '@/lib/email-templates'
 import type { BlogPostStatus } from '@/types/database'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
 
 type ActionResult = { success: boolean; error?: string }
 
@@ -25,14 +29,14 @@ export async function updateBlogPostStatus(
 
   const { data: existing } = await admin
     .from('blog_posts')
-    .select('id, title, author_id, status')
+    .select('id, title, slug, author_id, status')
     .eq('id', postId)
     .is('deleted_at', null)
     .single()
 
   if (!existing) return { success: false, error: 'Post not found' }
 
-  const post = existing as { id: string; title: string; author_id: string; status: string }
+  const post = existing as { id: string; title: string; slug: string; author_id: string; status: string }
 
   const updateData: Record<string, unknown> = {
     status,
@@ -71,6 +75,28 @@ export async function updateBlogPostStatus(
     },
   })
 
+  // Send email notification to the blog post author
+  const emailStatuses: BlogPostStatus[] = ['approved', 'changes_requested', 'published', 'rejected']
+  if (emailStatuses.includes(status)) {
+    const { data: author } = await admin
+      .from('profiles')
+      .select('email, full_name')
+      .eq('id', post.author_id)
+      .single()
+
+    if (author) {
+      const a = author as { email: string; full_name: string | null }
+      const postUrl = status === 'published' ? `${APP_URL}/blog/${post.slug}` : undefined
+      const emailStatus = status as 'approved' | 'changes_requested' | 'published' | 'rejected'
+      const email = blogPostStatusEmail(a.full_name, post.title, emailStatus, feedback, postUrl)
+      try {
+        await sendEmail({ to: a.email, subject: email.subject, html: email.html, emailType: `blog_${status}` })
+      } catch (emailError) {
+        console.error('Failed to send blog status email:', emailError)
+      }
+    }
+  }
+
   revalidatePath('/admin/blog')
   revalidatePath(`/admin/blog/${postId}`)
   revalidatePath('/blog')
@@ -79,14 +105,7 @@ export async function updateBlogPostStatus(
 
   // Revalidate the public post page if publishing
   if (status === 'published') {
-    const { data: updated } = await admin
-      .from('blog_posts')
-      .select('slug')
-      .eq('id', postId)
-      .single()
-    if (updated) {
-      revalidatePath(`/blog/${(updated as { slug: string }).slug}`)
-    }
+    revalidatePath(`/blog/${post.slug}`)
   }
 
   return { success: true }
