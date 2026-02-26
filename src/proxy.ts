@@ -6,9 +6,9 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 const publicRoutes = ['/', '/login', '/signup', '/pricing', '/privacy', '/terms', '/auth/callback']
 
 // Routes that are browse-only for unauthenticated users (worksheet library + homework links)
-const browseRoutes = ['/worksheets', '/hw', '/blog']
+const browseRoutes = ['/worksheets', '/hw', '/blog', '/client']
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // ── Rate limiting for API routes ─────────────────────────────────
@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // ── Auth middleware for page routes ──────────────────────────────
+  // ── Auth for page routes ────────────────────────────────────────
   let supabaseResponse = NextResponse.next({ request })
 
   // Skip auth checks if Supabase isn't configured yet
