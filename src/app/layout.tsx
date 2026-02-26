@@ -5,6 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { CookieBanner } from "@/components/ui/cookie-banner";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
+import { FloatingThemeToggle } from "@/components/ui/floating-theme-toggle";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -93,6 +94,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ToastProvider>
             {children}
+            <FloatingThemeToggle />
           </ToastProvider>
         </ThemeProvider>
         <Analytics />

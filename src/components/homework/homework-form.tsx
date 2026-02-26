@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
@@ -52,6 +52,7 @@ export function HomeworkForm({
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected')
   const [pendingSubmit, setPendingSubmit] = useState(false)
 
+  const [displayValues, setDisplayValues] = useState<Record<string, FieldValue>>({})
   const valuesRef = useRef<Record<string, FieldValue>>({})
   const hasChangesRef = useRef(false)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -194,6 +195,7 @@ export function HomeworkForm({
     (newValues: Record<string, FieldValue>) => {
       valuesRef.current = newValues
       hasChangesRef.current = true
+      setDisplayValues(newValues)
 
       if (isPreview) return
 
@@ -296,6 +298,37 @@ export function HomeworkForm({
     }
   }
 
+  // ── Progress computation ───────────────────────────────────────────────
+  const progress = useMemo(() => {
+    const fields = schema.sections.flatMap(s => s.fields || [])
+    // Count fillable fields (exclude computed, formulation, hierarchy types)
+    const fillable = fields.filter(f =>
+      f.type !== 'computed' && f.type !== 'formulation' && f.type !== 'hierarchy'
+      && f.type !== 'decision_tree' && f.type !== 'safety_plan'
+    )
+    if (fillable.length === 0) return 100
+
+    const vals = Object.keys(displayValues).length > 0
+      ? displayValues
+      : (existingResponse as Record<string, FieldValue> | undefined) || {}
+
+    let filled = 0
+    for (const field of fillable) {
+      const v = vals[field.id]
+      if (v !== undefined && v !== null && v !== '') {
+        if (Array.isArray(v)) {
+          if (v.length > 0) filled++
+        } else if (typeof v === 'object') {
+          // Table rows or nested values
+          filled++
+        } else {
+          filled++
+        }
+      }
+    }
+    return Math.round((filled / fillable.length) * 100)
+  }, [schema.sections, displayValues, existingResponse])
+
   // ── Submitted confirmation ──────────────────────────────────────────────
   if (submitted && !existingResponse) {
     return (
@@ -326,8 +359,18 @@ export function HomeworkForm({
 
   return (
     <div className="space-y-6">
+      {/* Progress bar — thin amber bar at top */}
+      {!readOnly && !submitted && (
+        <div className="rounded-full bg-primary-100 h-1.5 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-brand transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
+
       {/* Worksheet form */}
-      <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+      <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm">
         <WorksheetRenderer
           schema={schema}
           readOnly={readOnly}
@@ -343,32 +386,40 @@ export function HomeworkForm({
         </div>
       )}
 
-      {/* Action bar */}
+      {/* Action bar — sticky on mobile */}
       {!readOnly && !isPreview && (
-        <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm space-y-3">
-          {/* Connection status indicator */}
-          <ConnectionIndicator
-            status={connectionStatus}
-            lastSaved={lastSaved}
-            pendingSubmit={pendingSubmit}
-            existingResponse={!!existingResponse}
-          />
+        <div className="sticky bottom-0 z-10 -mx-4 px-4 pb-[env(safe-area-inset-bottom,0px)] sm:static sm:mx-0 sm:px-0 sm:pb-0">
+          <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-lg sm:shadow-sm space-y-3">
+            {/* Connection status indicator */}
+            <ConnectionIndicator
+              status={connectionStatus}
+              lastSaved={lastSaved}
+              pendingSubmit={pendingSubmit}
+              existingResponse={!!existingResponse}
+            />
 
-          {/* Action buttons */}
-          <div className="flex items-center justify-between">
-            <Button
-              variant="secondary"
-              onClick={handleManualSave}
-              disabled={connectionStatus === 'saving' || connectionStatus === 'offline'}
-            >
-              Save draft
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={submitting}
-            >
-              {submitting ? 'Submitting…' : pendingSubmit ? 'Submit queued — waiting for connection' : 'Submit'}
-            </Button>
+            {/* Action buttons */}
+            <div className="flex items-center justify-between gap-3">
+              <Button
+                variant="secondary"
+                onClick={handleManualSave}
+                disabled={connectionStatus === 'saving' || connectionStatus === 'offline'}
+              >
+                Save draft
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={submitting}
+                size="lg"
+              >
+                {submitting ? 'Submitting…' : pendingSubmit ? 'Submit queued' : 'Submit'}
+              </Button>
+            </div>
+
+            {/* Reassurance text */}
+            <p className="text-center text-[11px] text-primary-400">
+              Your responses are confidential and shared only with your therapist.
+            </p>
           </div>
         </div>
       )}

@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Logo } from '@/components/ui/logo'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { ThemeToggle, ThemeToggleCompact } from '@/components/ui/theme-toggle'
 import { useShortcutsModal } from '@/components/providers/keyboard-shortcuts-provider'
 import { buttonVariants } from '@/components/ui/button'
 
@@ -101,20 +101,19 @@ const navItems = [
   },
 ]
 
+// Bottom tab bar: 4 primary routes + "More" button
+const TAB_SHORT_LABELS: Record<string, string> = {
+  '/dashboard': 'Home',
+  '/clients': 'Clients',
+  '/worksheets': 'Library',
+  '/my-tools': 'Tools',
+}
+const TAB_HREFS = new Set(Object.keys(TAB_SHORT_LABELS))
+
 export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps) {
   const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
   const { openShortcutsModal } = useShortcutsModal()
-
-  // Swipe-to-close gesture for mobile sidebar
-  const touchStartX = useRef(0)
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-  }, [])
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    const diff = touchStartX.current - e.changedTouches[0].clientX
-    if (diff > 60) setMobileOpen(false) // swipe left to close
-  }, [])
 
   // Build nav items — conditionally add Admin for admin users
   const allNavItems = role === 'admin'
@@ -131,6 +130,33 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
         },
       ]
     : navItems
+
+  // Split items: bottom tabs vs "More" sheet
+  const tabItems = allNavItems.filter(i => TAB_HREFS.has(i.href))
+  const moreNavItems = allNavItems.filter(i => !TAB_HREFS.has(i.href))
+
+  const isActive = (href: string) => {
+    if (href === '/dashboard') return pathname === '/dashboard'
+    return pathname.startsWith(href)
+  }
+
+  // Is current page one of the "More" items?
+  const isMoreActive = moreNavItems.some(item => isActive(item.href))
+
+  // Close more sheet on navigation
+  useEffect(() => {
+    setMoreOpen(false)
+  }, [pathname])
+
+  // Swipe down to close more sheet
+  const touchStartY = useRef(0)
+  const handleSheetTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY
+  }, [])
+  const handleSheetTouchEnd = useCallback((e: React.TouchEvent) => {
+    const diff = e.changedTouches[0].clientY - touchStartY.current
+    if (diff > 60) setMoreOpen(false)
+  }, [])
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -152,11 +178,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
     professional: 'Specialist',
   }
 
-  const isActive = (href: string) => {
-    if (href === '/dashboard') return pathname === '/dashboard'
-    return pathname.startsWith(href)
-  }
-
+  // Desktop sidebar content (unchanged)
   const sidebarContent = (
     <>
       {/* Logo */}
@@ -171,7 +193,6 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
         <div className="px-3 pb-1">
           <Link
             href="/pricing"
-            onClick={() => setMobileOpen(false)}
             className={`${buttonVariants.accent('sm')} w-full`}
           >
             <svg className="h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -194,7 +215,6 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setMobileOpen(false)}
               data-tour={tourId}
               className={`flex items-center gap-3 rounded-lg py-2.5 text-sm transition-colors ${
                 isActive(item.href)
@@ -262,63 +282,161 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
 
   return (
     <>
-      {/* Mobile header */}
+      {/* Mobile header — logo + theme toggle + upgrade, no hamburger */}
       <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-primary-100 bg-surface px-4 md:hidden">
         <Link href="/dashboard">
           <Logo size="sm" />
         </Link>
-        <div className="flex items-center gap-2">
-        {tier === 'free' && (
-          <Link
-            href="/pricing"
-            className={`${buttonVariants.accent('sm')} rounded-full`}
-          >
-            <svg className="h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
-            </svg>
-            Upgrade
-          </Link>
-        )}
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="rounded-lg p-2.5 text-primary-500 hover:bg-primary-50"
-        >
-          {mobileOpen ? (
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
+        <div className="flex items-center gap-1">
+          <ThemeToggleCompact />
+          {tier === 'free' && (
+            <Link
+              href="/pricing"
+              className={`${buttonVariants.accent('sm')} rounded-full`}
+            >
+              <svg className="h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+              </svg>
+              Upgrade
+            </Link>
           )}
-        </button>
         </div>
       </div>
 
-      {/* Mobile overlay */}
-      {mobileOpen && (
+      {/* Desktop sidebar — unchanged */}
+      <aside data-sidebar-nav className="hidden md:fixed md:inset-y-0 md:left-0 md:z-20 md:flex md:w-64 md:flex-col md:border-r md:border-primary-100 md:bg-surface">
+        {sidebarContent}
+      </aside>
+
+      {/* ── Mobile bottom tab bar ── */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-30 border-t border-primary-100 bg-surface md:hidden"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        <div className="flex">
+          {tabItems.map((item) => {
+            const active = isActive(item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1.5 text-[10px] font-medium transition-colors ${
+                  active
+                    ? 'text-primary-800'
+                    : 'text-primary-400 active:text-primary-600'
+                }`}
+              >
+                <span className={active ? 'text-brand' : ''}>{item.icon}</span>
+                {TAB_SHORT_LABELS[item.href]}
+              </Link>
+            )
+          })}
+
+          {/* More tab */}
+          <button
+            onClick={() => setMoreOpen(v => !v)}
+            className={`flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1.5 text-[10px] font-medium transition-colors ${
+              moreOpen || isMoreActive
+                ? 'text-primary-800'
+                : 'text-primary-400 active:text-primary-600'
+            }`}
+          >
+            <span className={moreOpen || isMoreActive ? 'text-brand' : ''}>
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+              </svg>
+            </span>
+            More
+          </button>
+        </div>
+      </nav>
+
+      {/* ── More sheet backdrop ── */}
+      {moreOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden"
-          onClick={() => setMobileOpen(false)}
+          onClick={() => setMoreOpen(false)}
         />
       )}
 
-      {/* Mobile slide-out sidebar */}
-      <aside
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-surface shadow-xl transition-transform duration-200 md:hidden ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+      {/* ── More slide-up sheet ── */}
+      <div
+        onTouchStart={handleSheetTouchStart}
+        onTouchEnd={handleSheetTouchEnd}
+        className={`fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-2xl bg-surface shadow-xl transition-transform duration-200 md:hidden ${
+          moreOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
-        {sidebarContent}
-      </aside>
+        {/* Drag handle */}
+        <div className="sticky top-0 z-10 flex justify-center rounded-t-2xl bg-surface py-3">
+          <div className="h-1 w-8 rounded-full bg-primary-200" />
+        </div>
 
-      {/* Desktop sidebar */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-20 md:flex md:w-64 md:flex-col md:border-r md:border-primary-100 md:bg-surface">
-        {sidebarContent}
-      </aside>
+        {/* Nav items */}
+        <nav className="px-4 pb-2 space-y-0.5">
+          {moreNavItems.map((item) => {
+            const active = isActive(item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMoreOpen(false)}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                  active
+                    ? 'bg-brand/10 font-semibold text-brand-dark'
+                    : 'text-primary-600 active:bg-primary-50'
+                }`}
+              >
+                <span className={active ? 'text-brand' : ''}>{item.icon}</span>
+                {item.label}
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Divider */}
+        <div className="mx-4 border-t border-primary-100" />
+
+        {/* User section */}
+        <div className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-sm font-semibold text-primary-600">
+              {(userName || userEmail).charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-sm font-medium text-primary-800">
+                {userName || 'User'}
+              </p>
+              <p className="truncate text-xs text-primary-400">{userEmail}</p>
+            </div>
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tierColors[tier] || tierColors.free}`}>
+              {tierLabels[tier] || tier}
+            </span>
+          </div>
+          <div className="mt-3 flex items-center gap-1">
+            <ThemeToggle />
+            <button
+              onClick={openShortcutsModal}
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
+              title="Keyboard shortcuts (?)"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+              </svg>
+            </button>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+            </svg>
+            Sign out
+          </button>
+        </div>
+      </div>
     </>
   )
 }

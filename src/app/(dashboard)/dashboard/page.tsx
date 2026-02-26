@@ -284,17 +284,17 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Analytics stat cards ─────────────────────────────────────────── */}
-      <div className="mb-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         {/* Active Clients */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-brand/10">
               <svg className="h-5 w-5 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
               </svg>
             </div>
           </div>
-          <p className="mt-3 text-3xl font-bold text-primary-900">{activeClientCount ?? 0}</p>
+          <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-bold text-primary-900">{activeClientCount ?? 0}</p>
           <p className="mt-0.5 text-sm text-primary-400">
             Active client{(activeClientCount ?? 0) !== 1 ? 's' : ''}
             {(dischargedClientCount ?? 0) > 0 && (
@@ -307,15 +307,15 @@ export default async function DashboardPage() {
         </div>
 
         {/* Active Assignments */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-blue-50">
               <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
               </svg>
             </div>
           </div>
-          <p className="mt-3 text-3xl font-bold text-primary-900">{activeAssignmentCount ?? 0}</p>
+          <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-bold text-primary-900">{activeAssignmentCount ?? 0}</p>
           <p className="mt-0.5 text-sm text-primary-400">
             Active assignment{(activeAssignmentCount ?? 0) !== 1 ? 's' : ''}
           </p>
@@ -336,22 +336,22 @@ export default async function DashboardPage() {
               )}
             </div>
           </div>
-          <p className="mt-3 text-3xl font-bold text-primary-900">{pendingReviewCount ?? 0}</p>
+          <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-bold text-primary-900">{pendingReviewCount ?? 0}</p>
           <p className="mt-0.5 text-sm text-primary-400">
             {(pendingReviewCount ?? 0) > 0 ? 'Pending review' : 'All reviewed'}
           </p>
         </div>
 
         {/* Completion Rate */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50">
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-green-50">
               <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
               </svg>
             </div>
           </div>
-          <p className="mt-3 text-3xl font-bold text-primary-900">
+          <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-bold text-primary-900">
             {totalAssignments > 0 ? `${completionRate}%` : '—'}
           </p>
           <p className="mt-0.5 text-sm text-primary-400">
@@ -366,7 +366,7 @@ export default async function DashboardPage() {
       {/* ── Second row: Plan card + Quick Actions + Activity ─────────────── */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Plan card */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Your Plan</p>
             <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
@@ -411,7 +411,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Quick Actions card */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Quick Actions</p>
           <div className="mt-4 space-y-1">
             <Link
@@ -451,7 +451,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Recent Activity Feed */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm sm:col-span-2 lg:col-span-1">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm sm:col-span-2 lg:col-span-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Recent Activity</p>
           {(recentActivity && recentActivity.length > 0) ? (
             <div className="mt-4 space-y-3">
@@ -516,7 +516,7 @@ export default async function DashboardPage() {
         return (
           <div className="space-y-4">
             {cRoles.clinical_contributor && (
-              <div className="rounded-2xl border border-green-200 bg-surface p-6 shadow-sm">
+              <div className="rounded-2xl border border-green-200 bg-surface p-4 sm:p-6 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
@@ -592,7 +592,7 @@ export default async function DashboardPage() {
               </div>
             )}
             {cRoles.clinical_reviewer && (
-              <div className="rounded-2xl border border-blue-200 bg-surface p-6 shadow-sm">
+              <div className="rounded-2xl border border-blue-200 bg-surface p-4 sm:p-6 shadow-sm">
                 <div className="mb-4 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
                     <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -647,7 +647,7 @@ export default async function DashboardPage() {
               </div>
             )}
             {cRoles.content_writer && (
-              <div className="rounded-2xl border border-purple-200 bg-surface p-6 shadow-sm">
+              <div className="rounded-2xl border border-purple-200 bg-surface p-4 sm:p-6 shadow-sm">
                 <div className="mb-4 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100">
                     <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -769,7 +769,7 @@ export default async function DashboardPage() {
                 <Link
                   key={item.worksheet_id}
                   href={`/worksheets/${ws?.slug || ''}`}
-                  className="group rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
+                  className="group rounded-2xl border border-primary-100 bg-surface p-4 sm:p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand transition-colors group-hover:bg-primary-800 group-hover:text-white dark:group-hover:bg-primary-200 dark:group-hover:text-primary-900">
@@ -789,7 +789,7 @@ export default async function DashboardPage() {
             })}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-primary-200 bg-surface p-10 text-center">
+          <div className="rounded-2xl border border-dashed border-primary-200 bg-surface p-6 sm:p-10 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
               <svg className="h-6 w-6 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />

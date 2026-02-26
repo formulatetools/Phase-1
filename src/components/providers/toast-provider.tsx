@@ -77,7 +77,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
     <div
       className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-lg transition-all duration-200 ${
         typeStyles[toast.type]
-      } ${visible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}
+      } ${visible ? 'translate-y-0 md:translate-y-0 translate-x-0 opacity-100' : 'translate-y-4 md:translate-y-0 md:translate-x-8 opacity-0'}`}
     >
       <div className="shrink-0 pt-0.5">{typeIcons[toast.type]}</div>
       <p className="flex-1 text-sm font-medium">{toast.message}</p>
@@ -114,8 +114,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast: addToast }}>
       {children}
-      {/* Toast container */}
-      <div className="fixed bottom-4 right-4 z-[70] flex flex-col gap-2 max-w-sm">
+      {/* Toast container — centred above tab bar on mobile, bottom-right on desktop */}
+      <div className="fixed bottom-20 left-4 right-4 z-[70] flex flex-col gap-2 max-w-sm mx-auto md:bottom-4 md:left-auto md:right-4 md:mx-0">
         {toasts.map((t) => (
           <ToastItem key={t.id} toast={t} onDismiss={dismissToast} />
         ))}

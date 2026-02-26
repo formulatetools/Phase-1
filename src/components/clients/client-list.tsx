@@ -157,7 +157,7 @@ export function ClientList({
           <p className="text-xs text-primary-400 mb-3">
             Use initials or a pseudonym — no personally identifiable information.
           </p>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
             <input
               type="text"
               value={newLabel}
@@ -168,18 +168,20 @@ export function ClientList({
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
               autoFocus
             />
-            <Button
-              onClick={handleAdd}
-              disabled={loading || !newLabel.trim()}
-            >
-              {loading ? 'Adding…' : 'Add'}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => { setShowAdd(false); setNewLabel(''); setError(null); setPiiWarning(null) }}
-            >
-              Cancel
-            </Button>
+            <div className="flex gap-2 sm:gap-3">
+              <Button
+                onClick={handleAdd}
+                disabled={loading || !newLabel.trim()}
+              >
+                {loading ? 'Adding…' : 'Add'}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => { setShowAdd(false); setNewLabel(''); setError(null); setPiiWarning(null) }}
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
           {piiWarning && (
             <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
@@ -217,28 +219,33 @@ export function ClientList({
               <Link
                 key={r.id}
                 href={`/clients/${r.id}`}
-                className="flex items-center justify-between rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm hover:border-brand/30 hover:shadow-md transition-all"
+                className="flex items-center justify-between rounded-2xl border border-primary-100 bg-surface p-3 sm:p-4 shadow-sm hover:border-brand/30 hover:shadow-md transition-all"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-sm font-semibold text-primary-600">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-semibold text-primary-600">
                     {r.client_label.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <p className="font-medium text-primary-800">{r.client_label}</p>
+                  <div className="min-w-0">
+                    <p className="font-medium text-primary-800 truncate">{r.client_label}</p>
                     <p className="text-xs text-primary-400">
                       Since {new Date(r.started_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex shrink-0 items-center gap-2 sm:gap-4">
                   {stats.active > 0 && (
-                    <span className="rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-medium text-brand-dark">
+                    <span className="hidden sm:inline rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-medium text-brand-dark">
                       {stats.active} active
                     </span>
                   )}
                   {stats.completed > 0 && (
-                    <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                    <span className="hidden sm:inline rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
                       {stats.completed} completed
+                    </span>
+                  )}
+                  {(stats.active > 0 || stats.completed > 0) && (
+                    <span className="sm:hidden rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-medium text-primary-600">
+                      {stats.active + stats.completed}
                     </span>
                   )}
                   <svg className="h-4 w-4 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -261,20 +268,20 @@ export function ClientList({
             {dischargedClients.map((r) => (
               <div
                 key={r.id}
-                className="flex items-center justify-between rounded-2xl border border-primary-100 bg-primary-50/50 p-4"
+                className="flex items-center justify-between rounded-2xl border border-primary-100 bg-primary-50/50 p-3 sm:p-4"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-sm font-semibold text-primary-400">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-semibold text-primary-400">
                     {r.client_label.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <p className="font-medium text-primary-500">{r.client_label}</p>
+                  <div className="min-w-0">
+                    <p className="font-medium text-primary-500 truncate">{r.client_label}</p>
                     <p className="text-xs text-primary-400">
                       Discharged {r.ended_at ? new Date(r.ended_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : ''}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                   <Link
                     href={`/clients/${r.id}`}
                     className={buttonVariants.secondary('sm')}

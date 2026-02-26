@@ -166,6 +166,27 @@ select:focus {
     font-size: 16px !important;
     min-height: 44px;
   }
+
+  /* Generous textareas for homework — clients write meaningful content */
+  textarea {
+    min-height: 100px;
+  }
+}
+
+/* ── Subtle page content fade-in ──────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 150ms ease-out both;
 }
 
 /* Force light mode for print */
