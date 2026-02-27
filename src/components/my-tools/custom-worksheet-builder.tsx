@@ -98,6 +98,34 @@ export function CustomWorksheetBuilder({
     initialData?.schema?.sections || []
   )
 
+  // Pick up AI-generated draft from sessionStorage (from /my-tools/ai)
+  useEffect(() => {
+    try {
+      const draft = sessionStorage.getItem('formulate_ai_draft')
+      if (draft) {
+        sessionStorage.removeItem('formulate_ai_draft')
+        const data = JSON.parse(draft) as {
+          title: string
+          description: string
+          instructions: string
+          tags: string[]
+          estimated_minutes: number | null
+          schema: WorksheetSchema
+        }
+        setTitle(data.title || '')
+        setDescription(data.description || '')
+        setInstructions(data.instructions || '')
+        setSections(data.schema?.sections || [])
+        setTagsInput((data.tags || []).join(', '))
+        setEstimatedMinutes(data.estimated_minutes)
+        toast({ type: 'success', message: 'AI-generated worksheet loaded — review and edit below.' })
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Preview toggle for mobile
   const [showPreview, setShowPreview] = useState(false)
 

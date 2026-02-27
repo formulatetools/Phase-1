@@ -31,23 +31,23 @@ const genericFiveAreas: FormulationTemplate = {
   tags: ['CBT', 'five areas', 'generic'],
   nodes: [
     {
-      id: 'trigger', slot: 'top', label: 'Situation / Trigger', domain_colour: '#64748b',
+      id: 'trigger', slot: 'top', label: 'Situation / Trigger', domain_colour: '#8b8e94',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Noticed heart racing while sitting at desk' }],
     },
     {
-      id: 'thoughts', slot: 'left', label: 'Thoughts', domain_colour: '#2563eb',
+      id: 'thoughts', slot: 'left', label: 'Thoughts', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "I\'m having a heart attack"' }],
     },
     {
-      id: 'emotions', slot: 'centre', label: 'Emotions', domain_colour: '#dc2626',
+      id: 'emotions', slot: 'centre', label: 'Emotions', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Anxious, scared' }],
     },
     {
-      id: 'physical', slot: 'right', label: 'Physical Sensations', domain_colour: '#16a34a',
+      id: 'physical', slot: 'right', label: 'Physical Sensations', domain_colour: '#6b9e7e',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Heart pounding, sweating, dizziness' }],
     },
     {
-      id: 'behaviour', slot: 'bottom', label: 'Behaviour', domain_colour: '#9333ea',
+      id: 'behaviour', slot: 'bottom', label: 'Behaviour', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Left the room, called 999' }],
     },
   ],
@@ -77,23 +77,23 @@ const healthAnxiety: FormulationTemplate = {
   tags: ['CBT', 'health anxiety', 'maintenance'],
   nodes: [
     {
-      id: 'trigger', slot: 'top', label: 'Trigger', domain_colour: '#64748b',
+      id: 'trigger', slot: 'top', label: 'Trigger', domain_colour: '#8b8e94',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Noticed a headache, read about brain tumours online' }],
     },
     {
-      id: 'interpretations', slot: 'left', label: 'Misinterpretations', domain_colour: '#2563eb',
+      id: 'interpretations', slot: 'left', label: 'Misinterpretations', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "This headache must be a brain tumour"' }],
     },
     {
-      id: 'anxiety', slot: 'centre', label: 'Anxiety', domain_colour: '#dc2626',
+      id: 'anxiety', slot: 'centre', label: 'Anxiety', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Intense health anxiety, dread' }],
     },
     {
-      id: 'body', slot: 'right', label: 'Body Scanning / Sensations', domain_colour: '#16a34a',
+      id: 'body', slot: 'right', label: 'Body Scanning / Sensations', domain_colour: '#6b9e7e',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Heightened awareness of headache, checking body for symptoms' }],
     },
     {
-      id: 'safety', slot: 'bottom', label: 'Safety Behaviours', domain_colour: '#9333ea',
+      id: 'safety', slot: 'bottom', label: 'Safety Behaviours', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Googling symptoms, seeking reassurance from GP, avoiding exercise' }],
     },
   ],
@@ -124,19 +124,19 @@ const panicCycle: FormulationTemplate = {
   tags: ['CBT', 'panic', 'cycle', 'maintenance'],
   nodes: [
     {
-      id: 'cycle-0', slot: 'cycle-0', label: 'Trigger', domain_colour: '#64748b',
+      id: 'cycle-0', slot: 'cycle-0', label: 'Trigger', domain_colour: '#8b8e94',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Internal sensation or external situation' }],
     },
     {
-      id: 'cycle-1', slot: 'cycle-1', label: 'Catastrophic Misinterpretation', domain_colour: '#2563eb',
+      id: 'cycle-1', slot: 'cycle-1', label: 'Catastrophic Misinterpretation', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "I\'m having a heart attack", "I\'m going to faint"' }],
     },
     {
-      id: 'cycle-2', slot: 'cycle-2', label: 'Anxiety / Panic', domain_colour: '#dc2626',
+      id: 'cycle-2', slot: 'cycle-2', label: 'Anxiety / Panic', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Intense fear, sense of impending doom' }],
     },
     {
-      id: 'cycle-3', slot: 'cycle-3', label: 'Safety Behaviour', domain_colour: '#9333ea',
+      id: 'cycle-3', slot: 'cycle-3', label: 'Safety Behaviour', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Escape, sit down, call for help, avoid triggers' }],
     },
   ],
@@ -161,23 +161,23 @@ const socialAnxiety: FormulationTemplate = {
   tags: ['CBT', 'social anxiety', 'maintenance'],
   nodes: [
     {
-      id: 'trigger', slot: 'top', label: 'Social Situation', domain_colour: '#64748b',
+      id: 'trigger', slot: 'top', label: 'Social Situation', domain_colour: '#8b8e94',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Meeting new people at a party' }],
     },
     {
-      id: 'predictions', slot: 'left', label: 'Negative Predictions', domain_colour: '#2563eb',
+      id: 'predictions', slot: 'left', label: 'Negative Predictions', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "They\'ll think I\'m boring", "I\'ll say something stupid"' }],
     },
     {
-      id: 'anxiety', slot: 'centre', label: 'Anxiety', domain_colour: '#dc2626',
+      id: 'anxiety', slot: 'centre', label: 'Anxiety', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Anxious, embarrassed, self-conscious' }],
     },
     {
-      id: 'attention', slot: 'right', label: 'Self-Focused Attention', domain_colour: '#16a34a',
+      id: 'attention', slot: 'right', label: 'Self-Focused Attention', domain_colour: '#6b9e7e',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Monitoring voice, face, hands for signs of anxiety' }],
     },
     {
-      id: 'safety', slot: 'bottom', label: 'Safety / Avoidance Behaviours', domain_colour: '#9333ea',
+      id: 'safety', slot: 'bottom', label: 'Safety / Avoidance Behaviours', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Avoiding eye contact, rehearsing sentences, leaving early' }],
     },
   ],
@@ -208,23 +208,23 @@ const gadMetacognitive: FormulationTemplate = {
   tags: ['CBT', 'GAD', 'metacognitive', 'worry'],
   nodes: [
     {
-      id: 'step-0', slot: 'step-0', label: 'Trigger', domain_colour: '#64748b',
+      id: 'step-0', slot: 'step-0', label: 'Trigger', domain_colour: '#8b8e94',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. News report about job losses' }],
     },
     {
-      id: 'step-1', slot: 'step-1', label: 'Type 1 Worry', domain_colour: '#2563eb',
+      id: 'step-1', slot: 'step-1', label: 'Type 1 Worry', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "What if I lose my job?", "What if we can\'t pay rent?"' }],
     },
     {
-      id: 'step-2', slot: 'step-2', label: 'Meta-Belief Activation', domain_colour: '#92400e',
+      id: 'step-2', slot: 'step-2', label: 'Meta-Belief Activation', domain_colour: '#a07850',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "Worrying is uncontrollable", "Worrying will make me go crazy"' }],
     },
     {
-      id: 'step-3', slot: 'step-3', label: 'Type 2 Worry (Meta-Worry)', domain_colour: '#dc2626',
+      id: 'step-3', slot: 'step-3', label: 'Type 2 Worry (Meta-Worry)', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "I can\'t stop worrying", "This worrying will harm me"' }],
     },
     {
-      id: 'step-4', slot: 'step-4', label: 'Behavioural Response', domain_colour: '#9333ea',
+      id: 'step-4', slot: 'step-4', label: 'Behavioural Response', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Thought suppression, reassurance seeking, avoidance' }],
     },
   ],
@@ -250,23 +250,23 @@ const ptsdEhlersClark: FormulationTemplate = {
   tags: ['CBT', 'PTSD', 'trauma', 'cognitive'],
   nodes: [
     {
-      id: 'step-0', slot: 'step-0', label: 'Trauma Memory', domain_colour: '#64748b',
+      id: 'step-0', slot: 'step-0', label: 'Trauma Memory', domain_colour: '#8b8e94',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Fragmented, disorganised memory of the traumatic event' }],
     },
     {
-      id: 'step-1', slot: 'step-1', label: 'Negative Appraisals', domain_colour: '#2563eb',
+      id: 'step-1', slot: 'step-1', label: 'Negative Appraisals', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "I\'m permanently damaged", "Nowhere is safe", "It was my fault"' }],
     },
     {
-      id: 'step-2', slot: 'step-2', label: 'Current Sense of Threat', domain_colour: '#dc2626',
+      id: 'step-2', slot: 'step-2', label: 'Current Sense of Threat', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Intrusions, flashbacks, nightmares, hyperarousal' }],
     },
     {
-      id: 'step-3', slot: 'step-3', label: 'Emotional Responses', domain_colour: '#db2777',
+      id: 'step-3', slot: 'step-3', label: 'Emotional Responses', domain_colour: '#b87090',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Fear, shame, guilt, anger, sadness' }],
     },
     {
-      id: 'step-4', slot: 'step-4', label: 'Coping Strategies', domain_colour: '#9333ea',
+      id: 'step-4', slot: 'step-4', label: 'Coping Strategies', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Avoidance, rumination, substance use, thought suppression' }],
     },
   ],
@@ -293,23 +293,23 @@ const ocdMaintenance: FormulationTemplate = {
   tags: ['CBT', 'OCD', 'cycle', 'maintenance'],
   nodes: [
     {
-      id: 'cycle-0', slot: 'cycle-0', label: 'Intrusive Thought / Image', domain_colour: '#64748b',
+      id: 'cycle-0', slot: 'cycle-0', label: 'Intrusive Thought / Image', domain_colour: '#8b8e94',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "What if I left the door unlocked?"' }],
     },
     {
-      id: 'cycle-1', slot: 'cycle-1', label: 'Appraisal / Meaning', domain_colour: '#2563eb',
+      id: 'cycle-1', slot: 'cycle-1', label: 'Appraisal / Meaning', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "Having this thought means I\'m irresponsible"' }],
     },
     {
-      id: 'cycle-2', slot: 'cycle-2', label: 'Distress / Anxiety', domain_colour: '#dc2626',
+      id: 'cycle-2', slot: 'cycle-2', label: 'Distress / Anxiety', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Intense anxiety, guilt, sense of responsibility' }],
     },
     {
-      id: 'cycle-3', slot: 'cycle-3', label: 'Compulsion / Neutralising', domain_colour: '#9333ea',
+      id: 'cycle-3', slot: 'cycle-3', label: 'Compulsion / Neutralising', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Checking door 5 times, seeking reassurance' }],
     },
     {
-      id: 'cycle-4', slot: 'cycle-4', label: 'Temporary Relief', domain_colour: '#16a34a',
+      id: 'cycle-4', slot: 'cycle-4', label: 'Temporary Relief', domain_colour: '#6b9e7e',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Brief reduction in anxiety, "feels right"' }],
     },
   ],
@@ -335,23 +335,23 @@ const depressionMaintenance: FormulationTemplate = {
   tags: ['CBT', 'depression', 'maintenance'],
   nodes: [
     {
-      id: 'trigger', slot: 'top', label: 'Life Events / Trigger', domain_colour: '#64748b',
+      id: 'trigger', slot: 'top', label: 'Life Events / Trigger', domain_colour: '#8b8e94',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Argument with partner, being passed over for promotion' }],
     },
     {
-      id: 'thoughts', slot: 'left', label: 'Negative Automatic Thoughts', domain_colour: '#2563eb',
+      id: 'thoughts', slot: 'left', label: 'Negative Automatic Thoughts', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "I\'m useless", "Nothing will ever change", "Nobody cares"' }],
     },
     {
-      id: 'mood', slot: 'centre', label: 'Low Mood', domain_colour: '#dc2626',
+      id: 'mood', slot: 'centre', label: 'Low Mood', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Sad, hopeless, empty, irritable' }],
     },
     {
-      id: 'physical', slot: 'right', label: 'Physical Symptoms', domain_colour: '#16a34a',
+      id: 'physical', slot: 'right', label: 'Physical Symptoms', domain_colour: '#6b9e7e',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Poor sleep, low energy, appetite changes, aches' }],
     },
     {
-      id: 'behaviour', slot: 'bottom', label: 'Withdrawal / Inactivity', domain_colour: '#9333ea',
+      id: 'behaviour', slot: 'bottom', label: 'Withdrawal / Inactivity', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Staying in bed, cancelling plans, stopped exercising' }],
     },
   ],
@@ -382,23 +382,23 @@ const cbtEFormulation: FormulationTemplate = {
   tags: ['CBT-E', 'eating disorders', 'maintenance'],
   nodes: [
     {
-      id: 'step-0', slot: 'step-0', label: 'Core Low Self-Esteem', domain_colour: '#92400e',
+      id: 'step-0', slot: 'step-0', label: 'Core Low Self-Esteem', domain_colour: '#a07850',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "I\'m not good enough", "I\'m worthless"' }],
     },
     {
-      id: 'step-1', slot: 'step-1', label: 'Over-Evaluation of Shape & Weight', domain_colour: '#2563eb',
+      id: 'step-1', slot: 'step-1', label: 'Over-Evaluation of Shape & Weight', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "My worth depends on my weight", "I must be thin to be accepted"' }],
     },
     {
-      id: 'step-2', slot: 'step-2', label: 'Dietary Restraint / Restriction', domain_colour: '#dc2626',
+      id: 'step-2', slot: 'step-2', label: 'Dietary Restraint / Restriction', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Rigid food rules, calorie counting, skipping meals' }],
     },
     {
-      id: 'step-3', slot: 'step-3', label: 'Binge Eating', domain_colour: '#9333ea',
+      id: 'step-3', slot: 'step-3', label: 'Binge Eating', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Loss of control eating episodes triggered by restriction' }],
     },
     {
-      id: 'step-4', slot: 'step-4', label: 'Compensatory Behaviours', domain_colour: '#16a34a',
+      id: 'step-4', slot: 'step-4', label: 'Compensatory Behaviours', domain_colour: '#6b9e7e',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Purging, excessive exercise, laxative use' }],
     },
   ],
@@ -424,17 +424,17 @@ const cftThreeSystems: FormulationTemplate = {
   tags: ['CFT', 'compassion', 'three systems', 'emotion regulation'],
   nodes: [
     {
-      id: 'system-0', slot: 'system-0', label: 'Threat System', domain_colour: '#dc2626',
+      id: 'system-0', slot: 'system-0', label: 'Threat System', domain_colour: '#c46b6b',
       description: 'Protection and safety-seeking',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Anxiety, anger, disgust — fight/flight/freeze responses' }],
     },
     {
-      id: 'system-1', slot: 'system-1', label: 'Drive System', domain_colour: '#2563eb',
+      id: 'system-1', slot: 'system-1', label: 'Drive System', domain_colour: '#5b7fb5',
       description: 'Wanting, pursuing, achieving',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Excitement, motivation — achieve, acquire, consume' }],
     },
     {
-      id: 'system-2', slot: 'system-2', label: 'Soothing System', domain_colour: '#16a34a',
+      id: 'system-2', slot: 'system-2', label: 'Soothing System', domain_colour: '#6b9e7e',
       description: 'Contentment, safety, connection',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Calm, safe, connected — rest, digest, affiliate' }],
     },
@@ -459,19 +459,19 @@ const insomniaMaintenance: FormulationTemplate = {
   tags: ['CBT-I', 'insomnia', 'sleep', 'cycle'],
   nodes: [
     {
-      id: 'cycle-0', slot: 'cycle-0', label: 'Poor Sleep', domain_colour: '#64748b',
+      id: 'cycle-0', slot: 'cycle-0', label: 'Poor Sleep', domain_colour: '#8b8e94',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Difficulty falling asleep, frequent awakenings, unrefreshing sleep' }],
     },
     {
-      id: 'cycle-1', slot: 'cycle-1', label: 'Daytime Fatigue & Worry', domain_colour: '#dc2626',
+      id: 'cycle-1', slot: 'cycle-1', label: 'Daytime Fatigue & Worry', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Exhaustion, "I won\'t cope today", dread about tonight' }],
     },
     {
-      id: 'cycle-2', slot: 'cycle-2', label: 'Compensatory Behaviours', domain_colour: '#9333ea',
+      id: 'cycle-2', slot: 'cycle-2', label: 'Compensatory Behaviours', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Napping, caffeine, going to bed early, lying in, screen use in bed' }],
     },
     {
-      id: 'cycle-3', slot: 'cycle-3', label: 'Perpetuating Factors', domain_colour: '#2563eb',
+      id: 'cycle-3', slot: 'cycle-3', label: 'Perpetuating Factors', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Irregular sleep schedule, bed = worry place, reduced sleep drive' }],
     },
   ],
@@ -496,23 +496,23 @@ const chronicPainCycle: FormulationTemplate = {
   tags: ['CBT', 'chronic pain', 'fear-avoidance', 'cycle'],
   nodes: [
     {
-      id: 'cycle-0', slot: 'cycle-0', label: 'Pain Experience', domain_colour: '#dc2626',
+      id: 'cycle-0', slot: 'cycle-0', label: 'Pain Experience', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Sharp lower back pain when bending' }],
     },
     {
-      id: 'cycle-1', slot: 'cycle-1', label: 'Catastrophising / Fear', domain_colour: '#2563eb',
+      id: 'cycle-1', slot: 'cycle-1', label: 'Catastrophising / Fear', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. "My back is damaged", "Movement will make it worse"' }],
     },
     {
-      id: 'cycle-2', slot: 'cycle-2', label: 'Avoidance / Guarding', domain_colour: '#9333ea',
+      id: 'cycle-2', slot: 'cycle-2', label: 'Avoidance / Guarding', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Avoiding bending, stopped exercising, not lifting' }],
     },
     {
-      id: 'cycle-3', slot: 'cycle-3', label: 'Deconditioning / Disability', domain_colour: '#16a34a',
+      id: 'cycle-3', slot: 'cycle-3', label: 'Deconditioning / Disability', domain_colour: '#6b9e7e',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Muscle weakness, stiffness, reduced mobility, low mood' }],
     },
     {
-      id: 'cycle-4', slot: 'cycle-4', label: 'Increased Pain Sensitivity', domain_colour: '#e4a930',
+      id: 'cycle-4', slot: 'cycle-4', label: 'Increased Pain Sensitivity', domain_colour: '#d4a44a',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Lower pain threshold, hypervigilance to body sensations' }],
     },
   ],
@@ -538,23 +538,23 @@ const bddMaintenance: FormulationTemplate = {
   tags: ['CBT', 'BDD', 'body image', 'maintenance'],
   nodes: [
     {
-      id: 'trigger', slot: 'top', label: 'Trigger', domain_colour: '#64748b',
+      id: 'trigger', slot: 'top', label: 'Trigger', domain_colour: '#8b8e94',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Looking in mirror, someone commenting on appearance' }],
     },
     {
-      id: 'beliefs', slot: 'left', label: 'Negative Image & Beliefs', domain_colour: '#2563eb',
+      id: 'beliefs', slot: 'left', label: 'Negative Image & Beliefs', domain_colour: '#5b7fb5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Distorted mental image, "My nose is enormous", "Everyone notices"' }],
     },
     {
-      id: 'distress', slot: 'centre', label: 'Distress', domain_colour: '#dc2626',
+      id: 'distress', slot: 'centre', label: 'Distress', domain_colour: '#c46b6b',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Disgust, shame, anxiety, low mood' }],
     },
     {
-      id: 'rumination', slot: 'right', label: 'Rumination / Checking', domain_colour: '#e4a930',
+      id: 'rumination', slot: 'right', label: 'Rumination / Checking', domain_colour: '#d4a44a',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Repeated mirror checking, comparing to others, reassurance seeking' }],
     },
     {
-      id: 'avoidance', slot: 'bottom', label: 'Avoidance / Concealment', domain_colour: '#9333ea',
+      id: 'avoidance', slot: 'bottom', label: 'Avoidance / Concealment', domain_colour: '#8b7ab5',
       fields: [{ id: 'text', type: 'textarea', placeholder: 'e.g. Wearing hats, avoiding photos, not going out, camouflage make-up' }],
     },
   ],

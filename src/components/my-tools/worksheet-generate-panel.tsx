@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import type { WorksheetSchema } from '@/types/worksheet'
 
@@ -32,6 +32,13 @@ const EXAMPLE_PROMPTS = [
   'Grounding techniques worksheet',
 ]
 
+const STATUS_MESSAGES = [
+  'Analysing description...',
+  'Selecting clinical model...',
+  'Building worksheet structure...',
+  'Generating fields...',
+]
+
 export function WorksheetGeneratePanel({
   onGenerateComplete,
   disabled,
@@ -44,6 +51,19 @@ export function WorksheetGeneratePanel({
   const [interpretation, setInterpretation] = useState<string | null>(null)
   const [remaining, setRemaining] = useState<number | null>(null)
   const [collapsed, setCollapsed] = useState(false)
+  const [statusIndex, setStatusIndex] = useState(0)
+
+  // Cycle status messages during generation
+  useEffect(() => {
+    if (state !== 'generating') {
+      setStatusIndex(0)
+      return
+    }
+    const interval = setInterval(() => {
+      setStatusIndex((i) => (i + 1) % STATUS_MESSAGES.length)
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [state])
 
   const handleGenerate = useCallback(async () => {
     const trimmed = description.trim()
@@ -274,11 +294,13 @@ export function WorksheetGeneratePanel({
 
         {/* Generating feedback */}
         {state === 'generating' && (
-          <div className="mt-3 flex items-center gap-2 text-xs text-primary-500 dark:text-primary-400">
-            <div className="h-1 flex-1 overflow-hidden rounded-full bg-primary-100 dark:bg-primary-700">
-              <div className="h-full animate-pulse rounded-full bg-brand/60" style={{ width: '60%' }} />
+          <div className="mt-3">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary-100 dark:bg-primary-700">
+              <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-transparent via-brand to-transparent animate-shimmer" />
             </div>
-            <span>Analysing description...</span>
+            <p className="mt-1.5 text-center text-[11px] text-primary-500 dark:text-primary-400">
+              {STATUS_MESSAGES[statusIndex]}
+            </p>
           </div>
         )}
       </div>

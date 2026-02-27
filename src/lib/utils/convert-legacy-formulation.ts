@@ -21,13 +21,13 @@ import type {
 // ── Domain → hex colour mapping ──
 
 const DOMAIN_COLOUR_MAP: Record<string, string> = {
-  situation: '#64748b',
-  thoughts: '#2563eb',
-  emotions: '#dc2626',
-  physical: '#16a34a',
-  behaviour: '#9333ea',
-  reassurance: '#e4a930',
-  attention: '#64748b',
+  situation: '#8b8e94',
+  thoughts: '#5b7fb5',
+  emotions: '#c46b6b',
+  physical: '#6b9e7e',
+  behaviour: '#8b7ab5',
+  reassurance: '#d4a44a',
+  attention: '#8b8e94',
 }
 
 function domainToHex(domain?: DomainType): string {
@@ -143,7 +143,7 @@ function convertViciousFlower(schema: WorksheetSchema): WorksheetSchema {
         id: 'centre',
         slot: 'centre',
         label: section.title || 'Central Problem',
-        domain_colour: '#e4a930',
+        domain_colour: '#d4a44a',
         fields: centreFields.length > 0 ? centreFields : [{
           id: 'centre_text',
           type: 'textarea',
@@ -224,8 +224,8 @@ function convertLongitudinal(schema: WorksheetSchema): WorksheetSchema {
 
     // Choose colour based on highlight
     let colour = '#6b7280' // default grey
-    if (isAmber) colour = '#e4a930'
-    else if (isRedDashed) colour = '#dc2626'
+    if (isAmber) colour = '#d4a44a'
+    else if (isRedDashed) colour = '#c46b6b'
 
     if (isFourQuadrant) {
       // Four-quadrant sections get converted as a single node with multiple fields

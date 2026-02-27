@@ -45,7 +45,7 @@ Each field MUST have "id" (unique, format "f-1", "f-2", etc.), "label" (non-empt
       "layout": "cross_sectional",
       "formulation_config": { "title": "...", "show_title": true },
       "nodes": [
-        { "id": "trigger", "slot": "top", "label": "Trigger", "domain_colour": "#64748b",
+        { "id": "trigger", "slot": "top", "label": "Trigger", "domain_colour": "#8b8e94",
           "fields": [{ "id": "text", "type": "textarea", "placeholder": "..." }] }
       ],
       "connections": [
@@ -53,7 +53,7 @@ Each field MUST have "id" (unique, format "f-1", "f-2", etc.), "label" (non-empt
       ]
     }
     Layout patterns: "cross_sectional" (5 areas diamond: top, left, centre, right, bottom), "radial" (centre + petals: centre, petal-0, petal-1...), "vertical_flow" (sequential steps: step-0, step-1...), "cycle" (clockwise loop: cycle-0, cycle-1...), "three_systems" (triangle: system-0, system-1, system-2, optional centre).
-    Domain colours: Situation "#64748b", Thoughts "#2563eb", Emotions "#dc2626", Physical "#16a34a", Behaviour "#9333ea", Reassurance "#e4a930", Core beliefs "#92400e".
+    Domain colours: Situation "#8b8e94", Thoughts "#5b7fb5", Emotions "#c46b6b", Physical "#6b9e7e", Behaviour "#8b7ab5", Reassurance "#d4a44a", Core beliefs "#a07850".
     Connection styles: "arrow" (solid), "arrow_dashed" (dashed). Direction: "one_way" or "both".
 
 ## Field Selection Guidelines

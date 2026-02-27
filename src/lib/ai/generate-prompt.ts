@@ -64,7 +64,7 @@ Each field MUST have a unique "id" (kebab-case, e.g. "f-1", "situation", "belief
       "layout": "cross_sectional",
       "formulation_config": { "title": "...", "show_title": true },
       "nodes": [
-        { "id": "trigger", "slot": "top", "label": "Trigger", "domain_colour": "#64748b",
+        { "id": "trigger", "slot": "top", "label": "Trigger", "domain_colour": "#8b8e94",
           "fields": [{ "id": "text", "type": "textarea", "placeholder": "..." }]
         }
       ],
@@ -128,7 +128,7 @@ Use for: CFT three systems (threat/drive/soothing), any triangular relationship 
 IMPORTANT for CFT Three Systems:
 - Use EXACTLY 3 nodes: system-0 (Threat), system-1 (Drive), system-2 (Soothing)
 - Do NOT add a "centre" node (no "Self/Identity") — the standard Gilbert model is three circles only
-- Colours MUST be: Threat = "#dc2626" (red), Drive = "#2563eb" (blue), Soothing = "#16a34a" (green)
+- Colours MUST be: Threat = "#c46b6b" (dusty rose), Drive = "#5b7fb5" (dusty blue), Soothing = "#6b9e7e" (sage green)
 - Each node should have ONE textarea field describing that system's function and manifestation
 - Connections: all three bidirectional ("both") with "arrow" style
 - Optionally add an "inhibitory" connection from system-0 (threat) to system-2 (soothing) to show threat suppresses soothing
@@ -145,21 +145,23 @@ Node slots:
 - "centre" — do NOT use unless explicitly requested
 
 ### Domain Colour Palette
-Use these standard clinical colours:
-- Situation/Trigger: "#64748b" (slate)
-- Thoughts/Cognitions: "#2563eb" (blue)
-- Emotions/Feelings: "#dc2626" (red)
-- Physical/Body: "#16a34a" (green)
-- Behaviour/Actions: "#9333ea" (purple)
-- Reassurance: "#e4a930" (amber)
-- Core beliefs: "#92400e" (brown)
-- Relationships: "#db2777" (pink)
-- Neutral/Other: "#6b7280" (grey)
+Use these warm muted clinical colours (soft pastels that match the site aesthetic):
+- Situation/Trigger: "#8b8e94" (warm grey)
+- Thoughts/Cognitions: "#5b7fb5" (dusty blue)
+- Emotions/Feelings: "#c46b6b" (dusty rose)
+- Physical/Body: "#6b9e7e" (sage green)
+- Behaviour/Actions: "#8b7ab5" (muted lavender)
+- Reassurance: "#d4a44a" (warm amber)
+- Core beliefs: "#a07850" (warm brown)
+- Relationships: "#b87090" (dusty pink)
+- Motivation: "#c48a5a" (warm terracotta)
+- Mindfulness: "#6b9e96" (sage teal)
+- Neutral/Other: "#8b8e94" (warm grey)
 
-CFT Three Systems specific colours (override the above for CFT):
-- Threat system: "#dc2626" (red) — ALWAYS red
-- Drive system: "#2563eb" (blue) — ALWAYS blue, never purple
-- Soothing system: "#16a34a" (green) — ALWAYS green
+CFT Three Systems specific colours:
+- Threat system: "#c46b6b" (dusty rose) — ALWAYS this colour
+- Drive system: "#5b7fb5" (dusty blue) — ALWAYS this colour
+- Soothing system: "#6b9e7e" (sage green) — ALWAYS this colour
 
 ### Connection Styles
 - "arrow" — solid arrow (causal relationship)
@@ -213,17 +215,17 @@ When generating a CFT three systems / threat-drive-soothe formulation, follow th
             "nodes": [
               {
                 "id": "system-0", "slot": "system-0", "label": "Threat System",
-                "domain_colour": "#dc2626",
+                "domain_colour": "#c46b6b",
                 "fields": [{ "id": "threat-text", "type": "textarea", "placeholder": "e.g. Fight/flight/freeze responses, anxiety, anger, hypervigilance, self-criticism, scanning for danger" }]
               },
               {
                 "id": "system-1", "slot": "system-1", "label": "Drive System",
-                "domain_colour": "#2563eb",
+                "domain_colour": "#5b7fb5",
                 "fields": [{ "id": "drive-text", "type": "textarea", "placeholder": "e.g. Achievement striving, goal pursuit, excitement, wanting, motivation, resource-seeking" }]
               },
               {
                 "id": "system-2", "slot": "system-2", "label": "Soothing System",
-                "domain_colour": "#16a34a",
+                "domain_colour": "#6b9e7e",
                 "fields": [{ "id": "soothe-text", "type": "textarea", "placeholder": "e.g. Contentment, safeness, connection, compassion, affiliation, calmness, feeling loved" }]
               }
             ],
@@ -260,7 +262,7 @@ IMPORTANT: For CFT three systems, follow the exemplar above closely. Do NOT add:
 - A centre "Self/Identity" node (the standard model has only 3 nodes)
 - Likert sliders inside formulation nodes (keep nodes clean with just textarea)
 - A separate "System Balance Analysis" section that duplicates the formulation content
-- Purple colour for Drive (always use blue #2563eb)`
+- Wrong colours for Drive (always use dusty blue #5b7fb5, never purple or bright blue)`
 
 const CLINICAL_RULES = `## Clinical Accuracy Rules
 

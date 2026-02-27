@@ -37,7 +37,7 @@ const navItems = [
   },
   {
     label: 'AI Generate',
-    href: '/my-tools/new',
+    href: '/my-tools/ai',
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
@@ -115,7 +115,7 @@ const TAB_SHORT_LABELS: Record<string, string> = {
   '/dashboard': 'Home',
   '/clients': 'Clients',
   '/worksheets': 'Library',
-  '/my-tools/new': 'AI',
+  '/my-tools/ai': 'AI',
   '/my-tools': 'Tools',
 }
 const TAB_HREFS = new Set(Object.keys(TAB_SHORT_LABELS))
@@ -147,10 +147,10 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard'
-    // Exact match for /my-tools/new so it doesn't also highlight /my-tools
-    if (href === '/my-tools/new') return pathname === '/my-tools/new'
-    // /my-tools should match /my-tools but not /my-tools/new
-    if (href === '/my-tools') return pathname.startsWith('/my-tools') && pathname !== '/my-tools/new'
+    // Exact match for /my-tools/ai so it doesn't also highlight /my-tools
+    if (href === '/my-tools/ai') return pathname === '/my-tools/ai'
+    // /my-tools should match /my-tools and sub-pages but not /my-tools/ai
+    if (href === '/my-tools') return pathname.startsWith('/my-tools') && pathname !== '/my-tools/ai'
     return pathname.startsWith(href)
   }
 

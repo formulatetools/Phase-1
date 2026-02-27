@@ -26,7 +26,7 @@ function createCrossSectionalDefaults(): {
         id: 'trigger',
         slot: 'top',
         label: 'Situation / Trigger',
-        domain_colour: '#64748b',
+        domain_colour: '#8b8e94',
         fields: [
           { id: 'trigger_text', type: 'textarea', placeholder: 'What triggered this?' },
         ],
@@ -35,7 +35,7 @@ function createCrossSectionalDefaults(): {
         id: 'thoughts',
         slot: 'left',
         label: 'Thoughts',
-        domain_colour: '#2563eb',
+        domain_colour: '#5b7fb5',
         fields: [
           { id: 'thought_content', type: 'textarea', placeholder: 'What went through your mind?' },
         ],
@@ -44,7 +44,7 @@ function createCrossSectionalDefaults(): {
         id: 'emotions',
         slot: 'centre',
         label: 'Emotions',
-        domain_colour: '#dc2626',
+        domain_colour: '#c46b6b',
         fields: [
           { id: 'emotions_text', type: 'textarea', placeholder: 'What did you feel?' },
         ],
@@ -53,7 +53,7 @@ function createCrossSectionalDefaults(): {
         id: 'physical',
         slot: 'right',
         label: 'Physical Sensations',
-        domain_colour: '#16a34a',
+        domain_colour: '#6b9e7e',
         fields: [
           { id: 'sensations_text', type: 'textarea', placeholder: 'What body sensations did you notice?' },
         ],
@@ -62,7 +62,7 @@ function createCrossSectionalDefaults(): {
         id: 'behaviour',
         slot: 'bottom',
         label: 'Behaviour',
-        domain_colour: '#9333ea',
+        domain_colour: '#8b7ab5',
         fields: [
           { id: 'behaviour_text', type: 'textarea', placeholder: 'What did you do?' },
         ],
@@ -92,7 +92,7 @@ function createRadialDefaults(): {
         id: 'core',
         slot: 'centre',
         label: 'Core Problem',
-        domain_colour: '#dc2626',
+        domain_colour: '#c46b6b',
         fields: [
           { id: 'core_text', type: 'textarea', placeholder: 'Central problem or maintaining factor' },
         ],
@@ -101,7 +101,7 @@ function createRadialDefaults(): {
         id: 'petal-0',
         slot: 'petal-0',
         label: 'Factor 1',
-        domain_colour: '#2563eb',
+        domain_colour: '#5b7fb5',
         fields: [
           { id: 'petal_0_text', type: 'textarea', placeholder: 'Maintaining factor' },
         ],
@@ -110,7 +110,7 @@ function createRadialDefaults(): {
         id: 'petal-1',
         slot: 'petal-1',
         label: 'Factor 2',
-        domain_colour: '#16a34a',
+        domain_colour: '#6b9e7e',
         fields: [
           { id: 'petal_1_text', type: 'textarea', placeholder: 'Maintaining factor' },
         ],
@@ -119,7 +119,7 @@ function createRadialDefaults(): {
         id: 'petal-2',
         slot: 'petal-2',
         label: 'Factor 3',
-        domain_colour: '#9333ea',
+        domain_colour: '#8b7ab5',
         fields: [
           { id: 'petal_2_text', type: 'textarea', placeholder: 'Maintaining factor' },
         ],
@@ -128,7 +128,7 @@ function createRadialDefaults(): {
         id: 'petal-3',
         slot: 'petal-3',
         label: 'Factor 4',
-        domain_colour: '#e4a930',
+        domain_colour: '#d4a44a',
         fields: [
           { id: 'petal_3_text', type: 'textarea', placeholder: 'Maintaining factor' },
         ],
@@ -153,7 +153,7 @@ function createVerticalFlowDefaults(): {
         id: 'step-0',
         slot: 'step-0',
         label: 'Early Experiences',
-        domain_colour: '#64748b',
+        domain_colour: '#8b8e94',
         fields: [
           { id: 'step_0_text', type: 'textarea', placeholder: 'Relevant early experiences' },
         ],
@@ -162,7 +162,7 @@ function createVerticalFlowDefaults(): {
         id: 'step-1',
         slot: 'step-1',
         label: 'Core Beliefs',
-        domain_colour: '#92400e',
+        domain_colour: '#a07850',
         fields: [
           { id: 'step_1_text', type: 'textarea', placeholder: 'Core beliefs formed' },
         ],
@@ -171,7 +171,7 @@ function createVerticalFlowDefaults(): {
         id: 'step-2',
         slot: 'step-2',
         label: 'Rules & Assumptions',
-        domain_colour: '#2563eb',
+        domain_colour: '#5b7fb5',
         fields: [
           { id: 'step_2_text', type: 'textarea', placeholder: 'Conditional rules and assumptions' },
         ],
@@ -180,7 +180,7 @@ function createVerticalFlowDefaults(): {
         id: 'step-3',
         slot: 'step-3',
         label: 'Critical Incident',
-        domain_colour: '#dc2626',
+        domain_colour: '#c46b6b',
         fields: [
           { id: 'step_3_text', type: 'textarea', placeholder: 'What triggered the current difficulties?' },
         ],
@@ -204,7 +204,7 @@ function createCycleDefaults(): {
         id: 'cycle-0',
         slot: 'cycle-0',
         label: 'Trigger',
-        domain_colour: '#64748b',
+        domain_colour: '#8b8e94',
         fields: [
           { id: 'cycle_0_text', type: 'textarea', placeholder: 'What triggers the cycle?' },
         ],
@@ -213,7 +213,7 @@ function createCycleDefaults(): {
         id: 'cycle-1',
         slot: 'cycle-1',
         label: 'Thoughts',
-        domain_colour: '#2563eb',
+        domain_colour: '#5b7fb5',
         fields: [
           { id: 'cycle_1_text', type: 'textarea', placeholder: 'Automatic thoughts or interpretations' },
         ],
@@ -222,7 +222,7 @@ function createCycleDefaults(): {
         id: 'cycle-2',
         slot: 'cycle-2',
         label: 'Response',
-        domain_colour: '#9333ea',
+        domain_colour: '#8b7ab5',
         fields: [
           { id: 'cycle_2_text', type: 'textarea', placeholder: 'Behavioural or emotional response' },
         ],
@@ -231,7 +231,7 @@ function createCycleDefaults(): {
         id: 'cycle-3',
         slot: 'cycle-3',
         label: 'Consequence',
-        domain_colour: '#dc2626',
+        domain_colour: '#c46b6b',
         fields: [
           { id: 'cycle_3_text', type: 'textarea', placeholder: 'Short-term consequence that maintains the cycle' },
         ],
@@ -256,7 +256,7 @@ function createThreeSystemsDefaults(): {
         id: 'system-0',
         slot: 'system-0',
         label: 'Threat System',
-        domain_colour: '#dc2626',
+        domain_colour: '#c46b6b',
         fields: [
           { id: 'system_0_text', type: 'textarea', placeholder: 'Threat-focused emotions and responses' },
         ],
@@ -265,7 +265,7 @@ function createThreeSystemsDefaults(): {
         id: 'system-1',
         slot: 'system-1',
         label: 'Drive System',
-        domain_colour: '#2563eb',
+        domain_colour: '#5b7fb5',
         fields: [
           { id: 'system_1_text', type: 'textarea', placeholder: 'Drive-focused emotions and responses' },
         ],
@@ -274,7 +274,7 @@ function createThreeSystemsDefaults(): {
         id: 'system-2',
         slot: 'system-2',
         label: 'Soothing System',
-        domain_colour: '#16a34a',
+        domain_colour: '#6b9e7e',
         fields: [
           { id: 'system_2_text', type: 'textarea', placeholder: 'Soothing-focused emotions and responses' },
         ],
@@ -826,7 +826,7 @@ export function FormulationConfigurator({ field, onChange }: FormulationConfigur
   const addPetal = () => {
     if (!isRadial || petals.length >= 8) return
     const idx = petals.length
-    const colours = ['#2563eb', '#16a34a', '#9333ea', '#e4a930', '#dc2626', '#db2777', '#ea580c', '#0d9488']
+    const colours = ['#5b7fb5', '#6b9e7e', '#8b7ab5', '#d4a44a', '#c46b6b', '#b87090', '#c48a5a', '#6b9e96']
     const newPetal: FormulationNode = {
       id: `petal-${idx}`,
       slot: `petal-${idx}`,
@@ -852,7 +852,7 @@ export function FormulationConfigurator({ field, onChange }: FormulationConfigur
   const addStep = () => {
     if (!isVerticalFlow || steps.length >= 8) return
     const idx = steps.length
-    const colours = ['#64748b', '#92400e', '#2563eb', '#dc2626', '#16a34a', '#9333ea', '#e4a930', '#db2777']
+    const colours = ['#8b8e94', '#a07850', '#5b7fb5', '#c46b6b', '#6b9e7e', '#8b7ab5', '#d4a44a', '#b87090']
     const newStep: FormulationNode = {
       id: `step-${idx}`,
       slot: `step-${idx}`,
@@ -881,7 +881,7 @@ export function FormulationConfigurator({ field, onChange }: FormulationConfigur
   const addCycleNode = () => {
     if (!isCycle || cycleNodes.length >= 6) return
     const idx = cycleNodes.length
-    const colours = ['#64748b', '#2563eb', '#9333ea', '#dc2626', '#16a34a', '#e4a930']
+    const colours = ['#8b8e94', '#5b7fb5', '#8b7ab5', '#c46b6b', '#6b9e7e', '#d4a44a']
     const newNode: FormulationNode = {
       id: `cycle-${idx}`,
       slot: `cycle-${idx}`,
@@ -935,7 +935,7 @@ export function FormulationConfigurator({ field, onChange }: FormulationConfigur
         id: 'centre',
         slot: 'centre',
         label: 'Self',
-        domain_colour: '#e4a930',
+        domain_colour: '#d4a44a',
         fields: [
           { id: 'centre_text', type: 'textarea', placeholder: 'Central concept' },
         ],

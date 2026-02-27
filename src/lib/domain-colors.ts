@@ -2,14 +2,15 @@
 import type { DomainType } from '@/types/worksheet'
 
 // Legacy domain colours — used by curated formulations (section-based schema)
+// Warm muted pastels that harmonise with amber (#e4a930) + charcoal (#2d2d2d) brand palette
 export const DOMAIN_COLORS: Record<DomainType, { bg: string; border: string; text: string; label: string }> = {
-  situation:   { bg: '#f1f5f9', border: '#94a3b8', text: '#475569', label: 'SITUATION' },
-  thoughts:    { bg: '#eff6ff', border: '#60a5fa', text: '#1d4ed8', label: 'THOUGHTS' },
-  emotions:    { bg: '#fef2f2', border: '#f87171', text: '#dc2626', label: 'EMOTIONS' },
-  physical:    { bg: '#f0fdf4', border: '#4ade80', text: '#16a34a', label: 'PHYSICAL' },
-  behaviour:   { bg: '#faf5ff', border: '#c084fc', text: '#9333ea', label: 'BEHAVIOUR' },
-  reassurance: { bg: '#fdf6e3', border: '#e4a930', text: '#9a6e15', label: 'REASSURANCE' },
-  attention:   { bg: '#f1f5f9', border: '#94a3b8', text: '#475569', label: 'ATTENTION' },
+  situation:   { bg: '#f3f2f0', border: '#a8a7a3', text: '#6b6a66', label: 'SITUATION' },
+  thoughts:    { bg: '#eef2f8', border: '#8faed0', text: '#4a6e96', label: 'THOUGHTS' },
+  emotions:    { bg: '#f8efef', border: '#d4a0a0', text: '#a05858', label: 'EMOTIONS' },
+  physical:    { bg: '#eff5f1', border: '#9ec5aa', text: '#5a8a6a', label: 'PHYSICAL' },
+  behaviour:   { bg: '#f2f0f6', border: '#b0a5cc', text: '#7668a0', label: 'BEHAVIOUR' },
+  reassurance: { bg: '#fdf6e3', border: '#d4a44a', text: '#8a6e2e', label: 'REASSURANCE' },
+  attention:   { bg: '#f3f2f0', border: '#a8a7a3', text: '#6b6a66', label: 'ATTENTION' },
 }
 
 export function getDomainColor(domain?: DomainType) {
@@ -19,6 +20,7 @@ export function getDomainColor(domain?: DomainType) {
 
 // ============================================================================
 // New generalised domain colour palette — used by custom formulations
+// Warm muted pastels matching the site's amber/charcoal aesthetic
 // ============================================================================
 
 export interface DomainColourPreset {
@@ -35,21 +37,28 @@ export interface DomainColourPreset {
 }
 
 export const DOMAIN_COLOUR_PALETTE: DomainColourPreset[] = [
-  { label: 'Situation',     hex: '#64748b', bg: '#f1f5f9', border: '#94a3b8', text: '#475569', bgDark: '#1e293b', borderDark: '#475569', textDark: '#94a3b8' },
-  { label: 'Thoughts',      hex: '#2563eb', bg: '#eff6ff', border: '#60a5fa', text: '#1d4ed8', bgDark: '#172554', borderDark: '#2563eb', textDark: '#93c5fd' },
-  { label: 'Emotions',      hex: '#dc2626', bg: '#fef2f2', border: '#f87171', text: '#dc2626', bgDark: '#450a0a', borderDark: '#b91c1c', textDark: '#fca5a5' },
-  { label: 'Physical',      hex: '#16a34a', bg: '#f0fdf4', border: '#4ade80', text: '#16a34a', bgDark: '#052e16', borderDark: '#16a34a', textDark: '#86efac' },
-  { label: 'Behaviour',     hex: '#9333ea', bg: '#faf5ff', border: '#c084fc', text: '#9333ea', bgDark: '#2e1065', borderDark: '#7c3aed', textDark: '#c4b5fd' },
-  { label: 'Reassurance',   hex: '#e4a930', bg: '#fdf6e3', border: '#e4a930', text: '#9a6e15', bgDark: '#2a2008', borderDark: '#d4982a', textDark: '#fbbf24' },
-  { label: 'Attention',     hex: '#64748b', bg: '#f1f5f9', border: '#94a3b8', text: '#475569', bgDark: '#1e293b', borderDark: '#475569', textDark: '#94a3b8' },
-  { label: 'Threat',        hex: '#dc2626', bg: '#fef2f2', border: '#f87171', text: '#dc2626', bgDark: '#450a0a', borderDark: '#b91c1c', textDark: '#fca5a5' },
-  { label: 'Drive',         hex: '#2563eb', bg: '#eff6ff', border: '#60a5fa', text: '#1d4ed8', bgDark: '#172554', borderDark: '#2563eb', textDark: '#93c5fd' },
-  { label: 'Soothing',      hex: '#16a34a', bg: '#f0fdf4', border: '#4ade80', text: '#16a34a', bgDark: '#052e16', borderDark: '#16a34a', textDark: '#86efac' },
-  { label: 'Core Beliefs',  hex: '#92400e', bg: '#fef3c7', border: '#d97706', text: '#92400e', bgDark: '#292005', borderDark: '#b45309', textDark: '#fcd34d' },
-  { label: 'Relationships', hex: '#db2777', bg: '#fdf2f8', border: '#f472b6', text: '#db2777', bgDark: '#500724', borderDark: '#be185d', textDark: '#f9a8d4' },
-  { label: 'Motivation',    hex: '#ea580c', bg: '#fff7ed', border: '#fb923c', text: '#ea580c', bgDark: '#431407', borderDark: '#c2410c', textDark: '#fdba74' },
-  { label: 'Mindfulness',   hex: '#0d9488', bg: '#f0fdfa', border: '#2dd4bf', text: '#0d9488', bgDark: '#042f2e', borderDark: '#0f766e', textDark: '#5eead4' },
-  { label: 'Neutral',       hex: '#6b7280', bg: '#f9fafb', border: '#d1d5db', text: '#6b7280', bgDark: '#1f2937', borderDark: '#4b5563', textDark: '#9ca3af' },
+  // ── Clinical domains (Five Areas / Cross-sectional) ──
+  { label: 'Situation',     hex: '#8b8e94', bg: '#f3f2f0', border: '#a8a7a3', text: '#6b6a66', bgDark: '#22211f', borderDark: '#6b6a66', textDark: '#b0afab' },
+  { label: 'Thoughts',      hex: '#5b7fb5', bg: '#eef2f8', border: '#8faed0', text: '#4a6e96', bgDark: '#1a2030', borderDark: '#5b7fb5', textDark: '#a3bdd8' },
+  { label: 'Emotions',      hex: '#c46b6b', bg: '#f8efef', border: '#d4a0a0', text: '#a05858', bgDark: '#2a1818', borderDark: '#c46b6b', textDark: '#daa8a8' },
+  { label: 'Physical',      hex: '#6b9e7e', bg: '#eff5f1', border: '#9ec5aa', text: '#5a8a6a', bgDark: '#182420', borderDark: '#6b9e7e', textDark: '#a5cbb2' },
+  { label: 'Behaviour',     hex: '#8b7ab5', bg: '#f2f0f6', border: '#b0a5cc', text: '#7668a0', bgDark: '#201e2a', borderDark: '#8b7ab5', textDark: '#bdb0d4' },
+
+  // ── Maintaining factors ──
+  { label: 'Reassurance',   hex: '#d4a44a', bg: '#fdf6e3', border: '#d4a44a', text: '#8a6e2e', bgDark: '#2a2008', borderDark: '#d4a44a', textDark: '#e8c476' },
+  { label: 'Attention',     hex: '#8b8e94', bg: '#f3f2f0', border: '#a8a7a3', text: '#6b6a66', bgDark: '#22211f', borderDark: '#6b6a66', textDark: '#b0afab' },
+
+  // ── CFT Three Systems ──
+  { label: 'Threat',        hex: '#c46b6b', bg: '#f8efef', border: '#d4a0a0', text: '#a05858', bgDark: '#2a1818', borderDark: '#c46b6b', textDark: '#daa8a8' },
+  { label: 'Drive',         hex: '#5b7fb5', bg: '#eef2f8', border: '#8faed0', text: '#4a6e96', bgDark: '#1a2030', borderDark: '#5b7fb5', textDark: '#a3bdd8' },
+  { label: 'Soothing',      hex: '#6b9e7e', bg: '#eff5f1', border: '#9ec5aa', text: '#5a8a6a', bgDark: '#182420', borderDark: '#6b9e7e', textDark: '#a5cbb2' },
+
+  // ── Additional clinical domains ──
+  { label: 'Core Beliefs',  hex: '#a07850', bg: '#f6f1eb', border: '#c4a880', text: '#806040', bgDark: '#262018', borderDark: '#a07850', textDark: '#c8aa82' },
+  { label: 'Relationships', hex: '#b87090', bg: '#f6eff2', border: '#d0a0b4', text: '#986078', bgDark: '#281820', borderDark: '#b87090', textDark: '#d4a0b8' },
+  { label: 'Motivation',    hex: '#c48a5a', bg: '#f6f0ea', border: '#d4b090', text: '#a07048', bgDark: '#2a2018', borderDark: '#c48a5a', textDark: '#d8b48a' },
+  { label: 'Mindfulness',   hex: '#6b9e96', bg: '#eff5f3', border: '#9ec5be', text: '#5a8a82', bgDark: '#182422', borderDark: '#6b9e96', textDark: '#a5cbc4' },
+  { label: 'Neutral',       hex: '#8b8e94', bg: '#f3f2f0', border: '#b0afab', text: '#6b6a66', bgDark: '#22211f', borderDark: '#6b6a66', textDark: '#b0afab' },
 ]
 
 // Hex-to-colour mapping for custom formulations (mode-specific cache)
