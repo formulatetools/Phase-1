@@ -80,13 +80,24 @@ export async function POST(request: NextRequest) {
     let extractedText: string
 
     const buffer = Buffer.from(await file.arrayBuffer())
+    console.log(`[import-worksheet] Extracting text from ${file.type} (${file.size} bytes)`)
 
     if (file.type === 'application/pdf') {
-      const { PDFParse } = await import('pdf-parse')
-      const parser = new PDFParse({ data: new Uint8Array(buffer) })
-      const textResult = await parser.getText()
-      extractedText = textResult.text
-      await parser.destroy()
+      try {
+        const { PDFParse } = await import('pdf-parse')
+        console.log('[import-worksheet] pdf-parse imported OK')
+        const parser = new PDFParse({ data: new Uint8Array(buffer) })
+        const textResult = await parser.getText()
+        extractedText = textResult.text
+        await parser.destroy()
+        console.log(`[import-worksheet] PDF text extracted: ${extractedText.length} chars`)
+      } catch (pdfErr) {
+        console.error('[import-worksheet] PDF parse failed:', pdfErr)
+        return NextResponse.json(
+          { error: 'Could not read this PDF. It may be scanned, encrypted, or corrupted.' },
+          { status: 422 }
+        )
+      }
     } else {
       const mammoth = await import('mammoth')
       const result = await mammoth.extractRawText({ buffer })
