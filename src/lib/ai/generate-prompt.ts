@@ -290,7 +290,9 @@ const CLINICAL_RULES = `## Clinical Accuracy Rules
 
 5. For homework tools: optimise for mobile — avoid wide tables (>4 columns), use generous textareas
 
-6. For formulations: include an instruction section before ("Complete this collaboratively in session") and a reflection section after ("Treatment implications")`
+6. For formulations: include an instruction section before ("Complete this collaboratively in session") and a reflection section after ("Treatment implications")
+
+7. COLOUR RESTRAINT: Domain colours are ONLY for formulation diagram nodes (where they aid spatial comprehension). Standard worksheets — thought records, activity schedules, worry logs, tables, section-based tools — should remain neutral and uncoloured. The site's warm charcoal/cream palette handles styling automatically. Do NOT assign domain_colour to anything outside a formulation field's nodes array.`
 
 const DECISION_LOGIC = `## Decision Logic
 
