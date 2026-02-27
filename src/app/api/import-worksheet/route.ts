@@ -9,6 +9,9 @@ import type { WorksheetSchema } from '@/types/worksheet'
 import { stripPii } from '@/lib/pii/strip-pii'
 import Anthropic from '@anthropic-ai/sdk'
 
+// Hobby plan default is 10s — PDF parse + AI call needs more headroom
+export const maxDuration = 60
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const MAX_TEXT_LENGTH = 12_000 // Limit text sent to AI to control cost
 

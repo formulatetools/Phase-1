@@ -11,6 +11,9 @@ import type { SubscriptionTier } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
 import Anthropic from '@anthropic-ai/sdk'
 
+// Hobby plan default is 10s — AI call needs more headroom
+export const maxDuration = 60
+
 // Monthly generation limits per tier
 const AI_GENERATION_LIMITS: Record<string, number> = {
   free: 0,

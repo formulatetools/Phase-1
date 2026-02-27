@@ -92,7 +92,7 @@ export function WorksheetImportPanel({
       toast({ type: 'error', message: 'Network error. Check your connection and try again.' })
       setState('idle')
     }
-  }, [onImportComplete, toast])
+  }, [onImportComplete, toast, filled])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
