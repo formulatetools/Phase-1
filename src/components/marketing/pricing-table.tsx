@@ -31,6 +31,7 @@ const tiers = [
       'Unlimited worksheet access',
       'Up to 5 clients with homework links',
       'Clean PDF export (no branding)',
+      '3 AI generations per month',
     ],
     cta: 'Get Started',
     checkoutTier: 'starter' as const,
@@ -46,6 +47,7 @@ const tiers = [
       'Unlimited clients',
       'Custom worksheet builder',
       'Fork & customise any tool',
+      '10 AI generations per month',
       'Supervision portal',
     ],
     cta: 'Get Started',
@@ -61,6 +63,7 @@ const tiers = [
     features: [
       'Everything in Practice',
       'Up to 20 custom worksheets',
+      'Unlimited AI generations',
       'Up to 8 supervisees',
       'Early access to new features',
     ],

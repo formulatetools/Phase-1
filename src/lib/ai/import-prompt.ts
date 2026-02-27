@@ -39,6 +39,23 @@ Each field MUST have "id" (unique, format "f-1", "f-2", etc.), "label" (non-empt
     Operations: "sum", "average", "count", "min", "max", "difference", "percentage_change"
     For "difference"/"percentage_change": use "field_a" and "field_b" instead of "fields"
 
+11. "formulation" — Spatial clinical diagram with nodes and connections
+    Used for CBT models, maintenance formulations, five areas, vicious cycles, longitudinal/developmental formulations.
+    { "id": "formulation", "type": "formulation", "label": "Formulation",
+      "layout": "cross_sectional",
+      "formulation_config": { "title": "...", "show_title": true },
+      "nodes": [
+        { "id": "trigger", "slot": "top", "label": "Trigger", "domain_colour": "#64748b",
+          "fields": [{ "id": "text", "type": "textarea", "placeholder": "..." }] }
+      ],
+      "connections": [
+        { "from": "trigger", "to": "thoughts", "style": "arrow", "direction": "one_way" }
+      ]
+    }
+    Layout patterns: "cross_sectional" (5 areas diamond: top, left, centre, right, bottom), "radial" (centre + petals: centre, petal-0, petal-1...), "vertical_flow" (sequential steps: step-0, step-1...), "cycle" (clockwise loop: cycle-0, cycle-1...), "three_systems" (triangle: system-0, system-1, system-2, optional centre).
+    Domain colours: Situation "#64748b", Thoughts "#2563eb", Emotions "#dc2626", Physical "#16a34a", Behaviour "#9333ea", Reassurance "#e4a930", Core beliefs "#92400e".
+    Connection styles: "arrow" (solid), "arrow_dashed" (dashed). Direction: "one_way" or "both".
+
 ## Field Selection Guidelines
 
 - Free-text prompts ("Describe...", "What thoughts...") → textarea
@@ -49,7 +66,8 @@ Each field MUST have "id" (unique, format "f-1", "f-2", etc.), "label" (non-empt
 - Tabular/columnar data (thought records, activity logs, rows of entries) → table
 - Dates → date
 - Times → time
-- Scores that sum or average other fields → computed`
+- Scores that sum or average other fields → computed
+- Diagrams with labelled nodes/boxes connected by arrows (five areas, hot cross bun, maintenance cycle, vicious flower, longitudinal formulation, developmental model, three systems/CFT) → formulation`
 
 const SCHEMA_RULES = `## Rules
 
@@ -63,7 +81,16 @@ const SCHEMA_RULES = `## Rules
 8. For Likert scales, always include anchors for the min and max values.
 9. For tables, include at least 2 columns and set min_rows: 1, max_rows: 10.
 10. For tags, suggest relevant clinical tags like "CBT", "anxiety", "depression", "thought record", etc.
-11. If the document contains any personally identifiable information (names, emails, phone numbers, addresses, NHS numbers, etc.), do NOT include it in the output. Use generic placeholders in labels if needed.`
+11. If the document contains any personally identifiable information (names, emails, phone numbers, addresses, NHS numbers, etc.), do NOT include it in the output. Use generic placeholders in labels if needed.
+12. FORMULATION DETECTION: If the document contains a clinical diagram/model with labelled nodes or boxes connected by arrows, convert it to a "formulation" field type. Recognition signals:
+    - Boxes/circles labelled with CBT domains (Thoughts, Emotions, Physical Sensations, Behaviour, Situation/Trigger)
+    - Arrow connections between labelled sections (→, ↔, bidirectional)
+    - "Five areas" / "Hot cross bun" / "CBT model" / "Maintenance model" → layout: "cross_sectional"
+    - "Vicious flower" / central problem with maintaining factors → layout: "radial"
+    - "Longitudinal" / "Developmental" / early experiences → core beliefs → assumptions chain → layout: "vertical_flow"
+    - "Cycle" / "Maintenance cycle" / "Panic cycle" / clockwise loop → layout: "cycle"
+    - "Three systems" / "CFT" / "Compassion focused" / threat/drive/soothing → layout: "three_systems"
+    When generating a formulation, wrap it in 3 sections: context/instructions before, formulation field, and reflection/implications after.`
 
 export function buildImportPrompt(documentText: string): string {
   return `You are a clinical psychology worksheet digitiser. Convert the paper-based therapy worksheet below into a structured JSON schema for an interactive web form.

@@ -66,6 +66,7 @@ export const TIER_FEATURES: Record<string, string[]> = {
     'Clean PDF export (no branding)',
     'Client management (up to 5 clients)',
     'Assign homework via shareable links',
+    '3 AI worksheet generations per month',
     'Bookmark & favourite tools',
   ],
   standard: [
@@ -73,11 +74,13 @@ export const TIER_FEATURES: Record<string, string[]> = {
     'Unlimited clients',
     'Custom worksheet builder',
     'Fork & customise any tool',
+    '10 AI worksheet generations per month',
     'Supervision portal',
   ],
   professional: [
     'Everything in Practice',
     'Up to 20 custom worksheets',
+    'Unlimited AI worksheet generations',
     'Up to 8 supervisees',
     'Early access to new features',
   ],

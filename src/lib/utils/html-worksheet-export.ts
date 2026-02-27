@@ -18,6 +18,8 @@ import type {
   DecisionTreeField,
   FormulationField,
   FormulationNode,
+  FormulationConnection,
+  FormulationLayoutPattern,
   TableColumn,
   RecordField,
   RecordGroup,
@@ -38,6 +40,206 @@ function esc(str: string): string {
 
 function sanitize(title: string): string {
   return title.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-').toLowerCase()
+}
+
+// ── Spatial Layout Engine (for formulation diagrams) ──
+
+interface ExportNodeLayout {
+  id: string; x: number; y: number; width: number; height: number; shape: 'rect' | 'circle' | 'pill'
+}
+interface ExportConnectionLayout {
+  d: string; dashed: boolean; markerStart: boolean; markerEnd: boolean; colour?: string
+}
+interface ExportLayoutResult {
+  nodes: ExportNodeLayout[]; connections: ExportConnectionLayout[]; totalHeight: number
+}
+
+function getEdgePointExport(
+  cx: number, cy: number, w: number, h: number, shape: string,
+  tx: number, ty: number
+): { x: number; y: number } {
+  const angle = Math.atan2(ty - cy, tx - cx)
+  if (shape === 'circle') {
+    const r = Math.min(w, h) / 2
+    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) }
+  }
+  const hw = w / 2, hh = h / 2
+  const absCos = Math.abs(Math.cos(angle)), absSin = Math.abs(Math.sin(angle))
+  let ex: number, ey: number
+  if (hw * absSin < hh * absCos) {
+    ex = cx + hw * Math.sign(Math.cos(angle))
+    ey = cy + hw * Math.tan(angle) * Math.sign(Math.cos(angle))
+  } else {
+    ex = cx + hh / Math.tan(angle) * Math.sign(Math.sin(angle))
+    ey = cy + hh * Math.sign(Math.sin(angle))
+  }
+  return { x: ex, y: ey }
+}
+
+function straightPathExport(from: ExportNodeLayout, to: ExportNodeLayout): string {
+  const fcx = from.x + from.width / 2, fcy = from.y + from.height / 2
+  const tcx = to.x + to.width / 2, tcy = to.y + to.height / 2
+  const p1 = getEdgePointExport(fcx, fcy, from.width, from.height, from.shape, tcx, tcy)
+  const p2 = getEdgePointExport(tcx, tcy, to.width, to.height, to.shape, fcx, fcy)
+  return `M${p1.x.toFixed(1)},${p1.y.toFixed(1)} L${p2.x.toFixed(1)},${p2.y.toFixed(1)}`
+}
+
+function curvedPathExport(from: ExportNodeLayout, to: ExportNodeLayout, curvature = 0.3): string {
+  const fcx = from.x + from.width / 2, fcy = from.y + from.height / 2
+  const tcx = to.x + to.width / 2, tcy = to.y + to.height / 2
+  const p1 = getEdgePointExport(fcx, fcy, from.width, from.height, from.shape, tcx, tcy)
+  const p2 = getEdgePointExport(tcx, tcy, to.width, to.height, to.shape, fcx, fcy)
+  const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2
+  const dx = p2.x - p1.x, dy = p2.y - p1.y
+  const dist = Math.sqrt(dx * dx + dy * dy)
+  const nx = -dy / dist, ny = dx / dist
+  const cpx = mx + nx * dist * curvature, cpy = my + ny * dist * curvature
+  return `M${p1.x.toFixed(1)},${p1.y.toFixed(1)} Q${cpx.toFixed(1)},${cpy.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`
+}
+
+function buildExportConnections(
+  connections: FormulationConnection[],
+  nodeMap: Map<string, ExportNodeLayout>,
+  pathStyle: 'straight' | 'curved',
+  schemaNodes: FormulationNode[]
+): ExportConnectionLayout[] {
+  const colourMap = new Map<string, string>()
+  for (const n of schemaNodes) colourMap.set(n.id, n.domain_colour)
+
+  return connections.map(conn => {
+    const from = nodeMap.get(conn.from), to = nodeMap.get(conn.to)
+    if (!from || !to) return null
+    const d = pathStyle === 'curved' ? curvedPathExport(from, to) : straightPathExport(from, to)
+    const isDashed = conn.style === 'arrow_dashed' || conn.style === 'line_dashed'
+    const hasArrow = conn.style === 'arrow' || conn.style === 'arrow_dashed' || conn.style === 'inhibitory'
+    return {
+      d, dashed: isDashed,
+      markerStart: hasArrow && conn.direction === 'both',
+      markerEnd: hasArrow,
+      colour: colourMap.get(conn.from) || colourMap.get(conn.to),
+    }
+  }).filter(Boolean) as ExportConnectionLayout[]
+}
+
+/** Fixed export width for spatial diagrams (fits well inside A4 margins) */
+const EXPORT_W = 700
+
+function layoutCrossSectionalExport(nodes: FormulationNode[], connections: FormulationConnection[]): ExportLayoutResult {
+  const bySlot: Record<string, FormulationNode> = {}
+  for (const n of nodes) bySlot[n.slot] = n
+  const nodeW = 160, nodeH = 120, cx = EXPORT_W / 2
+  const triggerW = 220, triggerH = 90
+  const diamondRadius = 150
+  const gapBelowTrigger = nodeH / 2 + 30
+  const diamondCy = triggerH + gapBelowTrigger + diamondRadius
+  const layouts: ExportNodeLayout[] = []
+  if (bySlot['top']) layouts.push({ id: bySlot['top'].id, x: cx - triggerW / 2, y: 0, width: triggerW, height: triggerH, shape: 'rect' })
+  const slots: [string, number, number][] = [
+    ['left', cx - diamondRadius - nodeW / 2, diamondCy - nodeH / 2],
+    ['centre', cx - nodeW / 2, diamondCy - diamondRadius - nodeH / 2],
+    ['right', cx + diamondRadius - nodeW / 2, diamondCy - nodeH / 2],
+    ['bottom', cx - nodeW / 2, diamondCy + diamondRadius - nodeH / 2],
+  ]
+  for (const [slot, x, y] of slots) {
+    if (bySlot[slot]) layouts.push({ id: bySlot[slot].id, x, y, width: nodeW, height: nodeH, shape: 'rect' })
+  }
+  const nodeMap = new Map(layouts.map(n => [n.id, n]))
+  const totalHeight = layouts.reduce((max, n) => Math.max(max, n.y + n.height), 0) + 20
+  return { nodes: layouts, connections: buildExportConnections(connections, nodeMap, 'straight', nodes), totalHeight }
+}
+
+function layoutRadialExport(nodes: FormulationNode[], connections: FormulationConnection[]): ExportLayoutResult {
+  const centre = nodes.find(n => n.slot === 'centre')
+  const petals = nodes.filter(n => n.slot !== 'centre')
+  const centreSize = 200, petalW = 170, petalH = 120
+  const radius = centreSize / 2 + Math.max(petalW, petalH) / 2 + 45
+  const cx = EXPORT_W / 2, cy = radius + centreSize / 2 + 10
+  const layouts: ExportNodeLayout[] = []
+  if (centre) layouts.push({ id: centre.id, x: cx - centreSize / 2, y: cy - centreSize / 2, width: centreSize, height: centreSize, shape: 'circle' })
+  const angleStep = (2 * Math.PI) / petals.length, startAngle = -Math.PI / 2
+  for (let i = 0; i < petals.length; i++) {
+    const angle = startAngle + i * angleStep
+    layouts.push({ id: petals[i].id, x: cx + radius * Math.cos(angle) - petalW / 2, y: cy + radius * Math.sin(angle) - petalH / 2, width: petalW, height: petalH, shape: 'pill' })
+  }
+  const nodeMap = new Map(layouts.map(n => [n.id, n]))
+  const totalHeight = layouts.reduce((max, n) => Math.max(max, n.y + n.height), 0) + 20
+  return { nodes: layouts, connections: buildExportConnections(connections, nodeMap, 'curved', nodes), totalHeight }
+}
+
+function layoutVerticalFlowExport(nodes: FormulationNode[], connections: FormulationConnection[]): ExportLayoutResult {
+  const steps = nodes.filter(n => n.slot.startsWith('step-')).sort((a, b) => parseInt(a.slot.split('-')[1]) - parseInt(b.slot.split('-')[1]))
+  const gridNodes = nodes.filter(n => n.slot.startsWith('grid-')).sort((a, b) => parseInt(a.slot.split('-')[1]) - parseInt(b.slot.split('-')[1]))
+  const stepW = 340, stepH = 110, gap = 50, cx = EXPORT_W / 2
+  const layouts: ExportNodeLayout[] = []
+  let y = 0
+  for (const step of steps) {
+    layouts.push({ id: step.id, x: cx - stepW / 2, y, width: stepW, height: stepH, shape: 'rect' })
+    y += stepH + gap
+  }
+  if (gridNodes.length > 0) {
+    const gridW = 155, gridH = 100, gridGap = 16, gridTotalW = gridW * 2 + gridGap, gridStartX = cx - gridTotalW / 2
+    for (let i = 0; i < gridNodes.length && i < 4; i++) {
+      const col = i % 2, row = Math.floor(i / 2)
+      layouts.push({ id: gridNodes[i].id, x: gridStartX + col * (gridW + gridGap), y: y + row * (gridH + gridGap), width: gridW, height: gridH, shape: 'rect' })
+    }
+    y += Math.ceil(Math.min(gridNodes.length, 4) / 2) * (gridH + gridGap)
+  }
+  const nodeMap = new Map(layouts.map(n => [n.id, n]))
+  return { nodes: layouts, connections: buildExportConnections(connections, nodeMap, 'straight', nodes), totalHeight: y + 10 }
+}
+
+function layoutCycleExport(nodes: FormulationNode[], connections: FormulationConnection[]): ExportLayoutResult {
+  const sorted = [...nodes].sort((a, b) => parseInt(a.slot.replace('cycle-', '')) - parseInt(b.slot.replace('cycle-', '')))
+  const n = sorted.length, nodeW = 170, nodeH = 120, cx = EXPORT_W / 2
+  const radius = Math.min(150 + n * 10, EXPORT_W * 0.32), cy = radius + nodeH / 2 + 10
+  const layouts: ExportNodeLayout[] = []
+  const startAngle = -Math.PI / 2, angleStep = (2 * Math.PI) / n
+  for (let i = 0; i < n; i++) {
+    const angle = startAngle + i * angleStep
+    layouts.push({ id: sorted[i].id, x: cx + radius * Math.cos(angle) - nodeW / 2, y: cy + radius * Math.sin(angle) - nodeH / 2, width: nodeW, height: nodeH, shape: 'rect' })
+  }
+  const nodeMap = new Map(layouts.map(nl => [nl.id, nl]))
+  const totalHeight = layouts.reduce((max, nl) => Math.max(max, nl.y + nl.height), 0) + 20
+  return { nodes: layouts, connections: buildExportConnections(connections, nodeMap, 'curved', nodes), totalHeight }
+}
+
+function layoutThreeSystemsExport(nodes: FormulationNode[], connections: FormulationConnection[]): ExportLayoutResult {
+  const bySlot: Record<string, FormulationNode> = {}
+  for (const n of nodes) bySlot[n.slot] = n
+  const nodeW = 180, nodeH = 130, cx = EXPORT_W / 2
+  const topY = 10, bottomY = topY + 260, spread = 210
+  const layouts: ExportNodeLayout[] = []
+  if (bySlot['system-0']) layouts.push({ id: bySlot['system-0'].id, x: cx - nodeW / 2, y: topY, width: nodeW, height: nodeH, shape: 'rect' })
+  if (bySlot['system-1']) layouts.push({ id: bySlot['system-1'].id, x: cx - spread - nodeW / 2, y: bottomY, width: nodeW, height: nodeH, shape: 'rect' })
+  if (bySlot['system-2']) layouts.push({ id: bySlot['system-2'].id, x: cx + spread - nodeW / 2, y: bottomY, width: nodeW, height: nodeH, shape: 'rect' })
+  if (bySlot['centre']) {
+    const cs = 130, centreY = topY + (bottomY - topY) * 0.55
+    layouts.push({ id: bySlot['centre'].id, x: cx - cs / 2, y: centreY - cs / 2, width: cs, height: cs, shape: 'circle' })
+  }
+  const nodeMap = new Map(layouts.map(nl => [nl.id, nl]))
+  const totalHeight = layouts.reduce((max, nl) => Math.max(max, nl.y + nl.height), 0) + 20
+  return { nodes: layouts, connections: buildExportConnections(connections, nodeMap, 'straight', nodes), totalHeight }
+}
+
+function computeExportLayout(layout: string, nodes: FormulationNode[], connections: FormulationConnection[]): ExportLayoutResult {
+  switch (layout) {
+    case 'cross_sectional': return layoutCrossSectionalExport(nodes, connections)
+    case 'radial': return layoutRadialExport(nodes, connections)
+    case 'vertical_flow': return layoutVerticalFlowExport(nodes, connections)
+    case 'cycle': return layoutCycleExport(nodes, connections)
+    case 'three_systems': return layoutThreeSystemsExport(nodes, connections)
+    default: {
+      // Fallback: vertical stack
+      let y = 0
+      const layouts: ExportNodeLayout[] = nodes.map(n => {
+        const nl: ExportNodeLayout = { id: n.id, x: 0, y, width: EXPORT_W, height: 140, shape: 'rect' }
+        y += 152
+        return nl
+      })
+      const nodeMap = new Map(layouts.map(nl => [nl.id, nl]))
+      return { nodes: layouts, connections: buildExportConnections(connections, nodeMap, 'straight', nodes), totalHeight: y + 8 }
+    }
+  }
 }
 
 // ── CSS ──
@@ -414,7 +616,53 @@ function generateCss(): string {
       margin-bottom: 6px;
     }
 
-    /* Formulation nodes (new format) */
+    /* Formulation spatial diagram */
+    .formulation-spatial {
+      position: relative;
+      width: 700px;
+      margin: 0 auto;
+    }
+    .formulation-spatial svg {
+      position: absolute;
+      top: 0; left: 0;
+      pointer-events: none;
+    }
+    .formulation-spatial-node {
+      position: absolute;
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      border-width: 2px;
+      border-style: solid;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .formulation-spatial-node[data-shape="circle"] {
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .formulation-spatial-node[data-shape="pill"] {
+      border-radius: 999px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 16px 20px;
+    }
+    .formulation-node-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .formulation-spatial-node .field { margin-bottom: 6px; }
+    .formulation-spatial-node .field:last-child { margin-bottom: 0; }
+    .formulation-spatial-node textarea { font-size: 12px; min-height: 40px; }
+    .formulation-spatial-node input { font-size: 12px; }
+
+    /* Formulation grid fallback (non-spatial) */
     .formulation-nodes {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -425,19 +673,6 @@ function generateCss(): string {
       padding: 16px;
       border-width: 2px;
       border-style: solid;
-    }
-    .formulation-node-label {
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-    }
-    .formulation-node-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-900);
-      margin-bottom: 8px;
     }
     .formulation-node .field { margin-bottom: 12px; }
     .formulation-node .field:last-child { margin-bottom: 0; }
@@ -547,6 +782,10 @@ function generateCss(): string {
       footer { border-top: 2px solid var(--brand); }
       input[type="range"] { display: none; }
       .likert-value { font-size: 16px; }
+      /* Formulation spatial diagram print */
+      .formulation-spatial { page-break-inside: avoid; }
+      .formulation-spatial svg { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .formulation-spatial-node { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     }
   `
 }
@@ -968,7 +1207,71 @@ function renderFormulationNodeField(
 }
 
 function renderFormulationField(field: FormulationField): string {
-  // New format: nodes array present → render as domain-coloured node cards
+  // New format: nodes + layout → render as spatial diagram with SVG connections
+  if (field.nodes && field.nodes.length > 0 && field.layout) {
+    const nodes = field.nodes
+    const connections = field.connections || []
+    const layoutPattern = field.layout as string
+    const result = computeExportLayout(layoutPattern, nodes, connections)
+
+    // Build a lookup from node id to schema node
+    const nodeById = new Map(nodes.map(n => [n.id, n]))
+
+    // Build SVG for connections
+    const arrowColour = '#94a3b8'
+    // Collect unique colours for per-colour marker defs
+    const uniqueColours = new Set<string>()
+    for (const c of result.connections) {
+      if (c.colour) uniqueColours.add(c.colour)
+    }
+
+    const markerDefs = [
+      `<marker id="fml-ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="${arrowColour}" /></marker>`,
+      `<marker id="fml-ah-r" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto"><polygon points="8 0, 0 3, 8 6" fill="${arrowColour}" /></marker>`,
+      ...[...uniqueColours].map(hex => {
+        const id = hex.replace('#', '')
+        const mc = `${hex}aa`
+        return `<marker id="fml-ah-${id}" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="${mc}" /></marker>` +
+          `<marker id="fml-ah-r-${id}" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto"><polygon points="8 0, 0 3, 8 6" fill="${mc}" /></marker>`
+      })
+    ].join('')
+
+    const paths = result.connections.map(c => {
+      const colId = c.colour ? c.colour.replace('#', '') : ''
+      const stroke = c.colour ? `${c.colour}aa` : arrowColour
+      const mEnd = c.markerEnd ? `marker-end="url(#fml-ah${colId ? '-' + colId : ''})"` : ''
+      const mStart = c.markerStart ? `marker-start="url(#fml-ah-r${colId ? '-' + colId : ''})"` : ''
+      const dash = c.dashed ? 'stroke-dasharray="6,4"' : ''
+      return `<path d="${c.d}" fill="none" stroke="${stroke}" stroke-width="1.5" ${dash} ${mEnd} ${mStart} />`
+    }).join('')
+
+    const svgHtml = `<svg width="${EXPORT_W}" height="${result.totalHeight}" style="overflow:visible"><defs>${markerDefs}</defs>${paths}</svg>`
+
+    // Build node cards as absolutely positioned divs
+    const nodeHtml = result.nodes.map(nl => {
+      const schemaNode = nodeById.get(nl.id)
+      if (!schemaNode) return ''
+      const colours = getColourFromHex(schemaNode.domain_colour)
+      const fields = schemaNode.fields.map(nf =>
+        renderFormulationNodeField(field.id, schemaNode.id, nf)
+      ).join('')
+
+      const borderRadius = nl.shape === 'circle' ? 'border-radius:50%;' : nl.shape === 'pill' ? 'border-radius:999px;' : ''
+      return `<div class="formulation-spatial-node" data-shape="${nl.shape}" style="left:${nl.x.toFixed(0)}px;top:${nl.y.toFixed(0)}px;width:${nl.width.toFixed(0)}px;height:${nl.height.toFixed(0)}px;background:${colours.bg};border-color:${colours.border};${borderRadius}">
+        <div class="formulation-node-label" style="color:${colours.text};">${esc(schemaNode.label.toUpperCase())}</div>
+        ${schemaNode.description ? `<div style="font-size:10px;color:${colours.text};opacity:0.8;margin-bottom:4px;">${esc(schemaNode.description)}</div>` : ''}
+        ${fields}
+      </div>`
+    }).join('')
+
+    const title = field.formulation_config?.show_title && field.formulation_config?.title
+      ? `<div class="section-title" style="margin-bottom:12px;">${esc(field.formulation_config.title)}</div>`
+      : ''
+
+    return `<div class="field">${title}<div class="formulation-spatial" style="height:${result.totalHeight}px;">${svgHtml}${nodeHtml}</div></div>`
+  }
+
+  // New format without layout — fallback to grid cards
   if (field.nodes && field.nodes.length > 0) {
     const nodeCards = field.nodes.map((node) => {
       const colours = getColourFromHex(node.domain_colour)

@@ -7,20 +7,20 @@ import { buttonVariants } from '@/components/ui/button-variants'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Formulate — Professional CBT Worksheets for Therapists',
+  title: 'Formulate — AI-Powered CBT Worksheets for Therapists',
   description:
-    'Interactive, evidence-based CBT worksheets that clients complete digitally. Assign homework via a link, track progress, and review responses before the next session.',
+    'Interactive, evidence-based CBT worksheets that clients complete digitally. Generate custom worksheets with AI, build formulation diagrams, assign homework via a link, and review responses.',
   openGraph: {
-    title: 'Formulate — Professional CBT Worksheets for Therapists',
+    title: 'Formulate — AI-Powered CBT Worksheets for Therapists',
     description:
-      'Interactive CBT worksheets your clients complete digitally — structured, evidence-based, and ready to review.',
+      'Generate custom CBT worksheets with AI. Interactive formulation diagrams, homework links, and a curated clinical library — all in one platform.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Formulate — Professional CBT Worksheets for Therapists',
+    title: 'Formulate — AI-Powered CBT Worksheets for Therapists',
     description:
-      'Interactive CBT worksheets your clients complete digitally — structured, evidence-based, and ready to review.',
+      'Generate custom CBT worksheets with AI. Interactive formulation diagrams, homework links, and a curated clinical library — all in one platform.',
   },
 }
 
@@ -42,8 +42,8 @@ export default function Home() {
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-primary-500">
           Formulate gives therapists a curated library of CBT worksheets that
-          clients complete digitally — structured, evidence-based, and ready to
-          review.
+          clients complete digitally — or describe what you need and let AI
+          build it in seconds.
         </p>
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link
@@ -80,8 +80,84 @@ export default function Home() {
         </div>
       </section>
 
+      {/* AI Showcase */}
+      <section id="ai" className="py-20">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-brand">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+              </svg>
+              AI-Powered
+            </span>
+            <h2 className="mt-4 text-3xl font-bold text-primary-900">
+              Describe it. We&apos;ll build it.
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-primary-500">
+              Type a description like &ldquo;health anxiety maintenance formulation&rdquo;
+              or &ldquo;thought record for social anxiety&rdquo; — and get a complete,
+              clinically accurate worksheet in seconds.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-8 sm:grid-cols-3">
+            <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                </svg>
+              </div>
+              <h3 className="mt-4 text-base font-semibold text-primary-900">
+                Generate from a description
+              </h3>
+              <p className="mt-2 text-sm text-primary-500">
+                Describe any CBT worksheet or formulation model. AI generates
+                the full schema — fields, layout, and clinical structure.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+              </div>
+              <h3 className="mt-4 text-base font-semibold text-primary-900">
+                Import existing worksheets
+              </h3>
+              <p className="mt-2 text-sm text-primary-500">
+                Upload a PDF or Word document of your paper worksheet. AI
+                converts it into an interactive digital version automatically.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+                </svg>
+              </div>
+              <h3 className="mt-4 text-base font-semibold text-primary-900">
+                Interactive formulation diagrams
+              </h3>
+              <p className="mt-2 text-sm text-primary-500">
+                Five areas, vicious flowers, maintenance cycles, longitudinal
+                models, CFT three systems — all interactive with client input fields.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-10 text-center">
+            <p className="text-sm text-primary-400">
+              AI generation available on Starter plans and above.
+              All generated worksheets are fully editable in the builder.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* How It Works */}
-      <section className="py-20">
+      <section className="border-t border-primary-100 bg-primary-100/50 py-20">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-center text-3xl font-bold text-primary-900">
             How it works
@@ -144,7 +220,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="border-t border-primary-100 bg-primary-100/50 py-20">
+      <section className="py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-center text-3xl font-bold text-primary-900">
             Everything you need in one place
@@ -202,9 +278,9 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17l-5.384 3.174A1.125 1.125 0 014.5 17.28V5.97a1.125 1.125 0 011.536-1.064l5.384 3.174m0 0L16.804 5.9a1.125 1.125 0 011.536 1.064v11.31a1.125 1.125 0 01-1.536 1.064l-5.384-3.174m0 0L6.92 18.626" />
                   </svg>
                 ),
-                title: 'Build your own',
+                title: 'Build or generate your own',
                 description:
-                  'Create custom worksheets with our drag-and-drop builder. Fork any curated tool and make it yours.',
+                  'Create custom worksheets with our builder, or describe what you need and let AI generate it. Fork any curated tool.',
               },
               {
                 icon: (

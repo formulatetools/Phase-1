@@ -67,7 +67,7 @@ export function OnboardingChecklist({ status }: OnboardingChecklistProps) {
   if (!visible) return null
 
   return (
-    <div className="mb-6 rounded-2xl border border-brand/20 bg-gradient-to-br from-brand-light to-white p-6 shadow-sm">
+    <div className="mb-6 rounded-2xl border border-brand/20 bg-gradient-to-br from-brand-light to-white dark:to-surface p-6 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -191,7 +191,7 @@ export function ReviewForm({ worksheetId, existingReview, isCompleted }: Props) 
                 className={`rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all ${
                   recommendation === opt.value
                     ? opt.color
-                    : 'border-primary-100 bg-white text-primary-600 hover:border-primary-200'
+                    : 'border-primary-100 bg-surface text-primary-600 hover:border-primary-200'
                 }`}
               >
                 {opt.label}
