@@ -16,16 +16,32 @@ interface Props {
  *   - "fieldId"                         → single top-level value
  *   - "tableId.columnId"                → all row values for that column
  *   - "formulationId.nodeId.fieldId"    → single value from a formulation node
+ *   - "recordId.groupId.fieldId"        → values from ALL records for that group/field
  */
 function resolveNumericValues(allValues: Record<string, unknown>, fieldRef: string): number[] {
   const parts = fieldRef.split('.')
 
-  // 3-part: formulation dot notation → formulationId.nodeId.fieldId
+  // 3-part: disambiguate record (has .records array) vs formulation (has .nodes object)
   if (parts.length === 3) {
-    const [formulationId, nodeId, fieldId] = parts
-    const formulationData = allValues[formulationId] as Record<string, unknown> | undefined
-    const nodesData = formulationData?.nodes as Record<string, Record<string, unknown>> | undefined
-    const val = nodesData?.[nodeId]?.[fieldId]
+    const [parentId, secondId, fieldId] = parts
+    const parentData = allValues[parentId] as Record<string, unknown> | undefined
+    if (!parentData) return []
+
+    // Record: { records: [{ groupId: { fieldId: value } }, ...] }
+    if (Array.isArray(parentData.records)) {
+      const records = parentData.records as Record<string, Record<string, unknown>>[]
+      return records
+        .map((rec) => {
+          const val = rec[secondId]?.[fieldId]
+          if (val === '' || val === undefined || val === null) return NaN
+          return Number(val)
+        })
+        .filter((v) => !isNaN(v))
+    }
+
+    // Formulation: { nodes: { nodeId: { fieldId: value } } }
+    const nodesData = parentData.nodes as Record<string, Record<string, unknown>> | undefined
+    const val = nodesData?.[secondId]?.[fieldId]
     if (val === '' || val === undefined || val === null) return []
     const num = Number(val)
     return isNaN(num) ? [] : [num]

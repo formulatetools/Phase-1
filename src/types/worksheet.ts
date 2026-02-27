@@ -13,6 +13,7 @@ export type CustomFieldType =
   | 'table'
   | 'computed'
   | 'formulation'
+  | 'record'
 
 export type FieldType =
   | 'text'
@@ -30,6 +31,7 @@ export type FieldType =
   | 'hierarchy'
   | 'decision_tree'
   | 'safety_plan'
+  | 'record'
 
 export interface BaseField {
   id: string
@@ -244,6 +246,36 @@ export interface FormulationField extends BaseField {
   domain?: DomainType
 }
 
+// Record field — paginated multi-column records (e.g. 5-column thought record)
+export type RecordSubFieldType = 'text' | 'textarea' | 'number' | 'likert' | 'checklist' | 'select'
+
+export interface RecordSubField {
+  id: string
+  type: RecordSubFieldType
+  label?: string
+  placeholder?: string
+  min?: number
+  max?: number
+  step?: number
+  suffix?: string
+  anchors?: Record<string, string>
+  options?: { id: string; label: string }[]
+}
+
+export interface RecordGroup {
+  id: string
+  header: string
+  width?: 'narrow' | 'normal' | 'wide'
+  fields: RecordSubField[]
+}
+
+export interface RecordField extends BaseField {
+  type: 'record'
+  groups: RecordGroup[]
+  min_records?: number   // default 1
+  max_records?: number   // default 20
+}
+
 export type WorksheetField =
   | TextField
   | TextareaField
@@ -259,6 +291,7 @@ export type WorksheetField =
   | SafetyPlanField
   | DecisionTreeField
   | FormulationField
+  | RecordField
 
 export interface WorksheetSection {
   id: string

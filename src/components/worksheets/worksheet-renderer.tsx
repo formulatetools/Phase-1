@@ -12,6 +12,7 @@ import type {
   ComputedField as ComputedFieldSchema,
   HierarchyField as HierarchyFieldSchema,
   FormulationField as FormulationFieldSchema,
+  RecordField as RecordFieldSchema,
 } from '@/types/worksheet'
 import {
   TextField,
@@ -32,7 +33,9 @@ import {
   FormulationLayout,
   FormulationReadOnly,
   FormulationFieldRenderer,
+  RecordFieldRenderer,
 } from './fields'
+import type { RecordFieldValue } from './fields/record-field'
 import { convertLegacyFormulation } from '@/lib/utils/convert-legacy-formulation'
 
 type FieldValue = string | number | '' | string[] | Record<string, string | number | ''>[]
@@ -123,6 +126,24 @@ export function WorksheetRenderer({
             // New-format formulation: nested node values
             initial[field.id] = { nodes: {} } as unknown as FieldValue
             break
+          case 'record': {
+            const rf = field as RecordFieldSchema
+            const minRecs = rf.min_records ?? 1
+            const emptyRecord: Record<string, Record<string, string | number | ''>> = {}
+            for (const group of rf.groups) {
+              const gv: Record<string, string | number | ''> = {}
+              for (const f of group.fields) {
+                gv[f.id] = f.type === 'likert' ? (f.min ?? 0) : ''
+              }
+              emptyRecord[group.id] = gv
+            }
+            initial[field.id] = {
+              records: Array.from({ length: minRecs }, () =>
+                JSON.parse(JSON.stringify(emptyRecord))
+              ),
+            } as unknown as FieldValue
+            break
+          }
           case 'number':
             initial[field.id] = ''
             break
@@ -379,6 +400,20 @@ export function WorksheetRenderer({
             )
           }
           return null
+        }
+
+        case 'record': {
+          const rf = field as RecordFieldSchema
+          const recordValue = (values[field.id] as unknown as RecordFieldValue) || { records: [] }
+          return (
+            <RecordFieldRenderer
+              key={field.id}
+              field={rf}
+              value={recordValue}
+              onChange={() => {}}
+              readOnly
+            />
+          )
         }
 
         case 'checklist': {
@@ -693,6 +728,18 @@ export function WorksheetRenderer({
             )
           }
           return null
+        }
+        case 'record': {
+          const rf = field as RecordFieldSchema
+          const recordValue = (values[field.id] as unknown as RecordFieldValue) || { records: [] }
+          return (
+            <RecordFieldRenderer
+              key={field.id}
+              field={rf}
+              value={recordValue}
+              onChange={(v) => updateValue(field.id, v as unknown as FieldValue)}
+            />
+          )
         }
         default:
           return null

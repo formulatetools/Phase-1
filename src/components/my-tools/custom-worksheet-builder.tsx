@@ -126,6 +126,7 @@ export function CustomWorksheetBuilder({
   // Collect all number field IDs across all sections (for computed field sources)
   const allNumberFieldIds: { id: string; label: string }[] = []
   let hasFormulation = false
+  let hasRecord = false
   for (const section of sections) {
     for (const field of section.fields) {
       if (field.type === 'number' || field.type === 'likert') {
@@ -133,6 +134,9 @@ export function CustomWorksheetBuilder({
       }
       if (field.type === 'formulation') {
         hasFormulation = true
+      }
+      if (field.type === 'record') {
+        hasRecord = true
       }
     }
   }
@@ -436,6 +440,7 @@ export function CustomWorksheetBuilder({
                 totalSections={sections.length}
                 allNumberFieldIds={allNumberFieldIds}
                 hasFormulation={hasFormulation}
+                hasRecord={hasRecord}
                 onUpdate={(s) => updateSection(si, s)}
                 onRemove={() => removeSection(si)}
                 onMoveUp={() => si > 0 && moveSection(si, si - 1)}

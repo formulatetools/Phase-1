@@ -19,6 +19,9 @@ import type {
   FormulationField,
   FormulationNode,
   TableColumn,
+  RecordField,
+  RecordGroup,
+  RecordSubField,
 } from '@/types/worksheet'
 import { getColourFromHex } from '@/lib/domain-colors'
 
@@ -473,6 +476,69 @@ function generateCss(): string {
     .save-indicator.visible { opacity: 1; }
 
     /* Print styles */
+    /* Record field — paginated cards */
+    .record-container { position: relative; }
+    .record-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .record-nav-group { display: flex; align-items: center; gap: 8px; }
+    .record-nav-label { font-size: 13px; font-weight: 600; color: var(--text-600); min-width: 90px; text-align: center; }
+    .record-nav button {
+      border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px;
+      background: var(--surface); cursor: pointer; color: var(--text-500); font-size: 12px;
+    }
+    .record-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+    .record-nav button:hover:not(:disabled) { background: var(--bg); }
+    .record-btn-add {
+      border-color: var(--brand) !important; color: var(--brand) !important;
+    }
+    .record-btn-delete {
+      border-color: var(--red-border) !important; color: var(--red) !important;
+    }
+    .record-card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--surface); padding: 16px;
+    }
+    .record-card[data-hidden="true"] { display: none; }
+    .record-grid {
+      display: grid; gap: 16px;
+    }
+    .record-group-col { display: flex; flex-direction: column; gap: 8px; }
+    .record-group-header {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--text-500);
+      border-bottom: 1px solid var(--border-light); padding-bottom: 6px;
+    }
+    .record-subfield { display: flex; flex-direction: column; gap: 4px; }
+    .record-subfield-label { font-size: 11px; font-weight: 500; color: var(--text-500); }
+    .record-slider-wrap { display: flex; align-items: center; gap: 8px; }
+    .record-slider-wrap input[type="range"] { flex: 1; }
+    .record-slider-val { min-width: 40px; text-align: right; font-size: 13px; font-weight: 600; color: var(--text-800); }
+    .record-dots { display: flex; justify-content: center; gap: 6px; margin-top: 8px; }
+    .record-dot {
+      width: 8px; height: 8px; border-radius: 50%; border: none;
+      background: var(--border); cursor: pointer; padding: 0;
+    }
+    .record-dot.active { background: var(--brand); }
+
+    /* Record print table — for PDF/print */
+    .record-print-table { display: none; }
+
+    @media (max-width: 768px) {
+      .record-grid { grid-template-columns: 1fr !important; }
+    }
+
+    @media print {
+      .record-container .record-nav { display: none; }
+      .record-container .record-dots { display: none; }
+      .record-card { display: none !important; }
+      .record-print-table { display: block !important; }
+      .record-print-table table { width: 100%; border-collapse: collapse; font-size: 11px; }
+      .record-print-table th { background: #f8f8f8; font-weight: 600; text-align: left; padding: 6px 8px; border: 1px solid #ddd; }
+      .record-print-table td { padding: 6px 8px; border: 1px solid #ddd; vertical-align: top; }
+    }
+
     @media print {
       body { background: white; }
       .section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
@@ -663,6 +729,130 @@ function renderHierarchyField(field: HierarchyField): string {
   </div>`
 }
 
+function renderRecordSubField(fieldId: string, recordIdx: number, groupId: string, sf: RecordSubField): string {
+  const elId = `${fieldId}_r${recordIdx}_${groupId}_${sf.id}`
+  const label = sf.label ? `<div class="record-subfield-label">${esc(sf.label)}</div>` : ''
+
+  switch (sf.type) {
+    case 'textarea':
+      return `<div class="record-subfield">${label}
+        <textarea id="${esc(elId)}" name="${esc(elId)}" rows="3" placeholder="${esc(sf.placeholder || '')}"></textarea>
+      </div>`
+    case 'text':
+      return `<div class="record-subfield">${label}
+        <input type="text" id="${esc(elId)}" name="${esc(elId)}" placeholder="${esc(sf.placeholder || '')}" />
+      </div>`
+    case 'number': {
+      const attrs = [
+        sf.min !== undefined ? `min="${sf.min}"` : '',
+        sf.max !== undefined ? `max="${sf.max}"` : '',
+        sf.step !== undefined ? `step="${sf.step}"` : '',
+      ].filter(Boolean).join(' ')
+      const suffix = sf.suffix ? `<span style="font-size:11px;color:var(--text-400)">${esc(sf.suffix)}</span>` : ''
+      return `<div class="record-subfield">${label}
+        <div style="display:flex;align-items:center;gap:6px">
+          <input type="number" id="${esc(elId)}" name="${esc(elId)}" ${attrs} placeholder="${esc(sf.placeholder || '')}" style="flex:1" />${suffix}
+        </div>
+      </div>`
+    }
+    case 'likert': {
+      const min = sf.min ?? 0
+      const max = sf.max ?? 100
+      const step = sf.step ?? 1
+      const suffix = sf.suffix || '%'
+      return `<div class="record-subfield">${label}
+        <div class="record-slider-wrap">
+          <input type="range" id="${esc(elId)}" name="${esc(elId)}" min="${min}" max="${max}" step="${step}" value="${min}" data-likert="1"
+            oninput="document.getElementById('${esc(elId)}-val').textContent=this.value+'${esc(suffix)}'" />
+          <span class="record-slider-val" id="${esc(elId)}-val">${min}${esc(suffix)}</span>
+        </div>
+      </div>`
+    }
+    case 'checklist': {
+      const opts = (sf.options || []).map(opt =>
+        `<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-700)">
+          <input type="checkbox" name="${esc(elId)}" value="${esc(opt.id)}" /> ${esc(opt.label)}
+        </label>`
+      ).join('')
+      return `<div class="record-subfield">${label}<div style="display:flex;flex-direction:column;gap:4px">${opts}</div></div>`
+    }
+    case 'select': {
+      const opts = (sf.options || []).map(opt =>
+        `<option value="${esc(opt.id)}">${esc(opt.label)}</option>`
+      ).join('')
+      return `<div class="record-subfield">${label}
+        <select id="${esc(elId)}" name="${esc(elId)}">
+          <option value="">${esc(sf.placeholder || 'Select...')}</option>${opts}
+        </select>
+      </div>`
+    }
+    default:
+      return ''
+  }
+}
+
+function renderRecordField(field: RecordField): string {
+  const req = field.required ? '<span class="required">*</span>' : ''
+  const minRecords = field.min_records ?? 1
+  const maxRecords = field.max_records ?? 20
+  const fid = esc(field.id)
+
+  // Grid columns based on group widths
+  const gridCols = field.groups.map(g => {
+    switch (g.width) {
+      case 'narrow': return 'minmax(0, 0.7fr)'
+      case 'wide': return 'minmax(0, 1.5fr)'
+      default: return 'minmax(0, 1fr)'
+    }
+  }).join(' ')
+
+  // Render initial cards
+  const cards = Array.from({ length: minRecords }, (_, ri) => {
+    const groups = field.groups.map(group => {
+      const subFields = group.fields.map(sf =>
+        renderRecordSubField(field.id, ri, group.id, sf)
+      ).join('')
+      return `<div class="record-group-col">
+        <div class="record-group-header">${esc(group.header)}</div>
+        ${subFields}
+      </div>`
+    }).join('')
+    return `<div class="record-card" data-record="${fid}" data-record-idx="${ri}" ${ri > 0 ? 'data-hidden="true"' : ''}>
+      <div class="record-grid" style="grid-template-columns:${gridCols}">${groups}</div>
+    </div>`
+  }).join('')
+
+  // Dot indicators
+  const dots = Array.from({ length: minRecords }, (_, i) =>
+    `<button type="button" class="record-dot${i === 0 ? ' active' : ''}" data-record-dot="${fid}" data-dot-idx="${i}" onclick="recordGoTo('${fid}',${i})"></button>`
+  ).join('')
+
+  // Print table: group headers as columns
+  const printHeaders = field.groups.map(g => `<th>${esc(g.header)}</th>`).join('')
+  const printRow = `<tr>${field.groups.map(g => `<td>&nbsp;</td>`).join('')}</tr>`
+  const printRows = Array.from({ length: minRecords }, () => printRow).join('')
+
+  return `<div class="field record-container" data-record-field="${fid}" data-min-records="${minRecords}" data-max-records="${maxRecords}">
+    <label class="field-label">${esc(field.label)}${req}</label>
+    <div class="record-nav">
+      <div class="record-nav-group">
+        <button type="button" onclick="recordNav('${fid}',-1)">&#8249;</button>
+        <span class="record-nav-label" id="${fid}-nav-label">Record 1 of ${minRecords}</span>
+        <button type="button" onclick="recordNav('${fid}',1)">&#8250;</button>
+      </div>
+      <div class="record-nav-group">
+        <button type="button" class="record-btn-delete" onclick="recordDelete('${fid}')">Delete</button>
+        <button type="button" class="record-btn-add" onclick="recordAdd('${fid}')">+ Add</button>
+      </div>
+    </div>
+    ${cards}
+    <div class="record-dots" id="${fid}-dots">${dots}</div>
+    <div class="record-print-table">
+      <table><thead><tr>${printHeaders}</tr></thead><tbody>${printRows}</tbody></table>
+    </div>
+  </div>`
+}
+
 function renderComputedField(field: WorksheetField): string {
   return `<div class="field">
     <label class="field-label">${esc(field.label)}</label>
@@ -830,6 +1020,7 @@ function renderField(field: WorksheetField): string {
     case 'safety_plan': return renderSafetyPlanField(field as SafetyPlanField)
     case 'decision_tree': return renderDecisionTreeField(field as DecisionTreeField)
     case 'formulation': return renderFormulationField(field as FormulationField)
+    case 'record': return renderRecordField(field as RecordField)
     default: return ''
   }
 }
@@ -968,10 +1159,29 @@ function generateJs(schema: WorksheetSchema, storageKey: string): string {
     Object.fromEntries(tableFields.map(t => [t.id, t.columns.map(c => ({ id: c.id, type: c.type, header: c.header }))]))
   )
 
+  // Collect record field info for navigation/add/delete
+  const recordFields: { id: string; groups: RecordGroup[] }[] = []
+  for (const section of schema.sections) {
+    for (const field of section.fields) {
+      if (field.type === 'record') {
+        recordFields.push({ id: field.id, groups: (field as RecordField).groups })
+      }
+    }
+  }
+  const recordGroupsJson = JSON.stringify(
+    Object.fromEntries(recordFields.map(r => [r.id, r.groups.map(g => ({
+      id: g.id,
+      header: g.header,
+      width: g.width || 'normal',
+      fields: g.fields.map(sf => ({ id: sf.id, type: sf.type, label: sf.label, placeholder: sf.placeholder, min: sf.min, max: sf.max, step: sf.step, suffix: sf.suffix, options: sf.options })),
+    }))]))
+  )
+
   return `
 (function() {
   var STORAGE_KEY = ${JSON.stringify(storageKey)};
   var TABLE_COLUMNS = ${tableColumnsJson};
+  var RECORD_GROUPS = ${recordGroupsJson};
   var saveTimer = null;
 
   // ── Save / Load ──
@@ -1154,6 +1364,161 @@ function generateJs(schema: WorksheetSchema, storageKey: string): string {
     var noBranch = document.getElementById(treeId + '-no');
     if (yesBranch) yesBranch.classList.toggle('visible', branch === 'yes');
     if (noBranch) noBranch.classList.toggle('visible', branch === 'no');
+    debouncedSave();
+  };
+
+  // ── Record field navigation ──
+
+  var recordState = {};
+  document.querySelectorAll('[data-record-field]').forEach(function(container) {
+    var fid = container.dataset.recordField;
+    recordState[fid] = { current: 0, total: container.querySelectorAll('.record-card').length };
+  });
+
+  function updateRecordUI(fid) {
+    var state = recordState[fid];
+    if (!state) return;
+    var cards = document.querySelectorAll('.record-card[data-record="' + fid + '"]');
+    cards.forEach(function(card, i) {
+      card.dataset.hidden = (i !== state.current) ? 'true' : 'false';
+    });
+    var label = document.getElementById(fid + '-nav-label');
+    if (label) label.textContent = 'Record ' + (state.current + 1) + ' of ' + state.total;
+    var dots = document.querySelectorAll('[data-record-dot="' + fid + '"]');
+    dots.forEach(function(dot, i) {
+      dot.classList.toggle('active', i === state.current);
+    });
+  }
+
+  window.recordNav = function(fid, dir) {
+    var state = recordState[fid];
+    if (!state) return;
+    var next = state.current + dir;
+    if (next < 0 || next >= state.total) return;
+    state.current = next;
+    updateRecordUI(fid);
+  };
+
+  window.recordGoTo = function(fid, idx) {
+    var state = recordState[fid];
+    if (!state || idx < 0 || idx >= state.total) return;
+    state.current = idx;
+    updateRecordUI(fid);
+  };
+
+  window.recordAdd = function(fid) {
+    var container = document.querySelector('[data-record-field="' + fid + '"]');
+    if (!container) return;
+    var maxRecords = parseInt(container.dataset.maxRecords) || 20;
+    var state = recordState[fid];
+    if (!state || state.total >= maxRecords) return;
+
+    var groups = RECORD_GROUPS[fid] || [];
+    var ri = state.total;
+
+    // Build grid columns
+    var gridCols = groups.map(function(g) {
+      if (g.width === 'narrow') return 'minmax(0,0.7fr)';
+      if (g.width === 'wide') return 'minmax(0,1.5fr)';
+      return 'minmax(0,1fr)';
+    }).join(' ');
+
+    var card = document.createElement('div');
+    card.className = 'record-card';
+    card.dataset.record = fid;
+    card.dataset.recordIdx = String(ri);
+
+    var grid = document.createElement('div');
+    grid.className = 'record-grid';
+    grid.style.gridTemplateColumns = gridCols;
+
+    groups.forEach(function(group) {
+      var col = document.createElement('div');
+      col.className = 'record-group-col';
+      col.innerHTML = '<div class="record-group-header">' + group.header + '</div>';
+      group.fields.forEach(function(sf) {
+        var elId = fid + '_r' + ri + '_' + group.id + '_' + sf.id;
+        var html = '';
+        var labelHtml = sf.label ? '<div class="record-subfield-label">' + sf.label + '</div>' : '';
+        switch (sf.type) {
+          case 'textarea':
+            html = '<div class="record-subfield">' + labelHtml + '<textarea id="' + elId + '" name="' + elId + '" rows="3" placeholder="' + (sf.placeholder||'') + '"></textarea></div>';
+            break;
+          case 'text':
+            html = '<div class="record-subfield">' + labelHtml + '<input type="text" id="' + elId + '" name="' + elId + '" placeholder="' + (sf.placeholder||'') + '" /></div>';
+            break;
+          case 'number':
+            html = '<div class="record-subfield">' + labelHtml + '<input type="number" id="' + elId + '" name="' + elId + '" /></div>';
+            break;
+          case 'likert':
+            var min = sf.min||0, max = sf.max||100, step = sf.step||1, suffix = sf.suffix||'%';
+            html = '<div class="record-subfield">' + labelHtml + '<div class="record-slider-wrap"><input type="range" id="' + elId + '" name="' + elId + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + min + '" data-likert="1" oninput="document.getElementById(\\'' + elId + '-val\\').textContent=this.value+\\'' + suffix + '\\'" /><span class="record-slider-val" id="' + elId + '-val">' + min + suffix + '</span></div></div>';
+            break;
+          case 'select':
+            var optHtml = '<option value="">' + (sf.placeholder||'Select...') + '</option>';
+            (sf.options||[]).forEach(function(o){optHtml+='<option value="'+o.id+'">'+o.label+'</option>';});
+            html = '<div class="record-subfield">' + labelHtml + '<select id="' + elId + '" name="' + elId + '">' + optHtml + '</select></div>';
+            break;
+          case 'checklist':
+            var cbHtml = '';
+            (sf.options||[]).forEach(function(o){cbHtml+='<label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" name="'+elId+'" value="'+o.id+'" /> '+o.label+'</label>';});
+            html = '<div class="record-subfield">' + labelHtml + '<div>' + cbHtml + '</div></div>';
+            break;
+        }
+        col.insertAdjacentHTML('beforeend', html);
+      });
+      grid.appendChild(col);
+    });
+
+    card.appendChild(grid);
+
+    // Insert before dots
+    var dotsEl = document.getElementById(fid + '-dots');
+    container.insertBefore(card, dotsEl);
+
+    // Add dot
+    var dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'record-dot';
+    dot.dataset.recordDot = fid;
+    dot.dataset.dotIdx = String(ri);
+    dot.onclick = function() { recordGoTo(fid, ri); };
+    dotsEl.appendChild(dot);
+
+    state.total++;
+    state.current = ri;
+    updateRecordUI(fid);
+
+    // Wire up auto-save on new inputs
+    card.querySelectorAll('input:not([type="range"]), textarea, select').forEach(function(el) {
+      el.addEventListener('input', debouncedSave);
+      el.addEventListener('change', debouncedSave);
+    });
+    card.querySelectorAll('input[type="range"]').forEach(function(slider) {
+      slider.addEventListener('input', debouncedSave);
+    });
+
+    debouncedSave();
+  };
+
+  window.recordDelete = function(fid) {
+    var container = document.querySelector('[data-record-field="' + fid + '"]');
+    if (!container) return;
+    var minRecords = parseInt(container.dataset.minRecords) || 1;
+    var state = recordState[fid];
+    if (!state || state.total <= minRecords) return;
+
+    var cards = container.querySelectorAll('.record-card[data-record="' + fid + '"]');
+    if (cards[state.current]) cards[state.current].remove();
+
+    // Remove last dot
+    var dotsEl = document.getElementById(fid + '-dots');
+    var lastDot = dotsEl.querySelector('.record-dot:last-child');
+    if (lastDot) lastDot.remove();
+
+    state.total--;
+    if (state.current >= state.total) state.current = state.total - 1;
+    updateRecordUI(fid);
     debouncedSave();
   };
 

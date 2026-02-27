@@ -10,6 +10,7 @@ interface SectionEditorProps {
   totalSections: number
   allNumberFieldIds: { id: string; label: string }[]
   hasFormulation?: boolean   // Whether any section already has a formulation field
+  hasRecord?: boolean        // Whether any section already has a record field
   onUpdate: (section: WorksheetSection) => void
   onRemove: () => void
   onMoveUp: () => void
@@ -30,6 +31,7 @@ const BASE_FIELD_TYPES: { type: CustomFieldType; label: string; description: str
 ]
 
 const FORMULATION_FIELD_TYPE = { type: 'formulation' as CustomFieldType, label: 'Formulation', description: 'Spatial diagram with nodes & arrows' }
+const RECORD_FIELD_TYPE = { type: 'record' as CustomFieldType, label: 'Record', description: 'Paginated multi-column records (e.g. thought record)' }
 
 function createDefaultField(type: CustomFieldType): WorksheetField {
   const id = `f-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
@@ -76,6 +78,20 @@ function createDefaultField(type: CustomFieldType): WorksheetField {
         nodes: [],
         connections: [],
       } as WorksheetField
+    case 'record':
+      return {
+        ...base,
+        type: 'record',
+        groups: [
+          {
+            id: 'grp-1',
+            header: 'Column 1',
+            fields: [{ id: 'sf-1', type: 'textarea' as const, placeholder: '' }],
+          },
+        ],
+        min_records: 1,
+        max_records: 20,
+      } as WorksheetField
     default:
       return { ...base, type: 'text' }
   }
@@ -87,6 +103,7 @@ export function SectionEditor({
   totalSections,
   allNumberFieldIds,
   hasFormulation = false,
+  hasRecord = false,
   onUpdate,
   onRemove,
   onMoveUp,
@@ -208,6 +225,22 @@ export function SectionEditor({
                   <p className="text-xs font-semibold text-primary-700">{FORMULATION_FIELD_TYPE.label}</p>
                   <p className="text-[10px] text-primary-400">
                     {hasFormulation ? 'One per worksheet' : FORMULATION_FIELD_TYPE.description}
+                  </p>
+                </button>
+                {/* Record — always shown, disabled if one already exists */}
+                <button
+                  onClick={() => !hasRecord && addField('record')}
+                  disabled={hasRecord}
+                  className={`rounded-lg border px-3 py-2 text-left transition-colors ${
+                    hasRecord
+                      ? 'cursor-not-allowed border-primary-100 opacity-40'
+                      : 'border-teal-200 bg-teal-50/30 hover:border-brand/40 hover:bg-brand/5'
+                  }`}
+                  title={hasRecord ? 'One record field per worksheet.' : undefined}
+                >
+                  <p className="text-xs font-semibold text-primary-700">{RECORD_FIELD_TYPE.label}</p>
+                  <p className="text-[10px] text-primary-400">
+                    {hasRecord ? 'One per worksheet' : RECORD_FIELD_TYPE.description}
                   </p>
                 </button>
               </div>
