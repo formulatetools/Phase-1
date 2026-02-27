@@ -104,6 +104,7 @@ export default async function NewToolPage({ searchParams }: PageProps) {
       categories={(categories || []) as { id: string; name: string }[]}
       clients={(clients || []) as { id: string; client_label: string }[]}
       showImportPanel={!forkId}
+      tier={tier}
       isContributor={isContributor}
       agreementAccepted={!!profile.contributor_agreement_accepted_at}
       initialData={initialData}

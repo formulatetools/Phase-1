@@ -8,6 +8,7 @@ import type { WorksheetSchema, WorksheetSection } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { SectionEditor } from './section-editor'
 import { WorksheetImportPanel } from './worksheet-import-panel'
+import { WorksheetGeneratePanel } from './worksheet-generate-panel'
 import { createCustomWorksheet, updateCustomWorksheet, saveImportedResponse } from '@/app/(dashboard)/my-tools/actions'
 import { SubmitToLibraryModal } from './submit-to-library-modal'
 import { useToast } from '@/hooks/use-toast'
@@ -18,6 +19,7 @@ interface CustomWorksheetBuilderProps {
   categories: { id: string; name: string }[]
   clients?: { id: string; client_label: string }[]
   showImportPanel?: boolean
+  tier?: string
   isContributor?: boolean
   agreementAccepted?: boolean
   libraryStatus?: string | null
@@ -40,6 +42,7 @@ export function CustomWorksheetBuilder({
   categories,
   clients,
   showImportPanel,
+  tier,
   isContributor,
   agreementAccepted,
   libraryStatus,
@@ -345,6 +348,15 @@ export function CustomWorksheetBuilder({
       <div className="flex gap-6">
         {/* Left: Builder */}
         <div className={`flex-1 min-w-0 ${showPreview ? 'hidden lg:block' : ''}`}>
+          {/* AI Generate from description */}
+          {showImportPanel && (
+            <WorksheetGeneratePanel
+              onGenerateComplete={handleImportComplete}
+              disabled={saving}
+              tier={tier || 'free'}
+            />
+          )}
+
           {/* Import from file */}
           {showImportPanel && (
             <WorksheetImportPanel
