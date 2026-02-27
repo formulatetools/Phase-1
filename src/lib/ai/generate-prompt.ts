@@ -120,16 +120,29 @@ Use for: panic cycle, OCD cycle, insomnia maintenance cycle, any circular mainta
 Node slots:
 - "cycle-0", "cycle-1", "cycle-2", etc. — stages in the clockwise loop
 
-### "three_systems" — Triangle / Three Circles
-3 nodes in a triangle arrangement (apex + two base), with an optional centre node.
+### "three_systems" — Triangle / Three Circles (Gilbert CFT)
+3 nodes in a triangle arrangement (apex + two base). Do NOT include a centre node by default.
 Connections: bidirectional arrows between all three systems. Optional inhibitory connections (dashed with flat end).
-Use for: CFT three systems (threat/drive/soothing), any triangular relationship model, systemic triangulation.
+Use for: CFT three systems (threat/drive/soothing), any triangular relationship model.
+
+IMPORTANT for CFT Three Systems:
+- Use EXACTLY 3 nodes: system-0 (Threat), system-1 (Drive), system-2 (Soothing)
+- Do NOT add a "centre" node (no "Self/Identity") — the standard Gilbert model is three circles only
+- Colours MUST be: Threat = "#dc2626" (red), Drive = "#2563eb" (blue), Soothing = "#16a34a" (green)
+- Each node should have ONE textarea field describing that system's function and manifestation
+- Connections: all three bidirectional ("both") with "arrow" style
+- Optionally add an "inhibitory" connection from system-0 (threat) to system-2 (soothing) to show threat suppresses soothing
+- Placeholder examples should reflect the specific emotion system:
+  - Threat: "e.g. Fight/flight/freeze responses, anxiety, anger, hypervigilance, self-criticism"
+  - Drive: "e.g. Achievement striving, goal pursuit, excitement, wanting, motivation"
+  - Soothing: "e.g. Contentment, safeness, connection, compassion, affiliation, calmness"
+- In the reflection section, do NOT duplicate activation ratings — keep the formulation diagram clean with just textareas
 
 Node slots:
-- "system-0" — apex (top centre)
-- "system-1" — base left
-- "system-2" — base right
-- "centre" — optional centre node (e.g. "self" in CFT)
+- "system-0" — apex (top centre), always Threat in CFT
+- "system-1" — base left, always Drive in CFT
+- "system-2" — base right, always Soothing in CFT
+- "centre" — do NOT use unless explicitly requested
 
 ### Domain Colour Palette
 Use these standard clinical colours:
@@ -143,6 +156,11 @@ Use these standard clinical colours:
 - Relationships: "#db2777" (pink)
 - Neutral/Other: "#6b7280" (grey)
 
+CFT Three Systems specific colours (override the above for CFT):
+- Threat system: "#dc2626" (red) — ALWAYS red
+- Drive system: "#2563eb" (blue) — ALWAYS blue, never purple
+- Soothing system: "#16a34a" (green) — ALWAYS green
+
 ### Connection Styles
 - "arrow" — solid arrow (causal relationship)
 - "arrow_dashed" — dashed arrow (maintaining/feedback)
@@ -154,6 +172,95 @@ Use these standard clinical colours:
 - "one_way" — from → to
 - "both" — bidirectional
 - "none" — no arrowheads`
+
+const CLINICAL_EXEMPLARS = `## Clinical Exemplar: CFT Three Systems Formulation
+
+When generating a CFT three systems / threat-drive-soothe formulation, follow this structure EXACTLY:
+
+{
+  "meta": {
+    "title": "Three Systems Formulation (CFT)",
+    "slug": "cft-three-systems-formulation",
+    "description": "A Compassion-Focused Therapy formulation mapping the three emotion regulation systems and their interactions.",
+    "instructions": "Complete this collaboratively with your client in session. Explore each system's role and how they interact. Use the reflection to identify which systems need strengthening or calming.",
+    "tags": ["CFT", "compassion-focused", "formulation", "three systems", "emotion regulation"],
+    "estimated_minutes": 20,
+    "confidence": "HIGH",
+    "interpretation": "Generated a Gilbert three systems formulation with threat, drive, and soothing systems"
+  },
+  "schema": {
+    "version": 1,
+    "sections": [
+      {
+        "id": "context",
+        "title": "Session Context",
+        "description": "Brief context for this formulation",
+        "fields": [
+          { "id": "session-notes", "type": "textarea", "label": "Session notes", "placeholder": "e.g. Explored how past experiences of criticism have shaped an overactive threat system and underdeveloped soothing system" }
+        ]
+      },
+      {
+        "id": "formulation",
+        "title": "Three Emotion Regulation Systems",
+        "description": "Map the three systems and how they interact for this client",
+        "fields": [
+          {
+            "id": "three-systems",
+            "type": "formulation",
+            "label": "Three Systems Model",
+            "layout": "three_systems",
+            "formulation_config": { "title": "Three Emotion Regulation Systems", "show_title": true },
+            "nodes": [
+              {
+                "id": "system-0", "slot": "system-0", "label": "Threat System",
+                "domain_colour": "#dc2626",
+                "fields": [{ "id": "threat-text", "type": "textarea", "placeholder": "e.g. Fight/flight/freeze responses, anxiety, anger, hypervigilance, self-criticism, scanning for danger" }]
+              },
+              {
+                "id": "system-1", "slot": "system-1", "label": "Drive System",
+                "domain_colour": "#2563eb",
+                "fields": [{ "id": "drive-text", "type": "textarea", "placeholder": "e.g. Achievement striving, goal pursuit, excitement, wanting, motivation, resource-seeking" }]
+              },
+              {
+                "id": "system-2", "slot": "system-2", "label": "Soothing System",
+                "domain_colour": "#16a34a",
+                "fields": [{ "id": "soothe-text", "type": "textarea", "placeholder": "e.g. Contentment, safeness, connection, compassion, affiliation, calmness, feeling loved" }]
+              }
+            ],
+            "connections": [
+              { "from": "system-0", "to": "system-1", "style": "arrow", "direction": "both" },
+              { "from": "system-1", "to": "system-2", "style": "arrow", "direction": "both" },
+              { "from": "system-0", "to": "system-2", "style": "inhibitory", "direction": "one_way" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "reflection",
+        "title": "Reflection & Treatment Implications",
+        "description": "Identify patterns and treatment priorities",
+        "fields": [
+          { "id": "system-balance", "type": "textarea", "label": "System balance and patterns", "placeholder": "e.g. Threat system is chronically overactive (history of criticism/neglect). Soothing system is underdeveloped — client finds it hard to feel safe. Drive system compensates through perfectionism." },
+          { "id": "treatment-targets", "type": "textarea", "label": "Treatment targets", "placeholder": "e.g. (1) Build soothing system capacity through compassionate mind training, (2) Reduce threat system reactivity via understanding its protective function, (3) Redirect drive system toward meaningful values rather than avoidance-driven goals" },
+          { "id": "cft-techniques", "type": "checklist", "label": "CFT techniques to prioritise", "options": [
+            { "id": "cmt", "label": "Compassionate mind training (CMT)" },
+            { "id": "srb", "label": "Soothing rhythm breathing" },
+            { "id": "cl", "label": "Compassionate letter writing" },
+            { "id": "mindfulness", "label": "Mindfulness and awareness work" },
+            { "id": "psychoed", "label": "Psychoeducation on evolution of emotion systems" },
+            { "id": "ba", "label": "Behavioural activation for drive system" }
+          ]}
+        ]
+      }
+    ]
+  }
+}
+
+IMPORTANT: For CFT three systems, follow the exemplar above closely. Do NOT add:
+- A centre "Self/Identity" node (the standard model has only 3 nodes)
+- Likert sliders inside formulation nodes (keep nodes clean with just textarea)
+- A separate "System Balance Analysis" section that duplicates the formulation content
+- Purple colour for Drive (always use blue #2563eb)`
 
 const CLINICAL_RULES = `## Clinical Accuracy Rules
 
@@ -273,6 +380,8 @@ ${FIELD_TYPES_REFERENCE}
 
 ${FORMULATION_PATTERNS}
 
+${CLINICAL_EXEMPLARS}
+
 ${CLINICAL_RULES}
 
 ${DECISION_LOGIC}
@@ -306,6 +415,8 @@ export function buildGeneratePromptWithContext(
 ${FIELD_TYPES_REFERENCE}
 
 ${FORMULATION_PATTERNS}
+
+${CLINICAL_EXEMPLARS}
 
 ${CLINICAL_RULES}
 
