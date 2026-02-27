@@ -84,12 +84,12 @@ export async function POST(request: NextRequest) {
 
     if (file.type === 'application/pdf') {
       try {
-        const { PDFParse } = await import('pdf-parse')
-        console.log('[import-worksheet] pdf-parse imported OK')
-        const parser = new PDFParse({ data: new Uint8Array(buffer) })
-        const textResult = await parser.getText()
-        extractedText = textResult.text
-        await parser.destroy()
+        const { extractText } = await import('unpdf')
+        const result = await extractText(new Uint8Array(buffer))
+        // unpdf returns an array of page texts — join them
+        extractedText = Array.isArray(result.text)
+          ? result.text.join('\n\n')
+          : String(result.text)
         console.log(`[import-worksheet] PDF text extracted: ${extractedText.length} chars`)
       } catch (pdfErr) {
         console.error('[import-worksheet] PDF parse failed:', pdfErr)

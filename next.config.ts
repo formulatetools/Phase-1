@@ -2,9 +2,7 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
-  // pdf-parse uses pdfjs-dist + @napi-rs/canvas (native) which don't bundle
-  // correctly in serverless — keep them as external runtime requires
-  serverExternalPackages: ['pdf-parse', 'pdfjs-dist', '@napi-rs/canvas'],
+  /* config options here */
 };
 
 export default withSentryConfig(nextConfig, {
