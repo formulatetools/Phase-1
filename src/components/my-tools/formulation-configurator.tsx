@@ -10,6 +10,7 @@ import type {
   FormulationNodeFieldType,
 } from '@/types/worksheet'
 import { DOMAIN_COLOUR_PALETTE } from '@/lib/domain-colors'
+import { FORMULATION_TEMPLATES, type FormulationTemplate } from '@/lib/formulation-templates'
 
 // ============================================================================
 // Defaults
@@ -142,6 +143,151 @@ function createRadialDefaults(): {
   }
 }
 
+function createVerticalFlowDefaults(): {
+  nodes: FormulationNode[]
+  connections: FormulationConnection[]
+} {
+  return {
+    nodes: [
+      {
+        id: 'step-0',
+        slot: 'step-0',
+        label: 'Early Experiences',
+        domain_colour: '#64748b',
+        fields: [
+          { id: 'step_0_text', type: 'textarea', placeholder: 'Relevant early experiences' },
+        ],
+      },
+      {
+        id: 'step-1',
+        slot: 'step-1',
+        label: 'Core Beliefs',
+        domain_colour: '#92400e',
+        fields: [
+          { id: 'step_1_text', type: 'textarea', placeholder: 'Core beliefs formed' },
+        ],
+      },
+      {
+        id: 'step-2',
+        slot: 'step-2',
+        label: 'Rules & Assumptions',
+        domain_colour: '#2563eb',
+        fields: [
+          { id: 'step_2_text', type: 'textarea', placeholder: 'Conditional rules and assumptions' },
+        ],
+      },
+      {
+        id: 'step-3',
+        slot: 'step-3',
+        label: 'Critical Incident',
+        domain_colour: '#dc2626',
+        fields: [
+          { id: 'step_3_text', type: 'textarea', placeholder: 'What triggered the current difficulties?' },
+        ],
+      },
+    ],
+    connections: [
+      { from: 'step-0', to: 'step-1', style: 'arrow', direction: 'one_way' },
+      { from: 'step-1', to: 'step-2', style: 'arrow', direction: 'one_way' },
+      { from: 'step-2', to: 'step-3', style: 'arrow', direction: 'one_way' },
+    ],
+  }
+}
+
+function createCycleDefaults(): {
+  nodes: FormulationNode[]
+  connections: FormulationConnection[]
+} {
+  return {
+    nodes: [
+      {
+        id: 'cycle-0',
+        slot: 'cycle-0',
+        label: 'Trigger',
+        domain_colour: '#64748b',
+        fields: [
+          { id: 'cycle_0_text', type: 'textarea', placeholder: 'What triggers the cycle?' },
+        ],
+      },
+      {
+        id: 'cycle-1',
+        slot: 'cycle-1',
+        label: 'Thoughts',
+        domain_colour: '#2563eb',
+        fields: [
+          { id: 'cycle_1_text', type: 'textarea', placeholder: 'Automatic thoughts or interpretations' },
+        ],
+      },
+      {
+        id: 'cycle-2',
+        slot: 'cycle-2',
+        label: 'Response',
+        domain_colour: '#9333ea',
+        fields: [
+          { id: 'cycle_2_text', type: 'textarea', placeholder: 'Behavioural or emotional response' },
+        ],
+      },
+      {
+        id: 'cycle-3',
+        slot: 'cycle-3',
+        label: 'Consequence',
+        domain_colour: '#dc2626',
+        fields: [
+          { id: 'cycle_3_text', type: 'textarea', placeholder: 'Short-term consequence that maintains the cycle' },
+        ],
+      },
+    ],
+    connections: [
+      { from: 'cycle-0', to: 'cycle-1', style: 'arrow', direction: 'one_way' },
+      { from: 'cycle-1', to: 'cycle-2', style: 'arrow', direction: 'one_way' },
+      { from: 'cycle-2', to: 'cycle-3', style: 'arrow', direction: 'one_way' },
+      { from: 'cycle-3', to: 'cycle-0', style: 'arrow', direction: 'one_way' },
+    ],
+  }
+}
+
+function createThreeSystemsDefaults(): {
+  nodes: FormulationNode[]
+  connections: FormulationConnection[]
+} {
+  return {
+    nodes: [
+      {
+        id: 'system-0',
+        slot: 'system-0',
+        label: 'Threat System',
+        domain_colour: '#dc2626',
+        fields: [
+          { id: 'system_0_text', type: 'textarea', placeholder: 'Threat-focused emotions and responses' },
+        ],
+      },
+      {
+        id: 'system-1',
+        slot: 'system-1',
+        label: 'Drive System',
+        domain_colour: '#2563eb',
+        fields: [
+          { id: 'system_1_text', type: 'textarea', placeholder: 'Drive-focused emotions and responses' },
+        ],
+      },
+      {
+        id: 'system-2',
+        slot: 'system-2',
+        label: 'Soothing System',
+        domain_colour: '#16a34a',
+        fields: [
+          { id: 'system_2_text', type: 'textarea', placeholder: 'Soothing-focused emotions and responses' },
+        ],
+      },
+    ],
+    connections: [
+      { from: 'system-0', to: 'system-1', style: 'arrow', direction: 'both' },
+      { from: 'system-1', to: 'system-2', style: 'arrow', direction: 'both' },
+      { from: 'system-0', to: 'system-2', style: 'arrow', direction: 'both' },
+    ],
+  }
+}
+
 const AVAILABLE_NODE_FIELD_TYPES: { type: FormulationNodeFieldType; label: string }[] = [
   { type: 'textarea', label: 'Text Area' },
   { type: 'text', label: 'Text' },
@@ -172,9 +318,9 @@ const CONNECTION_DIRECTIONS: { value: FormulationConnection['direction']; label:
 const PATTERNS: { pattern: FormulationLayoutPattern; label: string; desc: string; icon: string; available: boolean }[] = [
   { pattern: 'cross_sectional', label: 'Cross-Sectional', desc: 'Five areas with bidirectional relationships', icon: '╋', available: true },
   { pattern: 'radial', label: 'Radial / Flower', desc: 'Central problem with maintaining factors', icon: '✿', available: true },
-  { pattern: 'vertical_flow', label: 'Vertical Flow', desc: 'Developmental sequence', icon: '↓', available: false },
-  { pattern: 'cycle', label: 'Cycle', desc: 'Circular maintaining loop', icon: '↻', available: false },
-  { pattern: 'three_systems', label: 'Three Systems', desc: 'Triangular interaction model', icon: '△', available: false },
+  { pattern: 'vertical_flow', label: 'Vertical Flow', desc: 'Developmental sequence', icon: '↓', available: true },
+  { pattern: 'cycle', label: 'Cycle', desc: 'Circular maintaining loop', icon: '↻', available: true },
+  { pattern: 'three_systems', label: 'Three Systems', desc: 'Triangular interaction model', icon: '△', available: true },
 ]
 
 function PatternPicker({ onSelect }: { onSelect: (pattern: FormulationLayoutPattern) => void }) {
@@ -618,13 +764,39 @@ export function FormulationConfigurator({ field, onChange }: FormulationConfigur
   const hasPattern = field.nodes && field.nodes.length > 0
 
   const handlePatternSelect = (pattern: FormulationLayoutPattern) => {
-    const defaults = pattern === 'radial' ? createRadialDefaults() : createCrossSectionalDefaults()
+    let defaults: { nodes: FormulationNode[]; connections: FormulationConnection[] }
+    switch (pattern) {
+      case 'radial':
+        defaults = createRadialDefaults()
+        break
+      case 'vertical_flow':
+        defaults = createVerticalFlowDefaults()
+        break
+      case 'cycle':
+        defaults = createCycleDefaults()
+        break
+      case 'three_systems':
+        defaults = createThreeSystemsDefaults()
+        break
+      default:
+        defaults = createCrossSectionalDefaults()
+    }
     onChange({
       ...field,
       layout: pattern,
       nodes: defaults.nodes,
       connections: defaults.connections,
       formulation_config: { title: '', show_title: false },
+    })
+  }
+
+  const handleTemplateSelect = (tpl: FormulationTemplate) => {
+    onChange({
+      ...field,
+      layout: tpl.pattern,
+      nodes: JSON.parse(JSON.stringify(tpl.nodes)),
+      connections: JSON.parse(JSON.stringify(tpl.connections)),
+      formulation_config: { title: tpl.name, show_title: true },
     })
   }
 
@@ -637,9 +809,19 @@ export function FormulationConfigurator({ field, onChange }: FormulationConfigur
   }
 
   const isRadial = field.layout === 'radial'
+  const isVerticalFlow = field.layout === 'vertical_flow'
+  const isCycle = field.layout === 'cycle'
+  const isThreeSystems = field.layout === 'three_systems'
   const nodes = field.nodes || []
   const connections = field.connections || []
   const petals = isRadial ? nodes.filter(n => n.slot !== 'centre') : []
+  const steps = isVerticalFlow
+    ? nodes.filter(n => n.slot.startsWith('step-')).sort((a, b) => parseInt(a.slot.split('-')[1]) - parseInt(b.slot.split('-')[1]))
+    : []
+  const cycleNodes = isCycle
+    ? [...nodes].sort((a, b) => parseInt(a.slot.replace('cycle-', '')) - parseInt(b.slot.replace('cycle-', '')))
+    : []
+  const hasCentreNode = isThreeSystems ? nodes.some(n => n.slot === 'centre') : false
 
   const addPetal = () => {
     if (!isRadial || petals.length >= 8) return
@@ -666,17 +848,115 @@ export function FormulationConfigurator({ field, onChange }: FormulationConfigur
     onChange({ ...field, nodes: newNodes, connections: newConns })
   }
 
+  // Vertical flow: add/remove steps
+  const addStep = () => {
+    if (!isVerticalFlow || steps.length >= 8) return
+    const idx = steps.length
+    const colours = ['#64748b', '#92400e', '#2563eb', '#dc2626', '#16a34a', '#9333ea', '#e4a930', '#db2777']
+    const newStep: FormulationNode = {
+      id: `step-${idx}`,
+      slot: `step-${idx}`,
+      label: `Step ${idx + 1}`,
+      domain_colour: colours[idx % colours.length],
+      fields: [
+        { id: `step_${idx}_text`, type: 'textarea', placeholder: 'Describe this stage' },
+      ],
+    }
+    const prevStep = steps[steps.length - 1]
+    const newConns = prevStep
+      ? [...connections, { from: prevStep.id, to: newStep.id, style: 'arrow' as const, direction: 'one_way' as const }]
+      : connections
+    onChange({ ...field, nodes: [...nodes, newStep], connections: newConns })
+  }
+
+  const removeStep = () => {
+    if (!isVerticalFlow || steps.length <= 2) return
+    const lastStep = steps[steps.length - 1]
+    const newNodes = nodes.filter(n => n.id !== lastStep.id)
+    const newConns = connections.filter(c => c.from !== lastStep.id && c.to !== lastStep.id)
+    onChange({ ...field, nodes: newNodes, connections: newConns })
+  }
+
+  // Cycle: add/remove nodes (rebuild loop connections automatically)
+  const addCycleNode = () => {
+    if (!isCycle || cycleNodes.length >= 6) return
+    const idx = cycleNodes.length
+    const colours = ['#64748b', '#2563eb', '#9333ea', '#dc2626', '#16a34a', '#e4a930']
+    const newNode: FormulationNode = {
+      id: `cycle-${idx}`,
+      slot: `cycle-${idx}`,
+      label: `Stage ${idx + 1}`,
+      domain_colour: colours[idx % colours.length],
+      fields: [
+        { id: `cycle_${idx}_text`, type: 'textarea', placeholder: 'Describe this stage' },
+      ],
+    }
+    // Keep non-loop connections, rebuild loop
+    const nonLoop = connections.filter(c => {
+      const fromCycle = c.from.startsWith('cycle-')
+      const toCycle = c.to.startsWith('cycle-')
+      return !(fromCycle && toCycle)
+    })
+    const allCycle = [...cycleNodes, newNode]
+    for (let i = 0; i < allCycle.length; i++) {
+      const next = (i + 1) % allCycle.length
+      nonLoop.push({ from: allCycle[i].id, to: allCycle[next].id, style: 'arrow', direction: 'one_way' })
+    }
+    onChange({ ...field, nodes: [...nodes, newNode], connections: nonLoop })
+  }
+
+  const removeCycleNode = () => {
+    if (!isCycle || cycleNodes.length <= 3) return
+    const lastNode = cycleNodes[cycleNodes.length - 1]
+    const remaining = cycleNodes.slice(0, -1)
+    const newNodes = nodes.filter(n => n.id !== lastNode.id)
+    const nonLoop = connections.filter(c => {
+      if (c.from === lastNode.id || c.to === lastNode.id) return false
+      const fromCycle = c.from.startsWith('cycle-')
+      const toCycle = c.to.startsWith('cycle-')
+      return !(fromCycle && toCycle)
+    })
+    for (let i = 0; i < remaining.length; i++) {
+      const next = (i + 1) % remaining.length
+      nonLoop.push({ from: remaining[i].id, to: remaining[next].id, style: 'arrow', direction: 'one_way' })
+    }
+    onChange({ ...field, nodes: newNodes, connections: nonLoop })
+  }
+
+  // Three systems: toggle centre node
+  const toggleCentreNode = () => {
+    if (!isThreeSystems) return
+    if (hasCentreNode) {
+      const newNodes = nodes.filter(n => n.slot !== 'centre')
+      const newConns = connections.filter(c => c.from !== 'centre' && c.to !== 'centre')
+      onChange({ ...field, nodes: newNodes, connections: newConns })
+    } else {
+      const centreNode: FormulationNode = {
+        id: 'centre',
+        slot: 'centre',
+        label: 'Self',
+        domain_colour: '#e4a930',
+        fields: [
+          { id: 'centre_text', type: 'textarea', placeholder: 'Central concept' },
+        ],
+      }
+      onChange({ ...field, nodes: [...nodes, centreNode] })
+    }
+  }
+
   // Compact view
+  const patternMeta = PATTERNS.find(p => p.pattern === field.layout)
+
   if (collapsed && hasPattern) {
     return (
       <div
         className="flex cursor-pointer items-center gap-3 rounded-xl border border-amber-200 bg-amber-50/30 px-4 py-3"
         onClick={() => setCollapsed(false)}
       >
-        <span className="text-lg">{field.layout === 'radial' ? '✿' : '╋'}</span>
+        <span className="text-lg">{patternMeta?.icon || '╋'}</span>
         <div className="flex-1">
           <p className="text-xs font-semibold text-primary-700">
-            {field.layout === 'radial' ? 'Radial' : 'Cross-Sectional'} Formulation
+            {patternMeta?.label || 'Cross-Sectional'} Formulation
           </p>
           <p className="text-[10px] text-primary-400">
             {nodes.length} nodes, {connections.length} connections
@@ -737,8 +1017,35 @@ export function FormulationConfigurator({ field, onChange }: FormulationConfigur
         </div>
       )}
 
-      {/* Pattern picker (if no pattern selected yet) */}
-      {!hasPattern && <PatternPicker onSelect={handlePatternSelect} />}
+      {/* Pattern picker + template picker (if no pattern selected yet) */}
+      {!hasPattern && (
+        <>
+          <PatternPicker onSelect={handlePatternSelect} />
+          {FORMULATION_TEMPLATES.length > 0 && (
+            <div className="mt-3">
+              <p className="mb-2 text-xs font-semibold text-primary-500">Or start from a clinical template</p>
+              <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                {FORMULATION_TEMPLATES.map(tpl => {
+                  const pat = PATTERNS.find(p => p.pattern === tpl.pattern)
+                  return (
+                    <button
+                      key={tpl.id}
+                      onClick={() => handleTemplateSelect(tpl)}
+                      className="flex items-start gap-2 rounded-lg border border-primary-100 px-3 py-2 text-left transition-all hover:border-brand/40 hover:bg-brand/5"
+                    >
+                      <span className="mt-0.5 text-sm">{pat?.icon || '╋'}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-semibold text-primary-700 truncate">{tpl.name}</p>
+                        <p className="text-[9px] text-primary-400 truncate">{tpl.source} — {pat?.label}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Node configurators */}
       {hasPattern && (
@@ -764,6 +1071,55 @@ export function FormulationConfigurator({ field, onChange }: FormulationConfigur
                   </button>
                   <span className="text-[9px] text-primary-300">{petals.length}/8</span>
                 </div>
+              )}
+              {isVerticalFlow && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={removeStep}
+                    disabled={steps.length <= 2}
+                    className="rounded border border-primary-200 px-2 py-0.5 text-[10px] text-primary-400 hover:bg-primary-50 disabled:opacity-30"
+                  >
+                    − Step
+                  </button>
+                  <button
+                    onClick={addStep}
+                    disabled={steps.length >= 8}
+                    className="rounded border border-primary-200 px-2 py-0.5 text-[10px] text-primary-400 hover:bg-primary-50 disabled:opacity-30"
+                  >
+                    + Step
+                  </button>
+                  <span className="text-[9px] text-primary-300">{steps.length}/8</span>
+                </div>
+              )}
+              {isCycle && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={removeCycleNode}
+                    disabled={cycleNodes.length <= 3}
+                    className="rounded border border-primary-200 px-2 py-0.5 text-[10px] text-primary-400 hover:bg-primary-50 disabled:opacity-30"
+                  >
+                    − Node
+                  </button>
+                  <button
+                    onClick={addCycleNode}
+                    disabled={cycleNodes.length >= 6}
+                    className="rounded border border-primary-200 px-2 py-0.5 text-[10px] text-primary-400 hover:bg-primary-50 disabled:opacity-30"
+                  >
+                    + Node
+                  </button>
+                  <span className="text-[9px] text-primary-300">{cycleNodes.length}/6</span>
+                </div>
+              )}
+              {isThreeSystems && (
+                <label className="flex items-center gap-1.5 text-[10px] text-primary-500">
+                  <input
+                    type="checkbox"
+                    checked={hasCentreNode}
+                    onChange={toggleCentreNode}
+                    className="h-4 w-4 rounded border-primary-300"
+                  />
+                  Centre node
+                </label>
               )}
             </div>
             {nodes.map(node => (

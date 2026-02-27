@@ -76,7 +76,7 @@ Each field MUST have a unique "id" (kebab-case, e.g. "f-1", "situation", "belief
 
 const FORMULATION_PATTERNS = `## Formulation Layout Patterns
 
-Only generate formulations when the description clearly calls for one (mentions "formulation", "model", "cycle", "five areas", "hot cross bun", "vicious flower", "maintenance", or a specific disorder model).
+Only generate formulations when the description clearly calls for one (mentions "formulation", "model", "cycle", "five areas", "hot cross bun", "vicious flower", "maintenance", "three systems", "CFT", "longitudinal", "developmental", or a specific disorder model).
 
 ### "cross_sectional" — Five Areas / Hot Cross Bun
 5 fixed nodes: top, left, centre, right, bottom.
@@ -100,6 +100,36 @@ Use for: OCD vicious flower, any "central problem with maintaining factors" mode
 Node slots:
 - "centre" — core problem
 - "petal-0", "petal-1", "petal-2", etc. — maintaining factors
+
+### "vertical_flow" — Longitudinal / Developmental
+2-8 sequential steps flowing top to bottom, with optional 2×2 sub-grid at the bottom.
+Connections: downward arrows between consecutive steps. Sub-grid nodes have bidirectional internal connections.
+Use for: longitudinal/developmental formulation, Beckian CBT model, any sequential "how did we get here" formulation, Ehlers & Clark PTSD.
+
+Node slots:
+- "step-0", "step-1", "step-2", etc. — sequential developmental stages
+- "grid-0", "grid-1", "grid-2", "grid-3" — optional 2×2 sub-grid at bottom (e.g. for thoughts/emotions/physical/behaviour breakdown)
+
+Typical step labels: Early Experiences → Core Beliefs → Rules & Assumptions → Critical Incident → [sub-grid with maintaining factors]
+
+### "cycle" — Maintenance Cycle / Loop
+3-6 nodes arranged in a clockwise circular loop.
+Connections: unidirectional arrows forming a clockwise cycle (each node → next, last → first).
+Use for: panic cycle, OCD cycle, insomnia maintenance cycle, any circular maintaining loop more specific than the hot cross bun.
+
+Node slots:
+- "cycle-0", "cycle-1", "cycle-2", etc. — stages in the clockwise loop
+
+### "three_systems" — Triangle / Three Circles
+3 nodes in a triangle arrangement (apex + two base), with an optional centre node.
+Connections: bidirectional arrows between all three systems. Optional inhibitory connections (dashed with flat end).
+Use for: CFT three systems (threat/drive/soothing), any triangular relationship model, systemic triangulation.
+
+Node slots:
+- "system-0" — apex (top centre)
+- "system-1" — base left
+- "system-2" — base right
+- "centre" — optional centre node (e.g. "self" in CFT)
 
 ### Domain Colour Palette
 Use these standard clinical colours:
@@ -155,7 +185,12 @@ const CLINICAL_RULES = `## Clinical Accuracy Rules
 
 const DECISION_LOGIC = `## Decision Logic
 
-1. Description mentions "formulation", "model", "five areas", "hot cross bun", "maintenance", "vicious flower/cycle", or a specific disorder model → generate a FORMULATION field type
+1. Description mentions "formulation", "model", "five areas", "hot cross bun", "maintenance", "vicious flower/cycle", "three systems", "CFT circles", "longitudinal", "developmental", or a specific disorder model → generate a FORMULATION field type. Choose the best layout:
+   - cross_sectional → five areas, hot cross bun, disorder-specific maintenance models
+   - radial → vicious flower, central problem with maintaining factors
+   - vertical_flow → longitudinal/developmental formulation, Beckian model, Ehlers & Clark PTSD
+   - cycle → panic cycle, OCD cycle, insomnia cycle, any clockwise maintaining loop
+   - three_systems → CFT three systems, any triangular interaction model
 
 2. Description mentions "thought record" with compound columns (text + belief rating in same column) → generate a RECORD field type
 
@@ -168,12 +203,15 @@ const DECISION_LOGIC = `## Decision Logic
 6. If ambiguous → default to a linear worksheet with textarea fields
 
 7. If description mentions a disorder but not a specific tool → generate the most commonly used tool:
-   - "OCD" → ERP hierarchy (table)
+   - "OCD" → ERP hierarchy (table) or OCD cycle formulation (cycle)
    - "depression" → behavioural activation schedule (table)
-   - "panic" → panic cycle maintenance formulation
+   - "panic" → panic cycle maintenance formulation (cycle)
    - "health anxiety" → health anxiety maintenance formulation (cross_sectional)
    - "social anxiety" → social situation record
    - "GAD" → worry log (table)
+   - "CFT" or "compassion focused" → three systems formulation (three_systems)
+   - "PTSD" → Ehlers & Clark longitudinal formulation (vertical_flow)
+   - "insomnia" → sleep maintenance cycle (cycle)
 
 8. Always include at least one computed field where clinically meaningful
 

@@ -307,4 +307,53 @@ select:focus {
   [class*="grid-cols-2"] {
     page-break-inside: avoid;
   }
+
+  /* ===== Formulation Diagram Print Styles ===== */
+
+  /* Force diagram view on print (not the stacked list) */
+  .fml-diagram-view {
+    display: block !important;
+  }
+  .fml-list-view {
+    display: none !important;
+  }
+
+  /* Prevent formulation from splitting across pages */
+  [data-formulation-layout] {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Preserve SVG connection colors and node domain colors */
+  [data-formulation-layout] svg,
+  [data-formulation-layout] [style*="background"],
+  [data-formulation-layout] [style*="border-color"] {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Formulation node cards: tighter padding, smaller text for A4 fit */
+  [data-formulation-layout] .absolute {
+    font-size: 9pt;
+  }
+
+  /* Ensure SVG pointer-events layer prints */
+  [data-formulation-layout] svg.pointer-events-none {
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Formulation inputs: smaller for print, visible borders */
+  [data-formulation-layout] input,
+  [data-formulation-layout] textarea,
+  [data-formulation-layout] select {
+    font-size: 8pt !important;
+    padding: 3px !important;
+    min-height: 28px;
+  }
+
+  /* Formulation textareas: compact for print */
+  [data-formulation-layout] textarea {
+    min-height: 40px;
+  }
 }

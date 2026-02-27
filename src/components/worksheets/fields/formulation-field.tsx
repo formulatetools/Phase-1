@@ -383,6 +383,201 @@ function layoutRadial(
 }
 
 // ============================================================================
+// Layout Engine: Vertical Flow (Longitudinal / Developmental)
+// ============================================================================
+
+function layoutVerticalFlow(
+  nodes: FormulationNode[],
+  connections: FormulationConnection[],
+  containerWidth: number
+): LayoutResult {
+  const steps = nodes
+    .filter(n => n.slot.startsWith('step-'))
+    .sort((a, b) => parseInt(a.slot.split('-')[1]) - parseInt(b.slot.split('-')[1]))
+  const gridNodes = nodes
+    .filter(n => n.slot.startsWith('grid-'))
+    .sort((a, b) => parseInt(a.slot.split('-')[1]) - parseInt(b.slot.split('-')[1]))
+
+  const stepW = Math.min(340, containerWidth * 0.65)
+  const stepH = 110
+  const gap = 50 // vertical gap between steps (room for arrow)
+  const cx = containerWidth / 2
+  const layouts: NodeLayout[] = []
+  let y = 0
+
+  // Sequential steps — centred, generous width
+  for (const step of steps) {
+    layouts.push({
+      id: step.id,
+      x: cx - stepW / 2,
+      y,
+      width: stepW,
+      height: stepH,
+      shape: 'rect',
+    })
+    y += stepH + gap
+  }
+
+  // Optional 2×2 sub-grid at the bottom
+  if (gridNodes.length > 0) {
+    const gridW = Math.min(155, containerWidth * 0.28)
+    const gridH = 100
+    const gridGap = 16
+    const gridTotalW = gridW * 2 + gridGap
+    const gridStartX = cx - gridTotalW / 2
+
+    for (let i = 0; i < gridNodes.length && i < 4; i++) {
+      const col = i % 2
+      const row = Math.floor(i / 2)
+      layouts.push({
+        id: gridNodes[i].id,
+        x: gridStartX + col * (gridW + gridGap),
+        y: y + row * (gridH + gridGap),
+        width: gridW,
+        height: gridH,
+        shape: 'rect',
+      })
+    }
+    y += Math.ceil(Math.min(gridNodes.length, 4) / 2) * (gridH + gridGap)
+  }
+
+  const nodeMap = new Map(layouts.map(n => [n.id, n]))
+  const totalHeight = y + 10
+  const conns = buildConnections(connections, nodeMap, 'straight', nodes)
+
+  return { nodes: layouts, connections: conns, totalHeight }
+}
+
+// ============================================================================
+// Layout Engine: Cycle (Maintenance Loop)
+// ============================================================================
+
+function layoutCycle(
+  nodes: FormulationNode[],
+  connections: FormulationConnection[],
+  containerWidth: number
+): LayoutResult {
+  const sorted = [...nodes].sort((a, b) => {
+    const ai = parseInt(a.slot.replace('cycle-', ''))
+    const bi = parseInt(b.slot.replace('cycle-', ''))
+    return ai - bi
+  })
+
+  const n = sorted.length
+  const nodeW = Math.min(170, containerWidth * 0.28)
+  const nodeH = 120
+  const cx = containerWidth / 2
+
+  // Radius scales with node count and container width
+  const radius = Math.min(150 + n * 10, containerWidth * 0.32)
+  const cy = radius + nodeH / 2 + 10
+
+  const layouts: NodeLayout[] = []
+
+  // Place nodes in a circle, starting from top (−π/2), clockwise
+  const startAngle = -Math.PI / 2
+  const angleStep = (2 * Math.PI) / n
+
+  for (let i = 0; i < n; i++) {
+    const angle = startAngle + i * angleStep
+    layouts.push({
+      id: sorted[i].id,
+      x: cx + radius * Math.cos(angle) - nodeW / 2,
+      y: cy + radius * Math.sin(angle) - nodeH / 2,
+      width: nodeW,
+      height: nodeH,
+      shape: 'rect',
+    })
+  }
+
+  const nodeMap = new Map(layouts.map(nl => [nl.id, nl]))
+  const totalHeight = layouts.reduce((max, nl) => Math.max(max, nl.y + nl.height), 0) + 20
+  const conns = buildConnections(connections, nodeMap, 'curved', nodes)
+
+  return { nodes: layouts, connections: conns, totalHeight }
+}
+
+// ============================================================================
+// Layout Engine: Three Systems (Triangle)
+// ============================================================================
+
+function layoutThreeSystems(
+  nodes: FormulationNode[],
+  connections: FormulationConnection[],
+  containerWidth: number
+): LayoutResult {
+  const bySlot: Record<string, FormulationNode> = {}
+  for (const n of nodes) bySlot[n.slot] = n
+
+  const nodeW = Math.min(180, containerWidth * 0.3)
+  const nodeH = 130
+  const cx = containerWidth / 2
+
+  // Triangle geometry — apex at top, base at bottom
+  const topY = 10
+  const bottomY = topY + Math.min(260, containerWidth * 0.42)
+  const spread = Math.min(containerWidth * 0.34, 210)
+
+  const layouts: NodeLayout[] = []
+
+  // Apex — top centre
+  if (bySlot['system-0']) {
+    layouts.push({
+      id: bySlot['system-0'].id,
+      x: cx - nodeW / 2,
+      y: topY,
+      width: nodeW,
+      height: nodeH,
+      shape: 'rect',
+    })
+  }
+
+  // Bottom-left
+  if (bySlot['system-1']) {
+    layouts.push({
+      id: bySlot['system-1'].id,
+      x: cx - spread - nodeW / 2,
+      y: bottomY,
+      width: nodeW,
+      height: nodeH,
+      shape: 'rect',
+    })
+  }
+
+  // Bottom-right
+  if (bySlot['system-2']) {
+    layouts.push({
+      id: bySlot['system-2'].id,
+      x: cx + spread - nodeW / 2,
+      y: bottomY,
+      width: nodeW,
+      height: nodeH,
+      shape: 'rect',
+    })
+  }
+
+  // Optional centre node (e.g. "self" in CFT)
+  if (bySlot['centre']) {
+    const centreSize = Math.min(130, containerWidth * 0.22)
+    const centreY = topY + (bottomY - topY) * 0.55
+    layouts.push({
+      id: bySlot['centre'].id,
+      x: cx - centreSize / 2,
+      y: centreY - centreSize / 2,
+      width: centreSize,
+      height: centreSize,
+      shape: 'circle',
+    })
+  }
+
+  const nodeMap = new Map(layouts.map(nl => [nl.id, nl]))
+  const totalHeight = layouts.reduce((max, nl) => Math.max(max, nl.y + nl.height), 0) + 20
+  const conns = buildConnections(connections, nodeMap, 'straight', nodes)
+
+  return { nodes: layouts, connections: conns, totalHeight }
+}
+
+// ============================================================================
 // Layout Engine: Fallback (vertical stack)
 // ============================================================================
 
@@ -415,6 +610,12 @@ function computeLayout(
       return layoutCrossSectional(nodes, connections, containerWidth)
     case 'radial':
       return layoutRadial(nodes, connections, containerWidth)
+    case 'vertical_flow':
+      return layoutVerticalFlow(nodes, connections, containerWidth)
+    case 'cycle':
+      return layoutCycle(nodes, connections, containerWidth)
+    case 'three_systems':
+      return layoutThreeSystems(nodes, connections, containerWidth)
     default:
       return layoutFallback(nodes, connections, containerWidth)
   }
@@ -551,6 +752,28 @@ function MobileFlowArrow() {
       <svg className="h-4 w-4 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
       </svg>
+    </div>
+  )
+}
+
+/** Curved "loops back" arrow shown at the end of cycle patterns on mobile */
+function MobileCycleLoopbackArrow({ firstNodeLabel }: { firstNodeLabel: string }) {
+  return (
+    <div className="flex flex-col items-center gap-0.5 py-2">
+      <svg className="h-6 w-10 text-primary-300" fill="none" viewBox="0 0 40 24" strokeWidth={1.5} stroke="currentColor">
+        {/* Curved arrow looping back up */}
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M20 2 C20 12, 36 12, 36 18 M36 18 C36 24, 4 24, 4 18 M4 18 C4 12, 20 12, 20 2"
+          strokeDasharray="4 3"
+        />
+        {/* Arrowhead at top */}
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16 6 L20 2 L24 6" />
+      </svg>
+      <span className="text-[9px] italic text-primary-400">
+        loops back to {firstNodeLabel}
+      </span>
     </div>
   )
 }
@@ -805,7 +1028,7 @@ function MobileStackedLayout({
   readOnly?: boolean
   isDark: boolean
 }) {
-  // Determine node order
+  // Determine node order for mobile stacked view
   let orderedNodes: FormulationNode[]
   if (layout === 'cross_sectional') {
     const slotOrder = ['top', 'left', 'centre', 'right', 'bottom']
@@ -816,6 +1039,25 @@ function MobileStackedLayout({
     const centre = nodes.find(n => n.slot === 'centre')
     const petals = nodes.filter(n => n.slot !== 'centre')
     orderedNodes = centre ? [centre, ...petals] : petals
+  } else if (layout === 'vertical_flow') {
+    const steps = nodes
+      .filter(n => n.slot.startsWith('step-'))
+      .sort((a, b) => parseInt(a.slot.split('-')[1]) - parseInt(b.slot.split('-')[1]))
+    const gridNodes = nodes
+      .filter(n => n.slot.startsWith('grid-'))
+      .sort((a, b) => parseInt(a.slot.split('-')[1]) - parseInt(b.slot.split('-')[1]))
+    orderedNodes = [...steps, ...gridNodes]
+  } else if (layout === 'cycle') {
+    orderedNodes = [...nodes].sort((a, b) => {
+      const ai = parseInt(a.slot.replace('cycle-', ''))
+      const bi = parseInt(b.slot.replace('cycle-', ''))
+      return ai - bi
+    })
+  } else if (layout === 'three_systems') {
+    const slotOrder = ['system-0', 'system-1', 'system-2', 'centre']
+    const bySlot: Record<string, FormulationNode> = {}
+    for (const n of nodes) bySlot[n.slot] = n
+    orderedNodes = slotOrder.map(s => bySlot[s]).filter(Boolean)
   } else {
     orderedNodes = nodes
   }
@@ -826,8 +1068,8 @@ function MobileStackedLayout({
         const colours = getColourFromHex(node.domain_colour, isDark)
         const showArrow = i < orderedNodes.length - 1
         // Softer rounding for radial centre node on mobile (not full circle — too wide)
-        const isRadialCentre = layout === 'radial' && node.slot === 'centre'
-        const shapeClass = isRadialCentre ? 'rounded-3xl' : 'rounded-xl'
+        const isRoundedCentre = (layout === 'radial' || layout === 'three_systems') && node.slot === 'centre'
+        const shapeClass = isRoundedCentre ? 'rounded-3xl' : 'rounded-xl'
 
         return (
           <div key={node.id}>
@@ -860,6 +1102,10 @@ function MobileStackedLayout({
               </div>
             </div>
             {showArrow && <MobileFlowArrow />}
+            {/* Cycle: show "loops back" arrow after last node */}
+            {!showArrow && layout === 'cycle' && orderedNodes.length >= 3 && i === orderedNodes.length - 1 && (
+              <MobileCycleLoopbackArrow firstNodeLabel={orderedNodes[0].label} />
+            )}
           </div>
         )
       })}
@@ -935,6 +1181,7 @@ export function FormulationFieldRenderer({
 }: FormulationFieldRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(600)
+  const [viewOverride, setViewOverride] = useState<'auto' | 'diagram' | 'list'>('auto')
   const { resolved } = useTheme()
   const isDark = resolved === 'dark'
 
@@ -952,7 +1199,11 @@ export function FormulationFieldRenderer({
   const nodes = field.nodes || []
   const connections = field.connections || []
   const config = field.formulation_config
-  const isMobile = containerWidth < MOBILE_BREAKPOINT
+  const autoIsMobile = containerWidth < MOBILE_BREAKPOINT
+
+  // View mode: 'auto' uses screen width, 'diagram'/'list' are explicit overrides
+  const showDiagram = viewOverride === 'diagram' || (viewOverride === 'auto' && !autoIsMobile)
+  const showList = viewOverride === 'list' || (viewOverride === 'auto' && autoIsMobile)
 
   const nodeValues = (values?.nodes || {}) as Record<string, Record<string, FieldValue>>
 
@@ -971,28 +1222,44 @@ export function FormulationFieldRenderer({
     [values, onChange]
   )
 
-  // Compute layout (only used for desktop, but always computed for width measurement)
+  // Always compute diagram layout (needed for print, and cheap to compute)
   const layoutResult = computeLayout(field.layout, nodes, connections, containerWidth)
 
   return (
-    <div className="space-y-2" ref={containerRef}>
+    <div className="space-y-2" ref={containerRef} data-formulation-layout={field.layout}>
       {config?.show_title && config.title && (
         <h3 className="text-center text-sm font-semibold text-primary-700">
           {config.title}
         </h3>
       )}
 
-      {isMobile ? (
-        <MobileStackedLayout
-          nodes={nodes}
-          connections={connections}
-          layout={field.layout}
-          nodeValues={nodeValues}
-          onFieldChange={handleFieldChange}
-          readOnly={readOnly}
-          isDark={isDark}
-        />
-      ) : (
+      {/* View toggle — diagram ↔ list */}
+      {nodes.length > 0 && (
+        <div className="no-print flex justify-end gap-1">
+          {(['diagram', 'list'] as const).map(mode => {
+            const isActive = viewOverride === mode || (viewOverride === 'auto' && ((mode === 'diagram' && !autoIsMobile) || (mode === 'list' && autoIsMobile)))
+            return (
+              <button
+                key={mode}
+                onClick={() => setViewOverride(mode === viewOverride ? 'auto' : mode)}
+                className={`rounded-md px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                  isActive
+                    ? 'bg-primary-200 text-primary-700'
+                    : 'text-primary-400 hover:bg-primary-100 hover:text-primary-600'
+                }`}
+                title={mode === 'diagram' ? 'Spatial diagram view' : 'Stacked list view'}
+              >
+                {mode === 'diagram' ? '◇ Diagram' : '☰ List'}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Diagram view — shown on screen when active, always rendered for print */}
+      <div
+        className={showDiagram ? 'fml-diagram-view' : 'fml-diagram-view hidden print:block'}
+      >
         <DesktopDiagramLayout
           layoutResult={layoutResult}
           nodes={nodes}
@@ -1002,7 +1269,22 @@ export function FormulationFieldRenderer({
           readOnly={readOnly}
           isDark={isDark}
         />
-      )}
+      </div>
+
+      {/* List view — shown on mobile or when toggled, hidden for print */}
+      <div
+        className={showList ? 'fml-list-view print:hidden' : 'fml-list-view hidden'}
+      >
+        <MobileStackedLayout
+          nodes={nodes}
+          connections={connections}
+          layout={field.layout}
+          nodeValues={nodeValues}
+          onFieldChange={handleFieldChange}
+          readOnly={readOnly}
+          isDark={isDark}
+        />
+      </div>
     </div>
   )
 }
