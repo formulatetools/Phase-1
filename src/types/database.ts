@@ -160,6 +160,11 @@ export interface AuditLog {
 
 // Phase 2 types — defined now for schema readiness
 
+export interface PrefillData {
+  fields: Record<string, unknown>
+  readonly: boolean
+}
+
 export interface WorksheetAssignment {
   id: string
   worksheet_id: string
@@ -176,6 +181,7 @@ export interface WorksheetAssignment {
   completion_method: CompletionMethod
   pdf_downloaded_at: string | null
   withdrawn_at: string | null
+  prefill_data: PrefillData | null
 }
 
 export interface WorksheetResponse {

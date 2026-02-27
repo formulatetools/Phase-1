@@ -82,6 +82,9 @@ export function ClientDetail({
     dueDate?: string
   } | null>(null)
   const [copiedPortalLink, setCopiedPortalLink] = useState(false)
+  const [showPrefill, setShowPrefill] = useState(false)
+  const [prefillValues, setPrefillValues] = useState<Record<string, unknown>>({})
+  const [prefillReadonly, setPrefillReadonly] = useState(true)
 
   const router = useRouter()
   const { toast } = useToast()
@@ -128,11 +131,17 @@ export function ClientDetail({
     setAssignLoading(true)
     setAssignError(null)
 
+    // Build prefill data if therapist filled in any fields
+    const prefillData = showPrefill && Object.keys(prefillValues).length > 0
+      ? { fields: prefillValues, readonly: prefillReadonly }
+      : undefined
+
     const result = await createAssignment(
       relationship.id,
       selectedWorksheet,
       dueDate || undefined,
-      expiresInDays
+      expiresInDays,
+      prefillData
     )
 
     if (result.error) {
@@ -155,6 +164,9 @@ export function ClientDetail({
       setSelectedWorksheet('')
       setDueDate('')
       setExpiresInDays(7)
+      setShowPrefill(false)
+      setPrefillValues({})
+      setPrefillReadonly(true)
       setTimeout(() => setCopiedToken(null), 5000)
     }
     setAssignLoading(false)
@@ -351,6 +363,59 @@ export function ClientDetail({
               })()}
             </select>
           </div>
+
+          {/* Pre-fill fields (collapsible) */}
+          {selectedWorksheet && (
+            <div className="rounded-xl border border-primary-100 overflow-hidden">
+              <button
+                onClick={() => {
+                  setShowPrefill(!showPrefill)
+                  if (!showPrefill) setPrefillValues({})
+                }}
+                className="flex w-full items-center justify-between px-4 py-2.5 text-sm text-primary-600 hover:bg-primary-25 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                  </svg>
+                  <span className="font-medium">Pre-fill session notes</span>
+                  <span className="text-xs text-primary-400">(optional)</span>
+                </span>
+                <svg className={`h-4 w-4 transition-transform ${showPrefill ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </button>
+
+              {showPrefill && (() => {
+                const ws = worksheetMap.get(selectedWorksheet)
+                if (!ws?.schema) return null
+                return (
+                  <div className="border-t border-primary-100 p-4 space-y-3">
+                    <p className="text-xs text-primary-400">
+                      Fill in any fields you&apos;d like your client to see pre-populated.
+                    </p>
+                    <div className="max-h-80 overflow-y-auto rounded-lg border border-primary-100 bg-primary-25 p-3">
+                      <WorksheetRenderer
+                        schema={ws.schema}
+                        onValuesChange={(v) => setPrefillValues(v)}
+                      />
+                    </div>
+                    <label className="flex items-center gap-2 text-xs">
+                      <input
+                        type="checkbox"
+                        checked={prefillReadonly}
+                        onChange={(e) => setPrefillReadonly(e.target.checked)}
+                        className="rounded border-primary-300 text-brand focus:ring-brand"
+                      />
+                      <span className="text-primary-600">
+                        Lock pre-filled fields <span className="text-primary-400">(client can view but not edit)</span>
+                      </span>
+                    </label>
+                  </div>
+                )
+              })()}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             {/* Due date */}

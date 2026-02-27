@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { WorksheetSection, WorksheetField, CustomFieldType } from '@/types/worksheet'
+import type { WorksheetSection, WorksheetField, CustomFieldType, ShowWhenRule } from '@/types/worksheet'
 import { FieldEditor } from './field-editor'
 
 interface SectionEditorProps {
@@ -9,6 +9,7 @@ interface SectionEditorProps {
   index: number
   totalSections: number
   allNumberFieldIds: { id: string; label: string }[]
+  allFieldOptions?: { id: string; label: string; type: string; sectionTitle?: string }[]
   hasFormulation?: boolean   // Whether any section already has a formulation field
   hasRecord?: boolean        // Whether any section already has a record field
   onUpdate: (section: WorksheetSection) => void
@@ -16,6 +17,16 @@ interface SectionEditorProps {
   onMoveUp: () => void
   onMoveDown: () => void
 }
+
+const SHOW_WHEN_OPERATORS: { value: ShowWhenRule['operator']; label: string; needsValue: boolean }[] = [
+  { value: 'equals', label: 'equals', needsValue: true },
+  { value: 'not_equals', label: 'does not equal', needsValue: true },
+  { value: 'greater_than', label: 'is greater than', needsValue: true },
+  { value: 'less_than', label: 'is less than', needsValue: true },
+  { value: 'not_empty', label: 'is not empty', needsValue: false },
+  { value: 'empty', label: 'is empty', needsValue: false },
+  { value: 'contains', label: 'contains', needsValue: true },
+]
 
 const BASE_FIELD_TYPES: { type: CustomFieldType; label: string; description: string }[] = [
   { type: 'text', label: 'Text', description: 'Single-line text input' },
@@ -102,6 +113,7 @@ export function SectionEditor({
   index,
   totalSections,
   allNumberFieldIds,
+  allFieldOptions = [],
   hasFormulation = false,
   hasRecord = false,
   onUpdate,
@@ -111,6 +123,13 @@ export function SectionEditor({
 }: SectionEditorProps) {
   const [showFieldPicker, setShowFieldPicker] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+
+  const hasShowWhen = !!section.show_when
+
+  // Fields from other sections that can be used as show_when sources
+  const availableShowWhenFields = allFieldOptions.filter(f =>
+    !section.fields.some(sf => sf.id === f.id) // exclude fields in this section
+  )
 
   // Build field types list — include formulation option (disabled if one already exists)
   const FIELD_TYPES = [...BASE_FIELD_TYPES]
@@ -178,6 +197,93 @@ export function SectionEditor({
             className="w-full rounded-lg border border-primary-200 bg-surface px-3 py-1.5 text-sm text-primary-600 placeholder:text-primary-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             placeholder="Section description (optional)"
           />
+
+          {/* Conditional visibility (show_when) */}
+          <div className="rounded-lg border border-primary-100 bg-primary-25 px-3 py-2">
+            <label className="flex items-center gap-2 text-xs">
+              <input
+                type="checkbox"
+                checked={hasShowWhen}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    onUpdate({
+                      ...section,
+                      show_when: { field: '', operator: 'not_empty' },
+                    })
+                  } else {
+                    const { show_when: _, ...rest } = section
+                    onUpdate(rest as WorksheetSection)
+                  }
+                }}
+                className="rounded border-primary-300 text-brand focus:ring-brand"
+              />
+              <span className="font-medium text-primary-600">Show this section only when…</span>
+            </label>
+
+            {hasShowWhen && section.show_when && (
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {/* Source field picker */}
+                <select
+                  value={section.show_when.field}
+                  onChange={(e) =>
+                    onUpdate({
+                      ...section,
+                      show_when: { ...section.show_when!, field: e.target.value },
+                    })
+                  }
+                  className="rounded border border-primary-200 bg-surface px-2 py-1 text-xs text-primary-700 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                >
+                  <option value="">Select field…</option>
+                  {availableShowWhenFields.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.label}{f.sectionTitle ? ` (${f.sectionTitle})` : ''}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Operator picker */}
+                <select
+                  value={section.show_when.operator}
+                  onChange={(e) =>
+                    onUpdate({
+                      ...section,
+                      show_when: {
+                        ...section.show_when!,
+                        operator: e.target.value as ShowWhenRule['operator'],
+                      },
+                    })
+                  }
+                  className="rounded border border-primary-200 bg-surface px-2 py-1 text-xs text-primary-700 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                >
+                  {SHOW_WHEN_OPERATORS.map((op) => (
+                    <option key={op.value} value={op.value}>
+                      {op.label}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Value input — shown only for operators that need a value */}
+                {SHOW_WHEN_OPERATORS.find(op => op.value === section.show_when!.operator)?.needsValue && (
+                  <input
+                    type="text"
+                    value={section.show_when.value !== undefined ? String(section.show_when.value) : ''}
+                    onChange={(e) => {
+                      const raw = e.target.value
+                      // Auto-detect number values
+                      const numVal = Number(raw)
+                      const value = raw !== '' && !isNaN(numVal) ? numVal : raw
+                      onUpdate({
+                        ...section,
+                        show_when: { ...section.show_when!, value },
+                      })
+                    }}
+                    placeholder="value"
+                    className="w-24 rounded border border-primary-200 bg-surface px-2 py-1 text-xs text-primary-700 placeholder:text-primary-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  />
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Fields */}
           <div className="space-y-2">

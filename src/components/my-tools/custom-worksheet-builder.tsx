@@ -128,6 +128,8 @@ export function CustomWorksheetBuilder({
 
   // Collect all number field IDs across all sections (for computed field sources)
   const allNumberFieldIds: { id: string; label: string }[] = []
+  // Collect all field options for show_when configurator
+  const allFieldOptions: { id: string; label: string; type: string; sectionTitle?: string }[] = []
   let hasFormulation = false
   let hasRecord = false
   for (const section of sections) {
@@ -140,6 +142,15 @@ export function CustomWorksheetBuilder({
       }
       if (field.type === 'record') {
         hasRecord = true
+      }
+      // Add all fields to the options list (for show_when)
+      if (field.label) {
+        allFieldOptions.push({
+          id: field.id,
+          label: field.label,
+          type: field.type,
+          sectionTitle: section.title || undefined,
+        })
       }
     }
   }
@@ -451,6 +462,7 @@ export function CustomWorksheetBuilder({
                 index={si}
                 totalSections={sections.length}
                 allNumberFieldIds={allNumberFieldIds}
+                allFieldOptions={allFieldOptions}
                 hasFormulation={hasFormulation}
                 hasRecord={hasRecord}
                 onUpdate={(s) => updateSection(si, s)}

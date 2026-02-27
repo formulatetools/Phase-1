@@ -259,7 +259,12 @@ RULES:
 6. Tables: at least 2 columns, min_rows: 1
 7. Tags: include therapy type, technique, disorder
 8. confidence: HIGH if clear request, MEDIUM if some inference needed, LOW if very ambiguous
-9. Do NOT include personally identifiable information in any field`
+9. Do NOT include personally identifiable information in any field
+10. Conditional visibility: sections or fields can have an optional "show_when" rule that hides them until a condition is met. Useful for risk escalation, branching, and progressive disclosure.
+   Format: "show_when": { "field": "source-field-id", "operator": "equals|not_equals|greater_than|less_than|not_empty|empty|contains", "value": ... }
+   Example: A safety plan section that only appears when risk rating > 7:
+   { "id": "safety-plan", "title": "Safety Plan", "show_when": { "field": "risk-rating", "operator": "greater_than", "value": 7 }, "fields": [...] }
+   Use sparingly — only when clinically meaningful (e.g. risk escalation, branching based on symptom severity).`
 
 export function buildGeneratePrompt(description: string): string {
   return `You are a clinical psychology worksheet generator for Formulate, a UK-based CBT worksheet platform for therapists. Generate a complete worksheet schema from the therapist's natural language description.

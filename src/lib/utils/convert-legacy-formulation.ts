@@ -3,11 +3,10 @@
  * into the new generalised node-and-connection format that the custom
  * worksheet builder can edit.
  *
- * Only converts layouts that have a matching new layout engine:
+ * All three legacy layouts are supported:
  *   - formulation_cross_sectional → cross_sectional
  *   - formulation_vicious_flower  → radial
- *
- * Longitudinal stays unconverted (vertical_flow engine not yet available).
+ *   - formulation_longitudinal    → vertical_flow
  */
 
 import type {
@@ -211,12 +210,104 @@ function convertViciousFlower(schema: WorksheetSchema): WorksheetSchema {
   }
 }
 
+// ── Longitudinal conversion ──
+
+function convertLongitudinal(schema: WorksheetSchema): WorksheetSchema {
+  const nodes: FormulationNode[] = []
+  const otherSections: WorksheetSection[] = []
+
+  for (const section of schema.sections) {
+    const isAmber = section.highlight === 'amber'
+    const isRedDashed = section.highlight === 'red_dashed'
+    const isFourQuadrant = section.layout === 'four_quadrant'
+    const sectionLabel = section.title || section.label || ''
+
+    // Choose colour based on highlight
+    let colour = '#6b7280' // default grey
+    if (isAmber) colour = '#e4a930'
+    else if (isRedDashed) colour = '#dc2626'
+
+    if (isFourQuadrant) {
+      // Four-quadrant sections get converted as a single node with multiple fields
+      const nodeFields: FormulationNodeField[] = section.fields.map((f) => ({
+        id: f.id,
+        type: (f.type === 'textarea' ? 'textarea' : 'text') as FormulationNodeField['type'],
+        label: f.label || '',
+        placeholder: f.placeholder || '',
+      }))
+
+      nodes.push({
+        id: section.id,
+        slot: `step-${nodes.length}`,
+        label: sectionLabel,
+        domain_colour: colour,
+        description: section.description,
+        fields: nodeFields.length > 0 ? nodeFields : [{
+          id: `${section.id}_text`,
+          type: 'textarea',
+          placeholder: `Enter ${sectionLabel.toLowerCase()}…`,
+        }],
+      })
+    } else if (section.fields.length > 0) {
+      // Regular section → node
+      const nodeFields: FormulationNodeField[] = section.fields.map((f) => ({
+        id: f.id,
+        type: (f.type === 'textarea' ? 'textarea' : 'text') as FormulationNodeField['type'],
+        label: f.label || '',
+        placeholder: f.placeholder || '',
+      }))
+
+      nodes.push({
+        id: section.id,
+        slot: `step-${nodes.length}`,
+        label: sectionLabel,
+        domain_colour: colour,
+        description: section.description,
+        fields: nodeFields,
+      })
+    } else {
+      otherSections.push(section)
+    }
+  }
+
+  // Sequential connections: step-0 → step-1 → step-2 → ...
+  const connections: FormulationConnection[] = []
+  for (let i = 0; i < nodes.length - 1; i++) {
+    connections.push({
+      from: nodes[i].id,
+      to: nodes[i + 1].id,
+      style: 'arrow',
+      direction: 'one_way',
+    })
+  }
+
+  const formulationSection: WorksheetSection = {
+    id: 'formulation-section',
+    title: 'Formulation',
+    fields: [
+      {
+        id: 'main-formulation',
+        type: 'formulation',
+        label: 'Formulation',
+        layout: 'vertical_flow',
+        formulation_config: { title: 'Longitudinal Formulation', show_title: false },
+        nodes,
+        connections,
+      } as unknown as WorksheetSchema['sections'][0]['fields'][0],
+    ],
+  }
+
+  return {
+    version: schema.version,
+    sections: [...otherSections, formulationSection],
+  }
+}
+
 // ── Main export ──
 
 /**
  * Converts a legacy formulation schema to the new generalised format.
- * Returns the original schema unchanged if it's not a legacy formulation
- * or if the layout doesn't have a matching new engine yet.
+ * Returns the original schema unchanged if it's not a legacy formulation.
  */
 export function convertLegacyFormulation(schema: WorksheetSchema): WorksheetSchema {
   if (!schema.layout) return schema
@@ -226,8 +317,8 @@ export function convertLegacyFormulation(schema: WorksheetSchema): WorksheetSche
       return convertCrossSectional(schema)
     case 'formulation_vicious_flower':
       return convertViciousFlower(schema)
-    // Longitudinal stays unconverted — vertical_flow engine not yet available
     case 'formulation_longitudinal':
+      return convertLongitudinal(schema)
     default:
       return schema
   }

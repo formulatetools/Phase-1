@@ -33,11 +33,21 @@ export type FieldType =
   | 'safety_plan'
   | 'record'
 
+// Conditional visibility rule — controls when a section or field is shown
+export interface ShowWhenRule {
+  field: string        // Source field ID — supports dot notation for nested fields:
+                       //   "field-id" — plain field
+                       //   "formulation-id.node-id.field-id" — formulation node field
+  operator: 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'not_empty' | 'empty' | 'contains'
+  value?: string | number | boolean
+}
+
 export interface BaseField {
   id: string
   label: string
   required?: boolean
   placeholder?: string
+  show_when?: ShowWhenRule
 }
 
 export interface TextField extends BaseField {
@@ -306,6 +316,7 @@ export interface WorksheetSection {
   dynamic?: boolean
   type?: 'branch'
   question?: string
+  show_when?: ShowWhenRule
   branches?: {
     yes: DecisionTreeBranch
     no: DecisionTreeBranch

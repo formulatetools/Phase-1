@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import type { WorksheetSchema } from '@/types/worksheet'
+import type { PrefillData } from '@/types/database'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from './blank-pdf-generator'
 import { downloadInteractiveHtml } from '@/lib/utils/html-worksheet-export'
@@ -24,6 +25,7 @@ interface HomeworkFormProps {
   worksheetDescription?: string | null
   worksheetInstructions?: string | null
   portalUrl?: string | null
+  prefillData?: PrefillData | null
 }
 
 // Exponential backoff config
@@ -43,6 +45,7 @@ export function HomeworkForm({
   worksheetDescription,
   worksheetInstructions,
   portalUrl,
+  prefillData,
 }: HomeworkFormProps) {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(isCompleted)
@@ -298,6 +301,23 @@ export function HomeworkForm({
     }
   }
 
+  // ── Prefill data merging ───────────────────────────────────────────────
+  const mergedInitialValues = useMemo(() => {
+    if (!prefillData || Object.keys(prefillData.fields).length === 0) {
+      return existingResponse
+    }
+    // Merge: prefill first, then existing response on top (client data wins)
+    return {
+      ...prefillData.fields,
+      ...(existingResponse || {}),
+    } as Record<string, unknown>
+  }, [existingResponse, prefillData])
+
+  const prefillReadOnlyIds = useMemo(() => {
+    if (!prefillData?.readonly || Object.keys(prefillData.fields).length === 0) return undefined
+    return new Set(Object.keys(prefillData.fields))
+  }, [prefillData])
+
   // ── Progress computation ───────────────────────────────────────────────
   const progress = useMemo(() => {
     const fields = schema.sections.flatMap(s => s.fields || [])
@@ -369,12 +389,26 @@ export function HomeworkForm({
         </div>
       )}
 
+      {/* Pre-filled fields notice */}
+      {prefillData && Object.keys(prefillData.fields).length > 0 && !readOnly && !submitted && (
+        <div className="rounded-xl border border-brand/20 bg-brand-light p-3 text-sm text-primary-600 flex items-center gap-2">
+          <svg className="h-4 w-4 shrink-0 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+          <span>
+            Your therapist has pre-filled some fields from your session together.
+            {prefillData.readonly ? ' These fields cannot be edited.' : ' You can review and update them.'}
+          </span>
+        </div>
+      )}
+
       {/* Worksheet form */}
       <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm">
         <WorksheetRenderer
           schema={schema}
           readOnly={readOnly}
-          initialValues={existingResponse}
+          initialValues={mergedInitialValues}
+          readOnlyFieldIds={prefillReadOnlyIds}
           onValuesChange={readOnly ? undefined : handleValuesChange}
         />
       </div>

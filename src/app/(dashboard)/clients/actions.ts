@@ -136,7 +136,8 @@ export async function createAssignment(
   relationshipId: string,
   worksheetId: string,
   dueDate?: string,
-  expiresInDays: number = 7
+  expiresInDays: number = 7,
+  prefillData?: { fields: Record<string, unknown>; readonly: boolean }
 ) {
   const { user, profile } = await getCurrentUser()
   if (!user || !profile) return { error: 'Not authenticated' }
@@ -185,6 +186,9 @@ export async function createAssignment(
       status: 'assigned',
       due_date: dueDate || null,
       expires_at: expiresAt.toISOString(),
+      ...(prefillData && Object.keys(prefillData.fields).length > 0
+        ? { prefill_data: prefillData }
+        : {}),
     })
     .select()
     .single()

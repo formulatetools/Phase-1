@@ -1,6 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { notFound } from 'next/navigation'
-import type { WorksheetAssignment, Worksheet, WorksheetResponse } from '@/types/database'
+import type { WorksheetAssignment, Worksheet, WorksheetResponse, PrefillData } from '@/types/database'
 import { HomeworkForm } from '@/components/homework/homework-form'
 import { ConsentGate } from '@/components/homework/consent-gate'
 import { LogoIcon } from '@/components/ui/logo'
@@ -202,6 +202,7 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
         worksheetDescription={typedWorksheet.description}
         worksheetInstructions={typedWorksheet.instructions}
         portalUrl={isPreview ? null : portalUrl}
+        prefillData={typedAssignment.prefill_data as PrefillData | null}
       />
     </>
   )
