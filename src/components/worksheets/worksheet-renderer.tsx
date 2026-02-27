@@ -33,6 +33,7 @@ import {
   FormulationReadOnly,
   FormulationFieldRenderer,
 } from './fields'
+import { convertLegacyFormulation } from '@/lib/utils/convert-legacy-formulation'
 
 type FieldValue = string | number | '' | string[] | Record<string, string | number | ''>[]
 
@@ -735,10 +736,65 @@ export function WorksheetRenderer({
     )
   }
 
-  // Formulation layouts
+  // Formulation layouts — vicious flower uses the new radial engine for proper flower rendering
+  if (layout === 'formulation_vicious_flower') {
+    const convertedSchema = convertLegacyFormulation(schema)
+    // Find the formulation field in the converted schema
+    const formulationSection = convertedSchema.sections.find(s =>
+      s.fields.some(f => f.type === 'formulation')
+    )
+    const formulationField = formulationSection?.fields.find(f => f.type === 'formulation') as FormulationFieldSchema | undefined
+
+    if (formulationField?.nodes && formulationField.nodes.length > 0) {
+      // Map legacy values → new nested format: { nodes: { nodeId: { fieldId: value } } }
+      const formulationValues: Record<string, unknown> = { nodes: {} }
+      const nodeMap: Record<string, Record<string, FieldValue>> = {}
+      for (const node of formulationField.nodes) {
+        const nodeVals: Record<string, FieldValue> = {}
+        for (const field of node.fields) {
+          // Legacy values are stored flat: values[sectionId] or values[fieldId]
+          // Try matching by node id (which was the section id) then by field id
+          const legacyVal = values[field.id] ?? values[`${node.id}_${field.id}`]
+          if (legacyVal != null) nodeVals[field.id] = legacyVal as FieldValue
+        }
+        nodeMap[node.id] = nodeVals
+      }
+      formulationValues.nodes = nodeMap
+
+      return (
+        <div className="mx-auto max-w-4xl">
+          <FormulationFieldRenderer
+            key="legacy-flower"
+            field={formulationField}
+            values={formulationValues}
+            onChange={(v) => {
+              // Map new nested values back to flat legacy storage
+              const newNodes = (v as Record<string, unknown>).nodes as Record<string, Record<string, FieldValue>> | undefined
+              if (newNodes) {
+                const flatValues = { ...values }
+                for (const [, nodeFields] of Object.entries(newNodes)) {
+                  for (const [fieldId, val] of Object.entries(nodeFields)) {
+                    flatValues[fieldId] = val
+                  }
+                }
+                // Update each changed field individually
+                for (const [fieldId, val] of Object.entries(flatValues)) {
+                  if (val !== values[fieldId]) {
+                    updateValue(fieldId, val)
+                  }
+                }
+              }
+            }}
+            readOnly={readOnly}
+          />
+        </div>
+      )
+    }
+  }
+
+  // Other formulation layouts — legacy renderer
   if (
     layout === 'formulation_cross_sectional' ||
-    layout === 'formulation_vicious_flower' ||
     layout === 'formulation_longitudinal'
   ) {
     if (readOnly) {

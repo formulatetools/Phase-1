@@ -39,6 +39,23 @@ interface ConnectionLayout {
   label?: string
   labelX?: number
   labelY?: number
+  colour?: string    // domain hex colour for this connection (from source node)
+}
+
+/** Petal backdrop shape data — drawn as decorative SVG behind node cards */
+interface PetalBackdrop {
+  nodeId: string
+  d: string          // SVG path for the petal/teardrop shape
+  fillColour: string // domain hex colour
+}
+
+/** Centre ring data for the flower centre decoration */
+interface CentreRing {
+  cx: number
+  cy: number
+  innerRadius: number
+  outerRadius: number
+  colour: string     // domain hex colour of centre node
 }
 
 /** Complete layout result from an engine */
@@ -46,6 +63,8 @@ interface LayoutResult {
   nodes: NodeLayout[]
   connections: ConnectionLayout[]
   totalHeight: number
+  petalBackdrops?: PetalBackdrop[]
+  centreRing?: CentreRing
 }
 
 type FieldValue = string | number | '' | string[]
@@ -144,8 +163,15 @@ function curvedPath(from: NodeLayout, to: NodeLayout, curvature = 0.3): string {
 function buildConnections(
   connections: FormulationConnection[],
   nodeMap: Map<string, NodeLayout>,
-  pathStyle: 'straight' | 'curved' = 'straight'
+  pathStyle: 'straight' | 'curved' = 'straight',
+  schemaNodes?: FormulationNode[]
 ): ConnectionLayout[] {
+  // Build a colour lookup from schema nodes (for domain-coloured connections)
+  const colourMap = new Map<string, string>()
+  if (schemaNodes) {
+    for (const n of schemaNodes) colourMap.set(n.id, n.domain_colour)
+  }
+
   return connections.map((conn, i) => {
     const from = nodeMap.get(conn.from)
     const to = nodeMap.get(conn.to)
@@ -161,6 +187,9 @@ function buildConnections(
     const tcx = to.x + to.width / 2
     const tcy = to.y + to.height / 2
 
+    // Use source node's domain colour for the connection
+    const colour = colourMap.get(conn.from) || colourMap.get(conn.to)
+
     return {
       key: `${conn.from}-${conn.to}-${i}`,
       d,
@@ -170,6 +199,7 @@ function buildConnections(
       label: conn.label,
       labelX: (fcx + tcx) / 2,
       labelY: (fcy + tcy) / 2 - 8,
+      colour,
     }
   }).filter(Boolean) as ConnectionLayout[]
 }
@@ -228,7 +258,7 @@ function layoutCrossSectional(
 
   const nodeMap = new Map(layouts.map(n => [n.id, n]))
   const totalHeight = layouts.reduce((max, n) => Math.max(max, n.y + n.height), 0) + 20
-  const conns = buildConnections(connections, nodeMap, 'straight')
+  const conns = buildConnections(connections, nodeMap, 'straight', nodes)
 
   return { nodes: layouts, connections: conns, totalHeight }
 }
@@ -236,6 +266,50 @@ function layoutCrossSectional(
 // ============================================================================
 // Layout Engine: Radial / Flower
 // ============================================================================
+
+/**
+ * Generate an SVG path for a decorative petal/teardrop shape.
+ * The petal starts at the centre edge and extends outward toward the petal node.
+ */
+function generatePetalPath(
+  flowerCx: number, flowerCy: number,
+  angle: number,
+  innerRadius: number,  // start distance from centre
+  outerRadius: number,  // end distance (at/past the node)
+  petalWidth: number    // width at the widest point
+): string {
+  // Base point (near centre)
+  const bx = flowerCx + innerRadius * Math.cos(angle)
+  const by = flowerCy + innerRadius * Math.sin(angle)
+  // Tip point (outer end of petal)
+  const tx = flowerCx + outerRadius * Math.cos(angle)
+  const ty = flowerCy + outerRadius * Math.sin(angle)
+
+  // Perpendicular direction for width
+  const perpAngle = angle + Math.PI / 2
+  const halfW = petalWidth / 2
+
+  // Control points for cubic bezier curves (create a leaf/teardrop shape)
+  // Left side: base → widest point → tip
+  const midDist = (innerRadius + outerRadius) / 2
+  const cp1x = flowerCx + midDist * 0.8 * Math.cos(angle) + halfW * Math.cos(perpAngle)
+  const cp1y = flowerCy + midDist * 0.8 * Math.sin(angle) + halfW * Math.sin(perpAngle)
+  const cp2x = flowerCx + midDist * 1.2 * Math.cos(angle) + halfW * 0.6 * Math.cos(perpAngle)
+  const cp2y = flowerCy + midDist * 1.2 * Math.sin(angle) + halfW * 0.6 * Math.sin(perpAngle)
+
+  // Right side: tip → widest point → base (mirror)
+  const cp3x = flowerCx + midDist * 1.2 * Math.cos(angle) - halfW * 0.6 * Math.cos(perpAngle)
+  const cp3y = flowerCy + midDist * 1.2 * Math.sin(angle) - halfW * 0.6 * Math.sin(perpAngle)
+  const cp4x = flowerCx + midDist * 0.8 * Math.cos(angle) - halfW * Math.cos(perpAngle)
+  const cp4y = flowerCy + midDist * 0.8 * Math.sin(angle) - halfW * Math.sin(perpAngle)
+
+  return [
+    `M${bx},${by}`,
+    `C${cp1x},${cp1y} ${cp2x},${cp2y} ${tx},${ty}`,
+    `C${cp3x},${cp3y} ${cp4x},${cp4y} ${bx},${by}`,
+    'Z',
+  ].join(' ')
+}
 
 function layoutRadial(
   nodes: FormulationNode[],
@@ -246,13 +320,14 @@ function layoutRadial(
   const petals = nodes.filter(n => n.slot !== 'centre')
 
   const centreSize = Math.min(210, containerWidth * 0.34)
-  const petalW = Math.min(150, containerWidth * 0.24)
-  const petalH = 110
-  const radius = centreSize / 2 + Math.max(petalW, petalH) / 2 + 50
+  const petalW = Math.min(185, containerWidth * 0.27)
+  const petalH = 130
+  const radius = centreSize / 2 + Math.max(petalW, petalH) / 2 + 45
   const cx = containerWidth / 2
   const cy = radius + centreSize / 2 + 10
 
   const layouts: NodeLayout[] = []
+  const petalBackdrops: PetalBackdrop[] = []
 
   // Centre — circle
   if (centre) {
@@ -264,7 +339,7 @@ function layoutRadial(
     })
   }
 
-  // Petals — pills arranged in a circle, rotated to face outward
+  // Petals — pills arranged in a circle
   const angleStep = (2 * Math.PI) / petals.length
   const startAngle = -Math.PI / 2
 
@@ -272,23 +347,39 @@ function layoutRadial(
     const angle = startAngle + i * angleStep
     const px = cx + radius * Math.cos(angle) - petalW / 2
     const py = cy + radius * Math.sin(angle) - petalH / 2
-    const rotDeg = (angle * 180) / Math.PI + 90 // rotate so long axis points away from centre
 
     layouts.push({
       id: petals[i].id,
       x: px, y: py,
       width: petalW, height: petalH,
       shape: 'pill',
-      // Don't visually rotate the card content — it would make text unreadable
-      // rotation: rotDeg, // (disabled — content must stay horizontal)
+    })
+
+    // Generate decorative petal backdrop behind this node card
+    const petalInnerR = centreSize / 2 + 8 // start just outside the centre circle
+    const petalOuterR = radius + Math.max(petalW, petalH) / 2 + 8 // extend past the node
+    const petalBackdropWidth = Math.max(petalW, petalH) * 0.7
+
+    petalBackdrops.push({
+      nodeId: petals[i].id,
+      d: generatePetalPath(cx, cy, angle, petalInnerR, petalOuterR, petalBackdropWidth),
+      fillColour: petals[i].domain_colour,
     })
   }
 
+  // Centre ring decoration
+  const centreRing: CentreRing | undefined = centre ? {
+    cx, cy,
+    innerRadius: centreSize / 2,
+    outerRadius: centreSize / 2 + 12,
+    colour: centre.domain_colour,
+  } : undefined
+
   const nodeMap = new Map(layouts.map(n => [n.id, n]))
   const totalHeight = layouts.reduce((max, n) => Math.max(max, n.y + n.height), 0) + 20
-  const conns = buildConnections(connections, nodeMap, 'curved')
+  const conns = buildConnections(connections, nodeMap, 'curved', nodes)
 
-  return { nodes: layouts, connections: conns, totalHeight }
+  return { nodes: layouts, connections: conns, totalHeight, petalBackdrops, centreRing }
 }
 
 // ============================================================================
@@ -335,16 +426,25 @@ function computeLayout(
 
 function ConnectionsSVG({
   connections,
+  petalBackdrops,
+  centreRing,
   totalHeight,
   totalWidth,
   isDark,
 }: {
   connections: ConnectionLayout[]
+  petalBackdrops?: PetalBackdrop[]
+  centreRing?: CentreRing
   totalHeight: number
   totalWidth: number
   isDark: boolean
 }) {
-  const stroke = isDark ? '#6b7280' : '#94a3b8'
+  const defaultStroke = isDark ? '#6b7280' : '#94a3b8'
+  // Unique set of colours used by connections (for per-colour marker defs)
+  const uniqueColours = new Set<string>()
+  for (const c of connections) {
+    if (c.colour) uniqueColours.add(c.colour)
+  }
 
   return (
     <svg
@@ -354,37 +454,89 @@ function ConnectionsSVG({
       style={{ overflow: 'visible' }}
     >
       <defs>
+        {/* Default grey markers */}
         <marker id="fml-ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-          <polygon points="0 0, 8 3, 0 6" fill={stroke} />
+          <polygon points="0 0, 8 3, 0 6" fill={defaultStroke} />
         </marker>
         <marker id="fml-ah-r" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto">
-          <polygon points="8 0, 0 3, 8 6" fill={stroke} />
+          <polygon points="8 0, 0 3, 8 6" fill={defaultStroke} />
         </marker>
+        {/* Per-colour markers for domain-coloured connections */}
+        {[...uniqueColours].map(hex => {
+          const id = hex.replace('#', '')
+          const markerColour = isDark ? `${hex}99` : `${hex}aa`
+          return (
+            <g key={hex}>
+              <marker id={`fml-ah-${id}`} markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" fill={markerColour} />
+              </marker>
+              <marker id={`fml-ah-r-${id}`} markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto">
+                <polygon points="8 0, 0 3, 8 6" fill={markerColour} />
+              </marker>
+            </g>
+          )
+        })}
       </defs>
 
-      {connections.map(conn => (
-        <g key={conn.key}>
-          <path
-            d={conn.d}
-            fill="none"
-            stroke={stroke}
-            strokeWidth={1.5}
-            strokeDasharray={conn.dashed ? '6 4' : undefined}
-            markerEnd={conn.markerEnd ? 'url(#fml-ah)' : undefined}
-            markerStart={conn.markerStart ? 'url(#fml-ah-r)' : undefined}
-          />
-          {conn.label && conn.labelX != null && conn.labelY != null && (
-            <text
-              x={conn.labelX} y={conn.labelY}
-              textAnchor="middle"
-              fill={isDark ? '#9ca3af' : '#94a3b8'}
-              className="text-[10px] italic"
-            >
-              {conn.label}
-            </text>
-          )}
-        </g>
+      {/* Decorative petal backdrops — behind everything */}
+      {petalBackdrops?.map(petal => (
+        <path
+          key={`petal-bg-${petal.nodeId}`}
+          d={petal.d}
+          fill={isDark ? `${petal.fillColour}12` : `${petal.fillColour}18`}
+          stroke={isDark ? `${petal.fillColour}20` : `${petal.fillColour}30`}
+          strokeWidth={1}
+        />
       ))}
+
+      {/* Centre ring decoration */}
+      {centreRing && (
+        <g>
+          <circle
+            cx={centreRing.cx} cy={centreRing.cy}
+            r={centreRing.outerRadius}
+            fill="none"
+            stroke={isDark ? `${centreRing.colour}25` : `${centreRing.colour}30`}
+            strokeWidth={1.5}
+            strokeDasharray="4 3"
+          />
+        </g>
+      )}
+
+      {/* Connection paths */}
+      {connections.map(conn => {
+        const connColour = conn.colour
+        const stroke = connColour
+          ? (isDark ? `${connColour}80` : `${connColour}90`)
+          : defaultStroke
+        const hexId = connColour?.replace('#', '')
+        const markerEndId = connColour ? `fml-ah-${hexId}` : 'fml-ah'
+        const markerStartId = connColour ? `fml-ah-r-${hexId}` : 'fml-ah-r'
+
+        return (
+          <g key={conn.key}>
+            <path
+              d={conn.d}
+              fill="none"
+              stroke={stroke}
+              strokeWidth={connColour ? 2 : 1.5}
+              strokeDasharray={conn.dashed ? '6 4' : undefined}
+              markerEnd={conn.markerEnd ? `url(#${markerEndId})` : undefined}
+              markerStart={conn.markerStart ? `url(#${markerStartId})` : undefined}
+            />
+            {conn.label && conn.labelX != null && conn.labelY != null && (
+              <text
+                x={conn.labelX} y={conn.labelY}
+                textAnchor="middle"
+                fill={isDark ? '#9ca3af' : '#94a3b8'}
+                className="text-[10px] italic"
+              >
+                {conn.label}
+              </text>
+            )}
+          </g>
+        )
+      })}
     </svg>
   )
 }
@@ -558,7 +710,7 @@ function NodeFieldRenderer({
 const SHAPE_CLASSES: Record<NodeShape, string> = {
   rect: 'rounded-xl',
   circle: 'rounded-full',
-  pill: 'rounded-full',   // on non-square elements, rounded-full → pill shape
+  pill: 'rounded-[2.5rem]',  // generous rounding without full ellipse clipping
 }
 
 // ============================================================================
@@ -585,7 +737,7 @@ function FormulationNodeCard({
 
   // Circle nodes need more internal padding to keep content in the inscribed rectangle
   const isCircle = layout.shape === 'circle'
-  const paddingClass = isCircle ? 'p-5' : layout.shape === 'pill' ? 'px-5 py-3' : 'p-3'
+  const paddingClass = isCircle ? 'p-5' : layout.shape === 'pill' ? 'px-6 py-3' : 'p-3'
 
   return (
     <div
@@ -742,6 +894,8 @@ function DesktopDiagramLayout({
     <div className="relative" style={{ minHeight: layoutResult.totalHeight }}>
       <ConnectionsSVG
         connections={layoutResult.connections}
+        petalBackdrops={layoutResult.petalBackdrops}
+        centreRing={layoutResult.centreRing}
         totalHeight={layoutResult.totalHeight}
         totalWidth={containerWidth}
         isDark={isDark}
