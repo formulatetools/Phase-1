@@ -15,6 +15,9 @@ import { convertLegacyFormulation } from '@/lib/utils/convert-legacy-formulation
 // HELPERS
 // ============================================================================
 
+/** Fallback category for custom/imported/AI-generated worksheets when none is chosen */
+const FALLBACK_CATEGORY_ID = 'ffe098e1-5ed1-4717-874a-3f70874205db' // "Other"
+
 function generateSlug(title: string, id: string): string {
   const baseSlug = title
     .toLowerCase()
@@ -79,7 +82,7 @@ export async function createCustomWorksheet(
       description: description.trim(),
       instructions: instructions.trim(),
       schema,
-      category_id: categoryId || null,
+      category_id: categoryId || FALLBACK_CATEGORY_ID,
       tags: tags.filter(Boolean),
       estimated_minutes: estimatedMinutes,
       created_by: user.id,
@@ -265,7 +268,7 @@ export async function updateCustomWorksheet(
       description: description.trim(),
       instructions: instructions.trim(),
       schema,
-      category_id: categoryId || null,
+      category_id: categoryId || FALLBACK_CATEGORY_ID,
       tags: tags.filter(Boolean),
       estimated_minutes: estimatedMinutes,
       updated_at: new Date().toISOString(),
