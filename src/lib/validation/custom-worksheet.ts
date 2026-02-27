@@ -11,6 +11,8 @@ const ALLOWED_FIELD_TYPES = new Set<CustomFieldType>([
   'select',
   'table',
   'computed',
+  'formulation',
+  'record',
 ])
 
 // Advanced layout types are curated-only
