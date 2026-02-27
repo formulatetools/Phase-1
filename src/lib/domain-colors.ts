@@ -24,48 +24,66 @@ export function getDomainColor(domain?: DomainType) {
 export interface DomainColourPreset {
   label: string
   hex: string      // Primary hex colour (used in domain_colour on nodes)
-  bg: string       // Light background
-  border: string   // Border colour
-  text: string     // Text colour for labels
+  // Light mode
+  bg: string
+  border: string
+  text: string
+  // Dark mode
+  bgDark: string
+  borderDark: string
+  textDark: string
 }
 
 export const DOMAIN_COLOUR_PALETTE: DomainColourPreset[] = [
-  { label: 'Situation',     hex: '#64748b', bg: '#f1f5f9', border: '#94a3b8', text: '#475569' },
-  { label: 'Thoughts',      hex: '#2563eb', bg: '#eff6ff', border: '#60a5fa', text: '#1d4ed8' },
-  { label: 'Emotions',      hex: '#dc2626', bg: '#fef2f2', border: '#f87171', text: '#dc2626' },
-  { label: 'Physical',      hex: '#16a34a', bg: '#f0fdf4', border: '#4ade80', text: '#16a34a' },
-  { label: 'Behaviour',     hex: '#9333ea', bg: '#faf5ff', border: '#c084fc', text: '#9333ea' },
-  { label: 'Reassurance',   hex: '#e4a930', bg: '#fdf6e3', border: '#e4a930', text: '#9a6e15' },
-  { label: 'Attention',     hex: '#64748b', bg: '#f1f5f9', border: '#94a3b8', text: '#475569' },
-  { label: 'Threat',        hex: '#dc2626', bg: '#fef2f2', border: '#f87171', text: '#dc2626' },
-  { label: 'Drive',         hex: '#2563eb', bg: '#eff6ff', border: '#60a5fa', text: '#1d4ed8' },
-  { label: 'Soothing',      hex: '#16a34a', bg: '#f0fdf4', border: '#4ade80', text: '#16a34a' },
-  { label: 'Core Beliefs',  hex: '#92400e', bg: '#fef3c7', border: '#d97706', text: '#92400e' },
-  { label: 'Relationships', hex: '#db2777', bg: '#fdf2f8', border: '#f472b6', text: '#db2777' },
-  { label: 'Motivation',    hex: '#ea580c', bg: '#fff7ed', border: '#fb923c', text: '#ea580c' },
-  { label: 'Mindfulness',   hex: '#0d9488', bg: '#f0fdfa', border: '#2dd4bf', text: '#0d9488' },
-  { label: 'Neutral',       hex: '#6b7280', bg: '#f9fafb', border: '#d1d5db', text: '#6b7280' },
+  { label: 'Situation',     hex: '#64748b', bg: '#f1f5f9', border: '#94a3b8', text: '#475569', bgDark: '#1e293b', borderDark: '#475569', textDark: '#94a3b8' },
+  { label: 'Thoughts',      hex: '#2563eb', bg: '#eff6ff', border: '#60a5fa', text: '#1d4ed8', bgDark: '#172554', borderDark: '#2563eb', textDark: '#93c5fd' },
+  { label: 'Emotions',      hex: '#dc2626', bg: '#fef2f2', border: '#f87171', text: '#dc2626', bgDark: '#450a0a', borderDark: '#b91c1c', textDark: '#fca5a5' },
+  { label: 'Physical',      hex: '#16a34a', bg: '#f0fdf4', border: '#4ade80', text: '#16a34a', bgDark: '#052e16', borderDark: '#16a34a', textDark: '#86efac' },
+  { label: 'Behaviour',     hex: '#9333ea', bg: '#faf5ff', border: '#c084fc', text: '#9333ea', bgDark: '#2e1065', borderDark: '#7c3aed', textDark: '#c4b5fd' },
+  { label: 'Reassurance',   hex: '#e4a930', bg: '#fdf6e3', border: '#e4a930', text: '#9a6e15', bgDark: '#2a2008', borderDark: '#d4982a', textDark: '#fbbf24' },
+  { label: 'Attention',     hex: '#64748b', bg: '#f1f5f9', border: '#94a3b8', text: '#475569', bgDark: '#1e293b', borderDark: '#475569', textDark: '#94a3b8' },
+  { label: 'Threat',        hex: '#dc2626', bg: '#fef2f2', border: '#f87171', text: '#dc2626', bgDark: '#450a0a', borderDark: '#b91c1c', textDark: '#fca5a5' },
+  { label: 'Drive',         hex: '#2563eb', bg: '#eff6ff', border: '#60a5fa', text: '#1d4ed8', bgDark: '#172554', borderDark: '#2563eb', textDark: '#93c5fd' },
+  { label: 'Soothing',      hex: '#16a34a', bg: '#f0fdf4', border: '#4ade80', text: '#16a34a', bgDark: '#052e16', borderDark: '#16a34a', textDark: '#86efac' },
+  { label: 'Core Beliefs',  hex: '#92400e', bg: '#fef3c7', border: '#d97706', text: '#92400e', bgDark: '#292005', borderDark: '#b45309', textDark: '#fcd34d' },
+  { label: 'Relationships', hex: '#db2777', bg: '#fdf2f8', border: '#f472b6', text: '#db2777', bgDark: '#500724', borderDark: '#be185d', textDark: '#f9a8d4' },
+  { label: 'Motivation',    hex: '#ea580c', bg: '#fff7ed', border: '#fb923c', text: '#ea580c', bgDark: '#431407', borderDark: '#c2410c', textDark: '#fdba74' },
+  { label: 'Mindfulness',   hex: '#0d9488', bg: '#f0fdfa', border: '#2dd4bf', text: '#0d9488', bgDark: '#042f2e', borderDark: '#0f766e', textDark: '#5eead4' },
+  { label: 'Neutral',       hex: '#6b7280', bg: '#f9fafb', border: '#d1d5db', text: '#6b7280', bgDark: '#1f2937', borderDark: '#4b5563', textDark: '#9ca3af' },
 ]
 
-// Hex-to-colour mapping for custom formulations
+// Hex-to-colour mapping for custom formulations (mode-specific cache)
 const hexToColourCache = new Map<string, { bg: string; border: string; text: string }>()
+const hexToColourCacheDark = new Map<string, { bg: string; border: string; text: string }>()
 
-/** Given a hex colour, return bg/border/text variants. Uses palette lookup first, then derives. */
-export function getColourFromHex(hex: string): { bg: string; border: string; text: string } {
+/** Given a hex colour, return bg/border/text variants for the specified mode. */
+export function getColourFromHex(hex: string, isDark = false): { bg: string; border: string; text: string } {
   // Check palette first
   const preset = DOMAIN_COLOUR_PALETTE.find(p => p.hex === hex)
-  if (preset) return { bg: preset.bg, border: preset.border, text: preset.text }
+  if (preset) {
+    return isDark
+      ? { bg: preset.bgDark, border: preset.borderDark, text: preset.textDark }
+      : { bg: preset.bg, border: preset.border, text: preset.text }
+  }
 
   // Check cache
-  const cached = hexToColourCache.get(hex)
+  const cache = isDark ? hexToColourCacheDark : hexToColourCache
+  const cached = cache.get(hex)
   if (cached) return cached
 
-  // Derive from hex: bg = hex at 8% opacity, border = hex at 50% opacity, text = hex
-  const result = {
-    bg: `${hex}14`,       // ~8% opacity
-    border: `${hex}80`,   // ~50% opacity
-    text: hex,
-  }
-  hexToColourCache.set(hex, result)
+  // Derive from hex
+  const result = isDark
+    ? {
+        bg: `${hex}18`,       // ~9% opacity (subtle tint on dark)
+        border: `${hex}60`,   // ~38% opacity (muted border)
+        text: `${hex}cc`,     // ~80% opacity (readable text)
+      }
+    : {
+        bg: `${hex}14`,       // ~8% opacity
+        border: `${hex}80`,   // ~50% opacity
+        text: hex,
+      }
+
+  cache.set(hex, result)
   return result
 }
