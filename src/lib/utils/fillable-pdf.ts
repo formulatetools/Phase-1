@@ -54,8 +54,8 @@ const CONTENT_W = PAGE_W - ML - MR  // 496.1 pt
 
 // Header layout
 const ACCENT_H = 2 * MM        // amber bar height
-const LOGO_Y_TOP = 297 * MM - 5 * MM  // logo top (PDF Y = bottom-up)
-const LOGO_SIZE = 5 * MM
+const LOGO_Y = 297 * MM - 8 * MM      // logo bottom-left Y (PDF Y = bottom-up)
+const LOGO_SIZE = 4 * MM              // slightly smaller for cleaner proportions
 const TITLE_Y = 297 * MM - 12 * MM    // title baseline
 const SEP_Y = 297 * MM - 15 * MM      // separator line
 const CONTENT_TOP = 297 * MM - 17 * MM // content start
@@ -88,7 +88,10 @@ const INSTRUCTIONS_LINE_H = 13
 // ─── Colours ────────────────────────────────────────────────────────────────
 
 const AMBER = rgb(228 / 255, 169 / 255, 48 / 255)
+const AMBER_LIGHT = rgb(253 / 255, 246 / 255, 227 / 255)    // #fdf6e3
+const AMBER_BORDER = rgb(228 / 255, 169 / 255, 48 / 255)     // 20% opacity approximation on white
 const DARK = rgb(30 / 255, 41 / 255, 59 / 255)
+const RED = rgb(220 / 255, 38 / 255, 38 / 255)               // #dc2626 — safety plan step 6
 const GREY_TEXT = rgb(148 / 255, 163 / 255, 184 / 255)
 const GREY_LINE = rgb(226 / 255, 232 / 255, 240 / 255)
 const LIGHT_BG = rgb(248 / 255, 250 / 255, 252 / 255)
@@ -173,24 +176,25 @@ function drawHeader(
     color: AMBER,
   })
 
-  // Draw Formulate logo (simplified triple-arrow as amber circles)
-  drawLogo(page, ML, LOGO_Y_TOP)
+  // Draw Formulate logo
+  drawLogo(page, ML, LOGO_Y)
 
-  // "Formulate" text next to logo
+  // "Formulate" text next to logo — vertically centred with logo
+  const logoMidY = LOGO_Y + LOGO_SIZE / 2
   page.drawText('Formulate', {
-    x: ML + LOGO_SIZE + 2 * MM,
-    y: LOGO_Y_TOP + 1 * MM,
+    x: ML + LOGO_SIZE + 2.5 * MM,
+    y: logoMidY - 3.5, // baseline offset for 10pt text
     size: 10,
     font: fonts.bold,
     color: DARK,
   })
 
-  // Page number
+  // Page number — aligned with "Formulate" text baseline
   const pageText = `Page ${pageNum} of ${totalPages}`
   const pageTextWidth = fonts.regular.widthOfTextAtSize(pageText, 7)
   page.drawText(pageText, {
     x: PAGE_W - MR - pageTextWidth,
-    y: LOGO_Y_TOP + 1 * MM,
+    y: logoMidY - 2.5,
     size: 7,
     font: fonts.regular,
     color: GREY_TEXT,
@@ -249,39 +253,57 @@ function drawFooter(
   })
 }
 
-/** Draw the Formulate logo — three amber curved arrows in a triangle */
+/** Draw the Formulate logo — three amber curved arrows in a triangle.
+ *  Renders as three arcs with chevron arrowheads, closely matching the LogoIcon SVG.
+ *  The SVG has viewBox 0 0 44 44 with arcs at radius 14 from centre (22,22).
+ *  We scale proportionally to the requested `size`. */
 function drawLogo(page: PDFPage, x: number, y: number, size?: number) {
-  // Simplified logo: three small amber arcs arranged in a triangle
-  // Using circles as a simplified representation that looks clean at small sizes
   const s = size ?? LOGO_SIZE
+  const scale = s / 44 // SVG viewBox is 44×44
   const cx = x + s / 2
   const cy = y + s / 2
-  const r = s * 0.35
+  const arcR = 14 * scale
+  const strokeW = Math.max(0.4, 2.5 * scale)
 
-  // Draw three dots in a triangle arrangement
-  const positions = [
-    { px: cx, py: cy + r * 0.8 },             // top
-    { px: cx - r * 0.7, py: cy - r * 0.4 },   // bottom-left
-    { px: cx + r * 0.7, py: cy - r * 0.4 },   // bottom-right
-  ]
+  // Three rotation offsets (0°, 120°, 240°) — matching the SVG <g transform="rotate(...)">
+  const offsets = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3]
+  for (const offset of offsets) {
+    // The SVG arc goes from ~M12.6,11.6 to ~M31.4,11.6 which is roughly
+    // from -67° to -113° on a circle of radius 14 centred at (22,22).
+    // In PDF coordinates (Y-up), we flip the Y component.
+    const startAngle = offset + (150 * Math.PI) / 180
+    const endAngle = offset + (30 * Math.PI) / 180
+    const steps = 12
+    const deltaAngle = (endAngle - startAngle) / steps
 
-  for (const pos of positions) {
-    page.drawCircle({
-      x: pos.px,
-      y: pos.py,
-      size: s * 0.08,
+    // Draw arc as short line segments
+    for (let i = 0; i < steps; i++) {
+      const a1 = startAngle + i * deltaAngle
+      const a2 = startAngle + (i + 1) * deltaAngle
+      page.drawLine({
+        start: { x: cx + arcR * Math.cos(a1), y: cy + arcR * Math.sin(a1) },
+        end: { x: cx + arcR * Math.cos(a2), y: cy + arcR * Math.sin(a2) },
+        thickness: strokeW,
+        color: AMBER,
+      })
+    }
+
+    // Chevron arrowhead at end of arc
+    const tipX = cx + arcR * Math.cos(endAngle)
+    const tipY = cy + arcR * Math.sin(endAngle)
+    const chevLen = 5 * scale
+    const chevAngle1 = endAngle + (2.6) // ~150° from travel direction
+    const chevAngle2 = endAngle + (0.8) // ~45° from travel direction
+    page.drawLine({
+      start: { x: tipX + chevLen * Math.cos(chevAngle1), y: tipY + chevLen * Math.sin(chevAngle1) },
+      end: { x: tipX, y: tipY },
+      thickness: Math.max(0.3, 2 * scale),
       color: AMBER,
     })
-  }
-
-  // Draw connecting arcs as lines
-  for (let i = 0; i < 3; i++) {
-    const from = positions[i]
-    const to = positions[(i + 1) % 3]
     page.drawLine({
-      start: { x: from.px, y: from.py },
-      end: { x: to.px, y: to.py },
-      thickness: 0.8,
+      start: { x: tipX + chevLen * Math.cos(chevAngle2), y: tipY + chevLen * Math.sin(chevAngle2) },
+      end: { x: tipX, y: tipY },
+      thickness: Math.max(0.3, 2 * scale),
       color: AMBER,
     })
   }
@@ -712,54 +734,83 @@ function renderSafetyPlanFieldPdf(
 
   const fieldValues = (values?.[field.id] as Record<string, unknown>) || {}
 
-  for (const step of field.steps) {
-    // Step header
-    const stepLabel = `Step ${step.step}: ${step.label}`
-    cursor.ensureSpace(FIELD_LABEL_HEIGHT + TEXTAREA_H)
+  // Layout constants for the step circle
+  const circleR = 10          // radius of the numbered circle
+  const circleDiameter = circleR * 2
+  const circleGap = 10        // gap between circle and text
+  const indentX = circleDiameter + circleGap  // indent for label + fields
 
-    // Step number badge + label
-    cursor.page.drawText(stepLabel, {
-      x: ML,
+  for (const step of field.steps) {
+    cursor.ensureSpace(FIELD_LABEL_HEIGHT + TEXTAREA_H + 8)
+
+    // Draw step number circle
+    const circleCx = ML + circleR
+    const circleCy = cursor.y - circleR
+    const circleColour = step.highlight === 'red' ? RED : DARK
+    cursor.page.drawCircle({
+      x: circleCx,
+      y: circleCy,
+      size: circleR,
+      color: circleColour,
+    })
+
+    // Step number (white text centred in circle)
+    const numText = String(step.step)
+    const numWidth = cursor.fonts.bold.widthOfTextAtSize(numText, 10)
+    cursor.page.drawText(numText, {
+      x: circleCx - numWidth / 2,
+      y: circleCy - 3.5,
+      size: 10,
+      font: cursor.fonts.bold,
+      color: WHITE,
+    })
+
+    // Step label (right of circle, vertically centred)
+    cursor.page.drawText(step.label, {
+      x: ML + indentX,
       y: cursor.y - FIELD_LABEL_SIZE,
       size: FIELD_LABEL_SIZE,
       font: cursor.fonts.bold,
       color: DARK,
     })
-    cursor.advance(FIELD_LABEL_HEIGHT)
+    cursor.advance(FIELD_LABEL_HEIGHT + 2)
 
-    // Hint text
+    // Hint text (indented, tighter to label)
     if (step.hint) {
-      const hintLines = wrapText(step.hint, cursor.fonts.regular, 8, CONTENT_W)
+      const hintMaxW = CONTENT_W - indentX
+      const hintLines = wrapText(step.hint, cursor.fonts.oblique, 8, hintMaxW)
       for (const line of hintLines) {
-        cursor.ensureSpace(12)
+        cursor.ensureSpace(11)
         cursor.page.drawText(line, {
-          x: ML,
+          x: ML + indentX,
           y: cursor.y - 8,
           size: 8,
-          font: cursor.fonts.regular,
+          font: cursor.fonts.oblique,
           color: GREY_TEXT,
         })
-        cursor.advance(12)
+        cursor.advance(11)
       }
+      cursor.advance(2) // Small gap between hint and field
     }
 
-    // Textarea for each sub-field in the step
+    // Textarea for each sub-field in the step (indented to align with label)
     for (const subField of step.fields) {
       // Sub-field placeholder as prompt text
-      renderPlaceholder(cursor, subField.placeholder)
+      renderPlaceholder(cursor, subField.placeholder, indentX)
 
+      const fieldW = CONTENT_W - indentX
       cursor.ensureSpace(TEXTAREA_H)
       const fieldY = cursor.y - TEXTAREA_H
-      drawFieldBox(cursor.page, ML, fieldY, CONTENT_W, TEXTAREA_H)
+      drawFieldBox(cursor.page, ML + indentX, fieldY, fieldW, TEXTAREA_H)
 
       const textField = form.createTextField(
         uniqueFieldName(`${sectionId}.${field.id}.${step.id}.${subField.id}`)
       )
       textField.enableMultiline()
       textField.addToPage(cursor.page, {
-        x: ML + 2,
+        x: ML + indentX + 2,
         y: fieldY + 2,
-        width: CONTENT_W - 4,
+        width: fieldW - 4,
         height: TEXTAREA_H - 4,
         borderWidth: 0,
       })
@@ -774,7 +825,7 @@ function renderSafetyPlanFieldPdf(
       cursor.advance(TEXTAREA_H)
     }
 
-    cursor.advance(FIELD_GAP)
+    cursor.advance(FIELD_GAP + 4) // Extra gap between steps
   }
 }
 
@@ -1468,48 +1519,59 @@ export async function generateFillablePdf(options: FillablePdfOptions): Promise<
 
   // Description text (below header)
   if (description) {
-    const descLines = wrapText(description, regular, 10, CONTENT_W)
+    const descLines = wrapText(description, regular, 9, CONTENT_W)
     for (const line of descLines) {
-      cursor.ensureSpace(14)
+      cursor.ensureSpace(13)
       cursor.page.drawText(line, {
         x: ML,
-        y: cursor.y - 10,
-        size: 10,
-        font: regular,
-        color: DARK,
-      })
-      cursor.advance(14)
-    }
-    cursor.advance(8)
-  }
-
-  // Instructions text
-  if (instructions) {
-    cursor.ensureSpace(INSTRUCTIONS_LINE_H + 10)
-
-    // Instructions header
-    cursor.page.drawText('Instructions', {
-      x: ML,
-      y: cursor.y - 10,
-      size: 10,
-      font: bold,
-      color: DARK,
-    })
-    cursor.advance(16)
-
-    const instLines = wrapText(instructions, regular, INSTRUCTIONS_SIZE, CONTENT_W)
-    for (const line of instLines) {
-      cursor.ensureSpace(INSTRUCTIONS_LINE_H)
-      cursor.page.drawText(line, {
-        x: ML,
-        y: cursor.y - INSTRUCTIONS_SIZE,
-        size: INSTRUCTIONS_SIZE,
+        y: cursor.y - 9,
+        size: 9,
         font: regular,
         color: GREY_TEXT,
       })
-      cursor.advance(INSTRUCTIONS_LINE_H)
+      cursor.advance(13)
     }
-    cursor.advance(8)
+    cursor.advance(12) // Clear gap before instructions or first section
+  }
+
+  // Instructions callout box (amber-themed, matching HTML export)
+  if (instructions) {
+    const instPadding = 12
+    const instFontSize = 9
+    const instLineH = 13
+    const instMaxW = CONTENT_W - instPadding * 2
+    const instLines = wrapText(instructions, regular, instFontSize, instMaxW)
+    const boxH = instPadding * 2 + instLines.length * instLineH
+
+    cursor.ensureSpace(boxH + 4)
+
+    const boxY = cursor.y - boxH
+    // Amber-light background
+    cursor.page.drawRectangle({
+      x: ML,
+      y: boxY,
+      width: CONTENT_W,
+      height: boxH,
+      color: AMBER_LIGHT,
+      borderColor: rgb(228 / 255, 169 / 255, 48 / 255),
+      borderWidth: 0.3,
+      borderOpacity: 0.3,
+    })
+
+    // Instructions text inside the box
+    let textY = cursor.y - instPadding
+    for (const line of instLines) {
+      cursor.page.drawText(line, {
+        x: ML + instPadding,
+        y: textY - instFontSize,
+        size: instFontSize,
+        font: regular,
+        color: DARK,
+      })
+      textY -= instLineH
+    }
+
+    cursor.advance(boxH + 8)
   }
 
   // Diary mode note
