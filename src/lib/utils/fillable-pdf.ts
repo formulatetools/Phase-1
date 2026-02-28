@@ -53,14 +53,16 @@ const MR = 15 * MM       // 42.5 pt — right margin
 const CONTENT_W = PAGE_W - ML - MR  // 496.1 pt
 
 // Header layout
-// Zone: accent bar (top 2mm) → logo row → title → separator → content
-// Vertically centred with equal breathing room
+// Logo sits in the left margin (centred at ~10mm from left edge).
+// "Formulate" wordmark starts at the content margin line (ML).
+// Extra breathing room between brand row and title.
 const ACCENT_H = 2 * MM        // amber bar height
-const LOGO_SIZE = 4 * MM
-const LOGO_Y = 297 * MM - 7 * MM      // logo bottom Y — centred between accent bar (295mm) and title (~289mm)
-const TITLE_Y = 297 * MM - 12.5 * MM  // title baseline — nudged down 0.5mm for even spacing
-const SEP_Y = 297 * MM - 15 * MM      // separator line
-const CONTENT_TOP = 297 * MM - 17 * MM // content start
+const LOGO_SIZE = 5 * MM       // slightly larger since it has its own space in the margin
+const LOGO_X = 10 * MM - LOGO_SIZE / 2  // centred in the 20mm left margin
+const BRAND_Y = 297 * MM - 8 * MM       // brand row baseline (logo + "Formulate")
+const TITLE_Y = 297 * MM - 15 * MM      // title baseline — pushed down for breathing room
+const SEP_Y = 297 * MM - 17.5 * MM      // separator line
+const CONTENT_TOP = 297 * MM - 20 * MM  // content start — 2.5mm below separator
 
 // Footer layout
 const FOOTER_MB = 7 * MM
@@ -178,20 +180,20 @@ function drawHeader(
     color: AMBER,
   })
 
-  // Draw Formulate logo
-  drawLogo(page, ML, LOGO_Y)
+  // Draw Formulate logo — in the left margin, centred horizontally
+  drawLogo(page, LOGO_X, BRAND_Y)
 
-  // "Formulate" text next to logo — vertically centred with logo
-  const logoMidY = LOGO_Y + LOGO_SIZE / 2
+  // "Formulate" wordmark — starts at the content margin line, vertically centred with logo
+  const logoMidY = BRAND_Y + LOGO_SIZE / 2
   page.drawText('Formulate', {
-    x: ML + LOGO_SIZE + 2.5 * MM,
+    x: ML,
     y: logoMidY - 3.5, // baseline offset for 10pt text
     size: 10,
     font: fonts.bold,
     color: DARK,
   })
 
-  // Page number — aligned with "Formulate" text baseline
+  // Page number — right-aligned, same baseline as "Formulate"
   const pageText = `Page ${pageNum} of ${totalPages}`
   const pageTextWidth = fonts.regular.widthOfTextAtSize(pageText, 7)
   page.drawText(pageText, {
@@ -202,11 +204,11 @@ function drawHeader(
     color: GREY_TEXT,
   })
 
-  // Worksheet title
-  page.drawText(truncateText(title, fonts.bold, 11, CONTENT_W), {
+  // Worksheet title — with breathing room below the brand row
+  page.drawText(truncateText(title, fonts.bold, 12, CONTENT_W), {
     x: ML,
     y: TITLE_Y,
-    size: 11,
+    size: 12,
     font: fonts.bold,
     color: DARK,
   })
