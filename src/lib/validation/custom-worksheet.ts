@@ -33,6 +33,16 @@ export function validateCustomSchema(
     return { valid: false, error: 'Schema must have at least one section' }
   }
 
+  // Validate diary-mode fields
+  if (schema.repeatable !== undefined && typeof schema.repeatable !== 'boolean') {
+    return { valid: false, error: 'repeatable must be a boolean' }
+  }
+  if (schema.max_entries !== undefined) {
+    if (typeof schema.max_entries !== 'number' || schema.max_entries < 2 || schema.max_entries > 30) {
+      return { valid: false, error: 'max_entries must be a number between 2 and 30' }
+    }
+  }
+
   // Block advanced layouts
   if (schema.layout && BLOCKED_LAYOUTS.has(schema.layout)) {
     return {

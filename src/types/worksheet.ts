@@ -341,5 +341,20 @@ export type SchemaLayout =
 export interface WorksheetSchema {
   version: number
   layout?: SchemaLayout
+  repeatable?: boolean       // diary-mode: client can add multiple entries
+  max_entries?: number       // default 7, max entries client can create
   sections: WorksheetSection[]
+}
+
+// Multi-entry response data format for repeatable (diary-mode) worksheets
+export interface MultiEntryResponseData {
+  _entries: Record<string, unknown>[]
+  [key: string]: unknown
+}
+
+/** Type guard: does this response use the multi-entry format? */
+export function isMultiEntryResponse(
+  data: Record<string, unknown> | null | undefined
+): data is MultiEntryResponseData {
+  return Array.isArray((data as MultiEntryResponseData)?._entries)
 }

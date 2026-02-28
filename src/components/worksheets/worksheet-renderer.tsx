@@ -1042,7 +1042,7 @@ export function WorksheetRenderer({
         }
 
         return (
-          <section key={section.id} className="space-y-4">
+          <section key={section.id} className="space-y-4" data-worksheet-section={section.id}>
             <div>
               {(section.title || section.label) && (
                 <h3 className="text-lg font-semibold text-primary-900">

@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
+import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
 import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from '@/components/homework/blank-pdf-generator'
 import { ResponsePdfGenerator, type ResponsePdfGeneratorHandle } from './response-pdf-generator'
 
@@ -390,10 +391,9 @@ export function ClientPortal({
                       )}
                     </div>
                     <div className="rounded-xl border border-primary-200 bg-surface p-6">
-                      <WorksheetRenderer
+                      <MultiEntryViewer
                         schema={worksheet.schema}
-                        readOnly={true}
-                        initialValues={response.response_data}
+                        responseData={response.response_data}
                       />
                     </div>
                   </div>

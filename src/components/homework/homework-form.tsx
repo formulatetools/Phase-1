@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import type { WorksheetSchema } from '@/types/worksheet'
+import { isMultiEntryResponse } from '@/types/worksheet'
 import type { PrefillData } from '@/types/database'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from './blank-pdf-generator'
@@ -55,6 +56,18 @@ export function HomeworkForm({
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected')
   const [pendingSubmit, setPendingSubmit] = useState(false)
 
+  // ── Multi-entry (diary mode) ───────────────────────────────────────────
+  const isRepeatable = schema.repeatable === true
+  const maxEntries = schema.max_entries ?? 7
+  const [activeEntryIndex, setActiveEntryIndex] = useState(0)
+  const entriesRef = useRef<Record<string, FieldValue>[]>(
+    isRepeatable && existingResponse && isMultiEntryResponse(existingResponse as Record<string, unknown>)
+      ? (existingResponse as { _entries: Record<string, FieldValue>[] })._entries
+      : isRepeatable ? [{}] : []
+  )
+  // Force re-renders when entries array changes (add/delete)
+  const [entryCount, setEntryCount] = useState(() => entriesRef.current.length)
+
   const [displayValues, setDisplayValues] = useState<Record<string, FieldValue>>({})
   const valuesRef = useRef<Record<string, FieldValue>>({})
   const hasChangesRef = useRef(false)
@@ -76,12 +89,16 @@ export function HomeworkForm({
     setErrorMessage(null)
 
     try {
+      const responsePayload = isRepeatable
+        ? { _entries: entriesRef.current }
+        : valuesRef.current
+
       const res = await fetch('/api/homework', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           token,
-          response_data: valuesRef.current,
+          response_data: responsePayload,
           action: 'save',
         }),
       })
@@ -196,7 +213,12 @@ export function HomeworkForm({
   // ── Values change handler ───────────────────────────────────────────────
   const handleValuesChange = useCallback(
     (newValues: Record<string, FieldValue>) => {
-      valuesRef.current = newValues
+      if (isRepeatable) {
+        // Update the active entry in the entries array
+        entriesRef.current[activeEntryIndex] = newValues
+      } else {
+        valuesRef.current = newValues
+      }
       hasChangesRef.current = true
       setDisplayValues(newValues)
 
@@ -208,7 +230,7 @@ export function HomeworkForm({
         debouncedSave()
       }, DEBOUNCE_DELAY)
     },
-    [debouncedSave, isPreview]
+    [debouncedSave, isPreview, isRepeatable, activeEntryIndex]
   )
 
   // ── Manual "Save draft" button ──────────────────────────────────────────
@@ -232,12 +254,16 @@ export function HomeworkForm({
     if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
 
     try {
+      const responsePayload = isRepeatable
+        ? { _entries: entriesRef.current }
+        : valuesRef.current
+
       const res = await fetch('/api/homework', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           token,
-          response_data: valuesRef.current,
+          response_data: responsePayload,
           action: 'submit',
         }),
       })
@@ -303,6 +329,11 @@ export function HomeworkForm({
 
   // ── Prefill data merging ───────────────────────────────────────────────
   const mergedInitialValues = useMemo(() => {
+    // For repeatable worksheets, return the active entry's values
+    if (isRepeatable) {
+      return entriesRef.current[activeEntryIndex] as Record<string, unknown> | undefined
+    }
+
     if (!prefillData || Object.keys(prefillData.fields).length === 0) {
       return existingResponse
     }
@@ -311,7 +342,7 @@ export function HomeworkForm({
       ...prefillData.fields,
       ...(existingResponse || {}),
     } as Record<string, unknown>
-  }, [existingResponse, prefillData])
+  }, [existingResponse, prefillData, isRepeatable, activeEntryIndex, entryCount]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const prefillReadOnlyIds = useMemo(() => {
     if (!prefillData?.readonly || Object.keys(prefillData.fields).length === 0) return undefined
@@ -402,13 +433,65 @@ export function HomeworkForm({
         </div>
       )}
 
+      {/* Entry tabs for diary mode */}
+      {isRepeatable && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+          {Array.from({ length: entryCount }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveEntryIndex(i)}
+              className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                i === activeEntryIndex
+                  ? 'bg-brand text-white shadow-sm'
+                  : 'bg-primary-100 text-primary-600 hover:bg-primary-200 dark:bg-primary-700 dark:text-primary-300'
+              }`}
+            >
+              Entry {i + 1}
+            </button>
+          ))}
+          {!readOnly && !submitted && entryCount < maxEntries && (
+            <button
+              onClick={() => {
+                entriesRef.current.push({})
+                const newIndex = entriesRef.current.length - 1
+                setEntryCount(entriesRef.current.length)
+                setActiveEntryIndex(newIndex)
+                hasChangesRef.current = true
+              }}
+              className="shrink-0 rounded-lg border-2 border-dashed border-primary-200 px-3 py-1.5 text-sm text-primary-400 transition-colors hover:border-brand/30 hover:text-brand dark:border-primary-600"
+            >
+              + Add entry
+            </button>
+          )}
+          {!readOnly && !submitted && entryCount > 1 && (
+            <button
+              onClick={() => {
+                if (!confirm(`Delete Entry ${activeEntryIndex + 1}?`)) return
+                entriesRef.current.splice(activeEntryIndex, 1)
+                const newCount = entriesRef.current.length
+                setEntryCount(newCount)
+                setActiveEntryIndex(Math.min(activeEntryIndex, newCount - 1))
+                hasChangesRef.current = true
+              }}
+              className="shrink-0 rounded-lg px-2 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+              title="Delete current entry"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Worksheet form */}
       <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm">
         <WorksheetRenderer
+          key={isRepeatable ? `entry-${activeEntryIndex}` : 'single'}
           schema={schema}
           readOnly={readOnly}
           initialValues={mergedInitialValues}
-          readOnlyFieldIds={prefillReadOnlyIds}
+          readOnlyFieldIds={isRepeatable ? undefined : prefillReadOnlyIds}
           onValuesChange={readOnly ? undefined : handleValuesChange}
         />
       </div>

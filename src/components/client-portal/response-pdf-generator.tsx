@@ -2,6 +2,7 @@
 
 import { useRef, useImperativeHandle, forwardRef, useState } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
+import { isMultiEntryResponse } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { generateWorksheetPdf } from '@/lib/utils/pdf-export'
 
@@ -24,8 +25,9 @@ export const ResponsePdfGenerator = forwardRef<ResponsePdfGeneratorHandle, Respo
       generatePdf: async () => {
         setMounted(true)
 
-        // Wait for the DOM to render with response data
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        // Wait for fonts + layout to be fully ready
+        if (document.fonts?.ready) await document.fonts.ready
+        await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
 
         try {
           await generateWorksheetPdf({
@@ -58,11 +60,27 @@ export const ResponsePdfGenerator = forwardRef<ResponsePdfGeneratorHandle, Respo
               {worksheetTitle}
             </h1>
             <div style={{ marginTop: '24px' }}>
-              <WorksheetRenderer
-                schema={schema}
-                readOnly={true}
-                initialValues={responseData}
-              />
+              {isMultiEntryResponse(responseData) ? (
+                // Multi-entry: render each entry with a label
+                (responseData as { _entries: Record<string, unknown>[] })._entries.map((entry, i) => (
+                  <div key={i} style={{ marginBottom: i < (responseData as { _entries: Record<string, unknown>[] })._entries.length - 1 ? '32px' : 0 }}>
+                    <h2 style={{ fontSize: '16px', fontWeight: '600', color: '#555', marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid #e2e8f0' }}>
+                      Entry {i + 1}
+                    </h2>
+                    <WorksheetRenderer
+                      schema={schema}
+                      readOnly
+                      initialValues={entry}
+                    />
+                  </div>
+                ))
+              ) : (
+                <WorksheetRenderer
+                  schema={schema}
+                  readOnly
+                  initialValues={responseData}
+                />
+              )}
             </div>
           </div>
         </div>

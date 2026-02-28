@@ -92,6 +92,8 @@ export function CustomWorksheetBuilder({
   const [categoryId, setCategoryId] = useState<string | null>(initialData?.category_id || null)
   const [tagsInput, setTagsInput] = useState((initialData?.tags || []).join(', '))
   const [estimatedMinutes, setEstimatedMinutes] = useState<number | null>(initialData?.estimated_minutes || null)
+  const [repeatable, setRepeatable] = useState(initialData?.schema?.repeatable || false)
+  const [maxEntries, setMaxEntries] = useState(initialData?.schema?.max_entries || 7)
 
   // Schema state
   const [sections, setSections] = useState<WorksheetSection[]>(
@@ -118,6 +120,10 @@ export function CustomWorksheetBuilder({
         setSections(data.schema?.sections || [])
         setTagsInput((data.tags || []).join(', '))
         setEstimatedMinutes(data.estimated_minutes)
+        if (data.schema?.repeatable) {
+          setRepeatable(true)
+          setMaxEntries(data.schema.max_entries || 7)
+        }
         toast({ type: 'success', message: 'AI-generated worksheet loaded — review and edit below.' })
       }
     } catch {
@@ -137,7 +143,11 @@ export function CustomWorksheetBuilder({
   const [savedWorksheetId, setSavedWorksheetId] = useState<string | null>(worksheetId || null)
 
   // Build the schema object from state
-  const schema: WorksheetSchema = { version: 1, sections }
+  const schema: WorksheetSchema = {
+    version: 1,
+    ...(repeatable ? { repeatable: true, max_entries: maxEntries } : {}),
+    sections,
+  }
 
   // Track unsaved changes — warn before navigating away
   const initialSnapshot = useMemo(
@@ -491,6 +501,33 @@ export function CustomWorksheetBuilder({
                   placeholder="15"
                 />
               </div>
+            </div>
+
+            {/* Diary mode toggle */}
+            <div className="flex items-center gap-3 pt-1">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={repeatable}
+                  onChange={(e) => setRepeatable(e.target.checked)}
+                  className="rounded border-primary-300 text-brand focus:ring-brand"
+                />
+                <span className="font-medium text-primary-700">Diary mode</span>
+                <span className="text-xs text-primary-400">— clients can add multiple entries</span>
+              </label>
+              {repeatable && (
+                <div className="flex items-center gap-1.5">
+                  <label className="text-xs text-primary-500">Max:</label>
+                  <input
+                    type="number"
+                    value={maxEntries}
+                    onChange={(e) => setMaxEntries(Math.max(2, Math.min(30, Number(e.target.value) || 7)))}
+                    min={2}
+                    max={30}
+                    className="w-16 rounded-lg border border-primary-200 px-2 py-1 text-sm text-primary-800 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  />
+                </div>
+              )}
             </div>
           </div>
 

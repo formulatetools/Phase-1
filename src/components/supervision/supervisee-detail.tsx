@@ -21,6 +21,7 @@ import {
   gdprEraseSupervision,
 } from '@/app/(dashboard)/supervision/actions'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
+import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
 import { ShareModal } from '@/components/ui/share-modal'
 
 interface SuperviseeDetailProps {
@@ -582,10 +583,9 @@ export function SuperviseeDetail({
                         </div>
                       </div>
                       <div className="rounded-xl border border-primary-200 bg-surface p-6">
-                        <WorksheetRenderer
+                        <MultiEntryViewer
                           schema={worksheet.schema}
-                          readOnly={true}
-                          initialValues={response.response_data as Record<string, unknown>}
+                          responseData={response.response_data as Record<string, unknown>}
                         />
                       </div>
                     </div>

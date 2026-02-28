@@ -331,7 +331,12 @@ const DECISION_LOGIC = `## Decision Logic
    Section 2: Formulation (the formulation field)
    Section 3: Reflection (textarea for treatment implications + optional computed fields)
 
-10. Maximum one formulation per worksheet, maximum one record per worksheet`
+10. Maximum one formulation per worksheet, maximum one record per worksheet
+
+11. Description mentions "daily diary", "weekly log", "repeated entries", "daily monitoring", "mood diary", "activity log" →
+    set schema.repeatable = true and schema.max_entries = 7.
+    Diary mode lets clients add multiple identical entries (Day 1, Day 2, etc.) within the same assignment.
+    Only set this for tools designed for repeated daily/weekly use — NOT for one-off formulations, assessments, or safety plans.`
 
 const OUTPUT_FORMAT = `## Output Format
 
@@ -350,6 +355,7 @@ Return a SINGLE JSON object with NO markdown fences, ONLY raw JSON:
   },
   "schema": {
     "version": 1,
+    "repeatable": false,
     "sections": [
       {
         "id": "s-1",

@@ -16,6 +16,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing token or response_data' }, { status: 400 })
     }
 
+    // Validate multi-entry format if present
+    if (response_data._entries !== undefined && !Array.isArray(response_data._entries)) {
+      return NextResponse.json({ error: 'Invalid response format' }, { status: 400 })
+    }
+
     const supabase = createServiceClient()
 
     // Look up assignment by token

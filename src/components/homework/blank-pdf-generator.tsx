@@ -24,8 +24,9 @@ export const BlankPdfGenerator = forwardRef<BlankPdfGeneratorHandle, BlankPdfGen
         // Mount the hidden renderer
         setMounted(true)
 
-        // Wait for the DOM to render
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        // Wait for fonts + layout to be fully ready
+        if (document.fonts?.ready) await document.fonts.ready
+        await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
 
         try {
           await generateWorksheetPdf({
