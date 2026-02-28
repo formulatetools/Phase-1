@@ -221,6 +221,39 @@ export function homeworkNudgeEmail(
   }
 }
 
+// ─── Homework Follow-Up Email (7-day incomplete reminder) ─────
+
+export function homeworkFollowUpEmail(
+  therapistName: string | null,
+  clientLabel: string,
+  worksheetTitle: string,
+  clientDetailUrl: string,
+  assignedDaysAgo: number
+): { subject: string; html: string } {
+  const greeting = therapistName ? `Hi ${therapistName},` : 'Hi there,'
+
+  return {
+    subject: `Follow-up: ${clientLabel} still hasn't completed ${worksheetTitle}`,
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Homework still outstanding</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 12px;font-size:15px;color:#444;">
+        <strong>${worksheetTitle}</strong> was assigned to <strong>${clientLabel}</strong> ${assignedDaysAgo} days ago and still hasn't been completed.
+      </p>
+      <p style="margin:0 0 20px;font-size:14px;color:#666;">
+        It may be worth discussing any barriers to completion in your next session, resending the link, or reassigning a different worksheet if the current one isn't a good fit.
+      </p>
+      ${button('View client', clientDetailUrl)}
+    `, {
+      preheader: `${clientLabel} still hasn't completed ${worksheetTitle}`,
+      signature: false,
+      footerContext: 'You received this because you have a homework assignment outstanding for more than a week on Formulate.',
+    }),
+  }
+}
+
 // ─── Subscription Cancelled Email ─────────────────────────────
 
 export function subscriptionCancelledEmail(

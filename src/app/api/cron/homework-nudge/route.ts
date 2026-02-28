@@ -1,18 +1,31 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/email'
-import { homeworkNudgeEmail } from '@/lib/email-templates'
+import { homeworkNudgeEmail, homeworkFollowUpEmail } from '@/lib/email-templates'
 
 /**
- * Homework nudge cron — sends therapist a reminder when a client's
- * homework hasn't been completed 48+ hours after assignment.
+ * Homework nudge cron — sends therapist reminders when a client's
+ * homework hasn't been completed after assignment.
  *
  * Schedule: daily at 09:00 UTC (via Vercel Cron or external scheduler)
  * Endpoint: GET /api/cron/homework-nudge
  *
- * Only sends ONE nudge per assignment (dedup via audit_log).
+ * Two nudge tiers:
+ *   1. 48-hour nudge  — gentle first reminder (dedup key: homework_nudge_48h)
+ *   2. 7-day follow-up — firmer second reminder (dedup key: homework_nudge_7d)
+ *
+ * Each tier sends at most once per assignment (dedup via audit_log).
  * Only targets assignments that are still active (not expired, not deleted).
+ *
+ * Backwards compatible: legacy audit entries with entity_id 'homework_nudge'
+ * are treated as 48h nudges already sent.
  */
+
+// Nudge tier definitions
+const NUDGE_TIERS = [
+  { key: 'homework_nudge_48h', minHours: 48, emailType: 'homework_nudge' as const },
+  { key: 'homework_nudge_7d', minHours: 168, emailType: 'homework_follow_up' as const },
+] as const
 
 export async function GET(request: NextRequest) {
   // Verify cron secret
@@ -26,7 +39,7 @@ export async function GET(request: NextRequest) {
 
   // Find assignments that are:
   // - still 'assigned' (never started) or 'in_progress' (started but not submitted)
-  // - assigned more than 48 hours ago
+  // - assigned more than 48 hours ago (earliest tier threshold)
   // - not expired, not deleted
   const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
   const now = new Date().toISOString()
@@ -43,27 +56,49 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: true, sent: 0, candidates: 0 })
   }
 
-  // Batch dedup: check which assignments already got a nudge
+  // Batch dedup: check which assignments already got nudges at each tier
+  // Include legacy 'homework_nudge' key for backwards compatibility
   const assignmentIds = candidates.map(a => a.id)
+  const allKeys = [...NUDGE_TIERS.map(t => t.key), 'homework_nudge']
   const { data: sentEmails } = await supabase
     .from('audit_log')
-    .select('metadata')
+    .select('entity_id, metadata')
     .eq('entity_type', 'email')
-    .eq('entity_id', 'homework_nudge')
+    .in('entity_id', allKeys)
     .in('metadata->>assignment_id', assignmentIds)
 
-  const sentAssignmentIds = new Set(
-    (sentEmails ?? []).map(e => (e.metadata as Record<string, string>)?.assignment_id).filter(Boolean)
-  )
+  // Build a set of "assignmentId:tierKey" pairs already sent
+  const sentPairs = new Set<string>()
+  for (const entry of sentEmails ?? []) {
+    const assignmentId = (entry.metadata as Record<string, string>)?.assignment_id
+    if (!assignmentId) continue
+    if (entry.entity_id === 'homework_nudge' || entry.entity_id === 'homework_nudge_48h') {
+      // Legacy or current 48h key — mark 48h tier as sent
+      sentPairs.add(`${assignmentId}:homework_nudge_48h`)
+    } else {
+      sentPairs.add(`${assignmentId}:${entry.entity_id}`)
+    }
+  }
 
-  // Filter to un-nudged assignments
-  const toNudge = candidates.filter(a => !sentAssignmentIds.has(a.id))
-  if (toNudge.length === 0) {
+  // Determine which (assignment, tier) pairs need sending
+  const toSend: { assignment: typeof candidates[0]; tier: typeof NUDGE_TIERS[number] }[] = []
+
+  for (const assignment of candidates) {
+    const hoursAgo = (Date.now() - new Date(assignment.assigned_at).getTime()) / 3_600_000
+
+    for (const tier of NUDGE_TIERS) {
+      if (hoursAgo >= tier.minHours && !sentPairs.has(`${assignment.id}:${tier.key}`)) {
+        toSend.push({ assignment, tier })
+      }
+    }
+  }
+
+  if (toSend.length === 0) {
     return NextResponse.json({ ok: true, sent: 0, candidates: candidates.length })
   }
 
   // Batch fetch therapist profiles
-  const therapistIds = [...new Set(toNudge.map(a => a.therapist_id))]
+  const therapistIds = [...new Set(toSend.map(s => s.assignment.therapist_id))]
   const { data: therapists } = await supabase
     .from('profiles')
     .select('id, email, full_name')
@@ -72,7 +107,7 @@ export async function GET(request: NextRequest) {
   const therapistMap = new Map((therapists ?? []).map(t => [t.id, t]))
 
   // Batch fetch relationships for client labels
-  const relationshipIds = [...new Set(toNudge.map(a => a.relationship_id))]
+  const relationshipIds = [...new Set(toSend.map(s => s.assignment.relationship_id))]
   const { data: relationships } = await supabase
     .from('therapeutic_relationships')
     .select('id, client_label')
@@ -81,7 +116,7 @@ export async function GET(request: NextRequest) {
   const relMap = new Map((relationships ?? []).map(r => [r.id, r]))
 
   // Batch fetch worksheet titles
-  const worksheetIds = [...new Set(toNudge.map(a => a.worksheet_id))]
+  const worksheetIds = [...new Set(toSend.map(s => s.assignment.worksheet_id))]
   const { data: worksheets } = await supabase
     .from('worksheets')
     .select('id, title')
@@ -91,7 +126,7 @@ export async function GET(request: NextRequest) {
 
   let sent = 0
 
-  for (const assignment of toNudge) {
+  for (const { assignment, tier } of toSend) {
     const therapist = therapistMap.get(assignment.therapist_id)
     const relationship = relMap.get(assignment.relationship_id)
     const worksheet = wsMap.get(assignment.worksheet_id)
@@ -104,34 +139,43 @@ export async function GET(request: NextRequest) {
 
     const clientDetailUrl = `${appUrl}/clients/${assignment.relationship_id}`
 
-    const email = homeworkNudgeEmail(
-      therapist.full_name as string | null,
-      relationship.client_label as string,
-      worksheet.title as string,
-      clientDetailUrl,
-      daysAgo
-    )
+    // Pick the appropriate email template based on tier
+    const email = tier.emailType === 'homework_follow_up'
+      ? homeworkFollowUpEmail(
+          therapist.full_name as string | null,
+          relationship.client_label as string,
+          worksheet.title as string,
+          clientDetailUrl,
+          daysAgo
+        )
+      : homeworkNudgeEmail(
+          therapist.full_name as string | null,
+          relationship.client_label as string,
+          worksheet.title as string,
+          clientDetailUrl,
+          daysAgo
+        )
 
     try {
       await sendEmail({
         to: therapist.email,
         subject: email.subject,
         html: email.html,
-        emailType: 'homework_nudge',
+        emailType: tier.emailType,
       })
     } catch (emailError) {
-      console.error(`Failed to send homework nudge for assignment ${assignment.id}:`, emailError)
+      console.error(`Failed to send ${tier.key} for assignment ${assignment.id}:`, emailError)
       continue
     }
 
-    // Log for dedup — one record per assignment so we never nudge twice
+    // Log for dedup — one record per (assignment, tier)
     await supabase.from('audit_log').insert({
       user_id: assignment.therapist_id,
       action: 'create',
       entity_type: 'email',
-      entity_id: 'homework_nudge',
+      entity_id: tier.key,
       metadata: {
-        template: 'homework_nudge',
+        template: tier.emailType,
         assignment_id: assignment.id,
         worksheet_title: worksheet.title,
         client_label: relationship.client_label,
