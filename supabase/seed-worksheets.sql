@@ -1,4 +1,21 @@
--- Formulate: Worksheet Library Seed
+-- Formulate: Worksheet Library Seed (LEGACY)
+-- ============================================================================
+-- DEPRECATED: This file is superseded by migrations 00021–00024 which contain
+-- the full 118-worksheet library with portable SELECT-based category lookups.
+--
+-- This file uses hardcoded production category UUIDs and will NOT work in
+-- fresh environments. It is kept for reference only.
+--
+-- Worksheets overwritten by migration 00021 (Batch 1):
+--   behavioural-experiment-planner, relapse-prevention-plan,
+--   depression-formulation, ocd-vicious-flower-formulation,
+--   panic-diary, positive-data-log
+--
+-- Worksheets overwritten by migration 00022 (Batch 2):
+--   Check 00022 crosswalk section for details.
+--
+-- DO NOT run this file against a database that has migrations 00021+ applied.
+-- ============================================================================
 -- Evidence-based CBT worksheets across all categories
 -- Uses existing category IDs from production database
 
