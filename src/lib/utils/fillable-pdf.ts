@@ -57,9 +57,9 @@ const CONTENT_W = PAGE_W - ML - MR  // 496.1 pt
 // "Formulate" wordmark starts at the content margin line (ML).
 // Extra breathing room between brand row and title.
 const ACCENT_H = 2 * MM        // amber bar height
-const LOGO_SIZE = 5 * MM       // slightly larger since it has its own space in the margin
+const LOGO_SIZE = 8 * MM       // prominent brand mark filling ~40% of margin width
 const LOGO_X = 10 * MM - LOGO_SIZE / 2  // centred in the 20mm left margin
-const BRAND_Y = 297 * MM - 8 * MM       // brand row baseline (logo + "Formulate")
+const BRAND_Y = 297 * MM - 10 * MM      // brand row baseline — nudged down to centre the larger logo
 const TITLE_Y = 297 * MM - 15 * MM      // title baseline — pushed down for breathing room
 const SEP_Y = 297 * MM - 17.5 * MM      // separator line
 const CONTENT_TOP = 297 * MM - 20 * MM  // content start — 2.5mm below separator
