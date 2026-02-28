@@ -16,7 +16,7 @@ export const maxDuration = 60
 
 // Monthly generation limits per tier
 const AI_GENERATION_LIMITS: Record<string, number> = {
-  free: 0,
+  free: 1,
   starter: 3,
   standard: 10,
   professional: Infinity,
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     if (genLimit === 0) {
       return NextResponse.json(
-        { error: 'AI worksheet generation is available on Starter plans and above.' },
+        { error: 'AI worksheet generation is not available on your plan.' },
         { status: 403 }
       )
     }
