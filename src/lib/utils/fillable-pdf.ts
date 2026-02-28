@@ -674,9 +674,13 @@ function renderTableFieldPdf(
 
   // Data rows
   const tableValues = (values?.[field.id] as Record<string, unknown>[] | undefined) || []
-  // For blank PDFs: at least 3 rows so the table is practically usable on paper.
-  // For pre-filled: use actual data length. Respects min_rows if larger (e.g. 7 for weekly schedules).
-  const blankMinRows = Math.max(3, field.min_rows || 3)
+  // Smart blank row heuristic for paper-usable PDFs:
+  //   - If min_rows is already ≥ 3, trust it (e.g. 7 for weekly schedules)
+  //   - If max_rows is high (≥10) but min_rows is low, use 5 (implies "fill many in")
+  //   - Otherwise default to 3 blank rows
+  const minR = field.min_rows || 1
+  const maxR = field.max_rows || 20
+  const blankMinRows = minR >= 3 ? minR : maxR >= 10 ? 5 : 3
   const numRows = Math.max(blankMinRows, tableValues.length)
 
   for (let r = 0; r < numRows; r++) {
@@ -1185,9 +1189,11 @@ function renderRecordFieldPdf(
   renderFieldLabel(cursor, field.label, field.required)
 
   const recordValues = (values?.[field.id] as { records?: Record<string, unknown>[] }) || {}
-  // For blank PDFs: render 3 empty records (capped at max_records) so the form is usable on paper.
-  // For pre-filled: use actual data.
-  const blankRecordCount = Math.min(3, field.max_records || 20)
+  // Smart blank record heuristic for paper-usable PDFs:
+  //   - If max_records is high (≥10), use 5 (implies "fill many in" like a thought log)
+  //   - Otherwise use 3
+  const maxRec = field.max_records || 20
+  const blankRecordCount = Math.min(maxRec >= 10 ? 5 : 3, maxRec)
   const defaultRecords: Record<string, unknown>[] = Array.from({ length: blankRecordCount }, () => ({}))
   const records = recordValues.records || defaultRecords
 
