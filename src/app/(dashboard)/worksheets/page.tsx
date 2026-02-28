@@ -18,16 +18,13 @@ export default async function WorksheetsPage({
   const params = await searchParams
   const supabase = await createClient()
 
-  // Parallel fetches: categories + all published worksheets
-  const [{ data: categories }, { data: allWorksheets }] = await Promise.all([
-    supabase.from('categories').select('*').order('display_order'),
-    supabase
-      .from('worksheets')
-      .select('id, title, slug, description, tags, estimated_minutes, category_id, is_premium, categories(name, slug)')
-      .eq('is_published', true)
-      .is('deleted_at', null)
-      .order('display_order'),
-  ])
+  // Fetch all published worksheets
+  const { data: allWorksheets } = await supabase
+    .from('worksheets')
+    .select('id, title, slug, description, tags, estimated_minutes, category_id, is_premium, categories(name, slug)')
+    .eq('is_published', true)
+    .is('deleted_at', null)
+    .order('display_order')
 
   // Extract all unique tags for the filter chips
   const tagSet = new Set<string>()
@@ -36,10 +33,11 @@ export default async function WorksheetsPage({
   })
   const allTags = [...tagSet].sort()
 
-  // Worksheet counts per category
-  const countByCategory: Record<string, number> = {}
-  ;(allWorksheets || []).forEach((w: { category_id: string }) => {
-    countByCategory[w.category_id] = (countByCategory[w.category_id] || 0) + 1
+  // Resource type counts
+  const countByType = { worksheet: 0, formulation: 0, supervision: 0 }
+  ;(allWorksheets || []).forEach((w: { tags?: string[] }) => {
+    const t = getResourceType(w.tags)
+    countByType[t]++
   })
 
   // Resource type filter
@@ -85,17 +83,45 @@ export default async function WorksheetsPage({
     }
   }
 
-  const categoryIcons: Record<string, string> = {
-    depression: '🌧',
-    'generalised-anxiety-gad': '😰',
-    'obsessive-compulsive-disorder-ocd': '🔄',
-    'social-anxiety': '👥',
-    'health-anxiety': '🏥',
-    'panic-disorder': '⚡',
-    'ptsd-trauma': '🛡',
-    'low-self-esteem': '💭',
-    'general-cbt-skills': '🧠',
-  }
+  // Resource type card config
+  const resourceTypeCards = [
+    {
+      type: 'worksheet' as const,
+      label: 'Worksheets',
+      description: 'Structured CBT worksheets for depression, anxiety, OCD, trauma, and more.',
+      count: countByType.worksheet,
+      icon: (
+        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+        </svg>
+      ),
+      colour: 'bg-blue-50 text-blue-600 group-hover:bg-blue-100',
+    },
+    {
+      type: 'formulation' as const,
+      label: 'Formulations',
+      description: 'Interactive formulation diagrams — cross-sectional, longitudinal, and vicious flower models.',
+      count: countByType.formulation,
+      icon: (
+        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+        </svg>
+      ),
+      colour: 'bg-purple-50 text-purple-600 group-hover:bg-purple-100',
+    },
+    {
+      type: 'supervision' as const,
+      label: 'Supervision Tools',
+      description: 'Reflective practice logs, case formulation templates, and supervisee homework.',
+      count: countByType.supervision,
+      icon: (
+        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+        </svg>
+      ),
+      colour: 'bg-green-50 text-green-600 group-hover:bg-green-100',
+    },
+  ]
 
   return (
     <div className="px-4 py-8 sm:px-8 lg:px-12">
@@ -104,8 +130,7 @@ export default async function WorksheetsPage({
           Resource Library
         </h1>
         <p className="mt-1 text-primary-400">
-          {allWorksheets?.length || 0} professional CBT resources across{' '}
-          {categories?.length || 0} categories
+          {allWorksheets?.length || 0} professional CBT resources
         </p>
       </div>
 
@@ -222,28 +247,27 @@ export default async function WorksheetsPage({
           )}
         </div>
       ) : (
-        /* Categories grid */
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {categories?.map((category) => (
+        /* Resource type cards */
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          {resourceTypeCards.map((card) => (
             <Link
-              key={category.id}
-              href={`/worksheets/category/${category.slug}`}
+              key={card.type}
+              href={`/worksheets?type=${card.type}`}
               className="group rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
             >
               <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-2xl transition-colors group-hover:bg-brand/10">
-                  {categoryIcons[category.slug] || '📋'}
+                <div className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${card.colour}`}>
+                  {card.icon}
                 </div>
                 <span className="rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-500">
-                  {countByCategory[category.id] || 0} tool
-                  {(countByCategory[category.id] || 0) !== 1 ? 's' : ''}
+                  {card.count} tool{card.count !== 1 ? 's' : ''}
                 </span>
               </div>
               <h2 className="mt-4 text-base font-semibold text-primary-900 group-hover:text-brand-dark">
-                {category.name}
+                {card.label}
               </h2>
               <p className="mt-1 text-sm text-primary-400 line-clamp-2">
-                {category.description}
+                {card.description}
               </p>
             </Link>
           ))}
