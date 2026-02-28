@@ -9,6 +9,7 @@ import type {
   FormulationLayoutPattern,
 } from '@/types/worksheet'
 import { getColourFromHex } from '@/lib/domain-colors'
+import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { useTheme } from '@/components/providers/theme-provider'
 
 // ============================================================================
@@ -804,7 +805,7 @@ function NodeFieldRenderer({
           <p className="text-[10px] font-medium text-primary-500">{field.label}</p>
         )}
         {displayValue ? (
-          <p className="text-sm text-foreground">{displayValue}</p>
+          <p className="whitespace-pre-wrap text-sm text-foreground">{displayValue}</p>
         ) : (
           <p className="text-sm italic text-primary-400">Not answered</p>
         )}
@@ -830,12 +831,12 @@ function NodeFieldRenderer({
       return (
         <div className="space-y-0.5">
           {field.label && <label className="text-[10px] font-medium text-primary-500">{field.label}</label>}
-          <textarea
+          <AutoTextarea
             value={(value as string) || ''}
             onChange={e => onChange(e.target.value)}
             placeholder={field.placeholder}
-            rows={2}
-            className={`${baseInputClass} resize-none`}
+            minRows={2}
+            className={baseInputClass}
           />
         </div>
       )

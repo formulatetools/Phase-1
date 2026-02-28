@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import type { WorksheetSection, WorksheetField, DomainType } from '@/types/worksheet'
 import { getDomainColor } from '@/lib/domain-colors'
+import { AutoTextarea } from '@/components/ui/auto-textarea'
 
 type FieldValue = string | number | '' | string[] | Record<string, string | number | ''>[]
 
@@ -178,14 +179,14 @@ function ViciousFlowerLayout({
           <p className="mb-2 text-center text-[0.65rem] font-semibold uppercase tracking-wider text-amber-700">
             Presenting Problem
           </p>
-          <textarea
+          <AutoTextarea
             value={(values[centreSection.fields[0]?.id] as string) || ''}
             onChange={(e) =>
               updateValue(centreSection.fields[0]?.id, e.target.value)
             }
             placeholder={centreSection.fields[0]?.placeholder || 'Central problem'}
-            rows={3}
-            className="w-full resize-none rounded-lg border border-amber-200 bg-surface px-3 py-2 text-sm text-primary-900 placeholder-primary-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/30"
+            minRows={3}
+            className="w-full rounded-lg border border-amber-200 bg-surface px-3 py-2 text-sm text-primary-900 placeholder-primary-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/30"
           />
         </div>
       )}
@@ -234,14 +235,14 @@ function ViciousFlowerLayout({
               />
 
               {/* Petal content */}
-              <textarea
+              <AutoTextarea
                 value={petal.petal_content}
                 onChange={(e) =>
                   updatePetal(index, 'petal_content', e.target.value)
                 }
                 placeholder="How does this maintain the problem?"
-                rows={3}
-                className="w-full resize-none rounded border border-primary-200/50 bg-surface/80 px-2 py-1.5 text-sm text-primary-800 placeholder-primary-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/30"
+                minRows={3}
+                className="w-full rounded border border-primary-200/50 bg-surface/80 px-2 py-1.5 text-sm text-primary-800 placeholder-primary-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/30"
               />
             </div>
           )
