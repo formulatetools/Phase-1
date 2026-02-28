@@ -274,7 +274,7 @@ function generateCss(): string {
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       background: var(--bg);
       color: var(--text-800);
       line-height: 1.6;
@@ -285,6 +285,7 @@ function generateCss(): string {
 
     /* Header */
     header {
+      border-top: 3px solid var(--brand);
       border-bottom: 1px solid var(--border);
       background: var(--surface);
       padding: 12px 0;
@@ -778,7 +779,7 @@ function generateCss(): string {
       body { background: white; }
       .section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
       .save-indicator { display: none; }
-      header { border-bottom: 2px solid var(--brand); }
+      header { border-top: 3px solid var(--brand); border-bottom: 2px solid var(--brand); }
       footer { border-top: 2px solid var(--brand); }
       input[type="range"] { display: none; }
       .likert-value { font-size: 16px; }
@@ -1864,6 +1865,9 @@ export function generateInteractiveHtml(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${esc(title)} — Formulate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>${css}</style>
 </head>
 <body>
@@ -1885,7 +1889,7 @@ export function generateInteractiveHtml(
     <div class="container">
       <div class="footer-brand">
         ${LOGO_SVG}
-        <span>Powered by Formulate</span>
+        <span>Powered by Formulate · formulatetools.co.uk</span>
       </div>
     </div>
   </footer>

@@ -225,7 +225,7 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
       )}
 
       {/* Minimal header */}
-      <header className="border-b border-primary-100 bg-surface">
+      <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <LogoIcon size={20} />
@@ -261,7 +261,7 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
       <footer className="border-t border-primary-100 py-6 text-center">
         <div className="flex items-center justify-center gap-1.5 text-xs text-primary-400">
           <LogoIcon size={12} />
-          <span>Powered by Formulate</span>
+          <span>Powered by Formulate · <a href="https://formulatetools.co.uk" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-primary-500 transition-colors">formulatetools.co.uk</a></span>
         </div>
       </footer>
     </div>
