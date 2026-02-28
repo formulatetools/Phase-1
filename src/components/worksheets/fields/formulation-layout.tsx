@@ -66,15 +66,15 @@ function CrossSectionalLayout({
         </svg>
       </div>
 
-      {/* Middle row — 3 columns with bidirectional arrows */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Middle row — stacked on mobile, 3 columns on sm+ */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {renderDomainSection(thoughts, 'thoughts')}
         {renderDomainSection(emotions, 'emotions')}
         {renderDomainSection(physical, 'physical')}
       </div>
 
-      {/* Connecting arrows between middle sections */}
-      <div className="flex justify-center gap-16">
+      {/* Connecting arrows between middle sections (hidden on mobile where they stack) */}
+      <div className="hidden justify-center gap-16 sm:flex">
         <svg className="h-4 w-16 text-primary-200" viewBox="0 0 64 16">
           <line x1="0" y1="8" x2="64" y2="8" stroke="currentColor" strokeWidth="1.5" />
           <polygon points="6,4 0,8 6,12" fill="currentColor" />
@@ -429,7 +429,7 @@ function CrossSectionalReadOnly({
   return (
     <div className="space-y-3">
       {renderDomainSection(situation, 'situation')}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         {renderDomainSection(thoughts, 'thoughts')}
         {renderDomainSection(emotions, 'emotions')}
         {renderDomainSection(physical, 'physical')}
