@@ -674,7 +674,10 @@ function renderTableFieldPdf(
 
   // Data rows
   const tableValues = (values?.[field.id] as Record<string, unknown>[] | undefined) || []
-  const numRows = Math.max(field.min_rows || 3, tableValues.length)
+  // For blank PDFs: at least 3 rows so the table is practically usable on paper.
+  // For pre-filled: use actual data length. Respects min_rows if larger (e.g. 7 for weekly schedules).
+  const blankMinRows = Math.max(3, field.min_rows || 3)
+  const numRows = Math.max(blankMinRows, tableValues.length)
 
   for (let r = 0; r < numRows; r++) {
     cursor.ensureSpace(TABLE_ROW_H)
@@ -1182,7 +1185,11 @@ function renderRecordFieldPdf(
   renderFieldLabel(cursor, field.label, field.required)
 
   const recordValues = (values?.[field.id] as { records?: Record<string, unknown>[] }) || {}
-  const records = recordValues.records || [{}] // At least one blank record
+  // For blank PDFs: render 3 empty records (capped at max_records) so the form is usable on paper.
+  // For pre-filled: use actual data.
+  const blankRecordCount = Math.min(3, field.max_records || 20)
+  const defaultRecords: Record<string, unknown>[] = Array.from({ length: blankRecordCount }, () => ({}))
+  const records = recordValues.records || defaultRecords
 
   for (let rIdx = 0; rIdx < records.length; rIdx++) {
     const record = records[rIdx]
@@ -1369,6 +1376,32 @@ function renderComputedFieldPdf(
   cursor.advance(16)
 }
 
+/** Render an "Entry N" header with separator line (for diary/multi-entry worksheets) */
+function renderEntryHeader(
+  cursor: LayoutCursor,
+  entryNum: number,
+  fonts: { regular: PDFFont; bold: PDFFont; oblique: PDFFont },
+) {
+  cursor.ensureSpace(SECTION_TITLE_HEIGHT + 12)
+  cursor.page.drawText(`Entry ${entryNum}`, {
+    x: ML,
+    y: cursor.y - SECTION_TITLE_SIZE,
+    size: SECTION_TITLE_SIZE,
+    font: fonts.bold,
+    color: DARK,
+  })
+  cursor.advance(SECTION_TITLE_HEIGHT)
+
+  // Separator line below entry header
+  cursor.page.drawLine({
+    start: { x: ML, y: cursor.y + 4 },
+    end: { x: PAGE_W - MR, y: cursor.y + 4 },
+    thickness: 0.5,
+    color: GREY_LINE,
+  })
+  cursor.advance(8)
+}
+
 // ─── Section & field dispatch ───────────────────────────────────────────────
 
 function renderField(
@@ -1414,7 +1447,8 @@ function renderField(
       renderRecordFieldPdf(cursor, form, field as RecordField, sectionId, values)
       break
     case 'computed':
-      renderComputedFieldPdf(cursor, field as ComputedField)
+      // Skip computed fields entirely — they're app-only calculations
+      // (e.g. belief change, averages) that don't apply to paper
       break
   }
 }
@@ -1578,53 +1612,31 @@ export async function generateFillablePdf(options: FillablePdfOptions): Promise<
     cursor.advance(boxH + 8)
   }
 
-  // Diary mode note
-  if (schema.repeatable && !values) {
-    cursor.ensureSpace(16)
-    cursor.page.drawText('This worksheet supports multiple daily entries — use the online version for diary mode.', {
-      x: ML,
-      y: cursor.y - 9,
-      size: 9,
-      font: oblique,
-      color: AMBER,
-    })
-    cursor.advance(20)
-  }
-
-  // Handle multi-entry responses
-  if (values && isMultiEntryResponse(values)) {
-    const entries = (values as { _entries: Record<string, unknown>[] })._entries
-    for (let entryIdx = 0; entryIdx < entries.length; entryIdx++) {
-      const entry = entries[entryIdx]
-
-      // Entry header
-      cursor.ensureSpace(SECTION_TITLE_HEIGHT)
-      cursor.page.drawText(`Entry ${entryIdx + 1}`, {
-        x: ML,
-        y: cursor.y - SECTION_TITLE_SIZE,
-        size: SECTION_TITLE_SIZE,
-        font: bold,
-        color: DARK,
-      })
-      cursor.advance(SECTION_TITLE_HEIGHT)
-
-      // Separator
-      cursor.page.drawLine({
-        start: { x: ML, y: cursor.y + 4 },
-        end: { x: PAGE_W - MR, y: cursor.y + 4 },
-        thickness: 0.5,
-        color: GREY_LINE,
-      })
-      cursor.advance(8)
-
-      // Render sections for this entry
-      for (const section of schema.sections) {
-        renderSection(cursor, form, section, entry)
-        cursor.advance(SECTION_GAP)
+  // Handle diary/repeatable worksheets and multi-entry responses
+  if (schema.repeatable) {
+    if (values && isMultiEntryResponse(values)) {
+      // Pre-filled multi-entry: render each submitted entry
+      const entries = (values as { _entries: Record<string, unknown>[] })._entries
+      for (let entryIdx = 0; entryIdx < entries.length; entryIdx++) {
+        renderEntryHeader(cursor, entryIdx + 1, fonts)
+        for (const section of schema.sections) {
+          renderSection(cursor, form, section, entries[entryIdx])
+          cursor.advance(SECTION_GAP)
+        }
+      }
+    } else {
+      // Blank diary export: render 3 blank entry sets (or max_entries if smaller)
+      const blankEntries = Math.min(3, schema.max_entries || 7)
+      for (let entryIdx = 0; entryIdx < blankEntries; entryIdx++) {
+        renderEntryHeader(cursor, entryIdx + 1, fonts)
+        for (const section of schema.sections) {
+          renderSection(cursor, form, section, undefined)
+          cursor.advance(SECTION_GAP)
+        }
       }
     }
   } else {
-    // Single entry — render sections normally
+    // Non-diary: single set of sections
     for (const section of schema.sections) {
       renderSection(cursor, form, section, values)
       cursor.advance(SECTION_GAP)
