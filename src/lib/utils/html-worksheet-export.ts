@@ -737,6 +737,7 @@ function generateCss(): string {
       background: var(--surface); padding: 16px;
     }
     .record-card[data-hidden="true"] { display: none; }
+    .record-rows { display: flex; flex-direction: column; gap: 20px; }
     .record-grid {
       display: grid; gap: 16px;
     }
@@ -770,9 +771,10 @@ function generateCss(): string {
       .record-container .record-dots { display: none; }
       .record-card { display: none !important; }
       .record-print-table { display: block !important; }
-      .record-print-table table { width: 100%; border-collapse: collapse; font-size: 11px; }
+      .record-print-table table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 8px; }
+      .record-print-table table:last-child { margin-bottom: 0; }
       .record-print-table th { background: #f8f8f8; font-weight: 600; text-align: left; padding: 6px 8px; border: 1px solid #ddd; }
-      .record-print-table td { padding: 6px 8px; border: 1px solid #ddd; vertical-align: top; }
+      .record-print-table td { padding: 6px 8px; border: 1px solid #ddd; vertical-align: top; min-height: 40px; }
     }
 
     @media print {
@@ -1031,34 +1033,48 @@ function renderRecordSubField(fieldId: string, recordIdx: number, groupId: strin
   }
 }
 
+// Max columns per row before groups wrap (matches React component)
+const MAX_RECORD_COLS = 3
+
 function renderRecordField(field: RecordField): string {
   const req = field.required ? '<span class="required">*</span>' : ''
   const minRecords = field.min_records ?? 1
   const maxRecords = field.max_records ?? 20
   const fid = esc(field.id)
 
-  // Grid columns based on group widths
-  const gridCols = field.groups.map(g => {
-    switch (g.width) {
-      case 'narrow': return 'minmax(0, 0.7fr)'
-      case 'wide': return 'minmax(0, 1.5fr)'
-      default: return 'minmax(0, 1fr)'
-    }
-  }).join(' ')
+  // Chunk groups into rows of max MAX_RECORD_COLS
+  const groupRows: RecordGroup[][] = []
+  for (let i = 0; i < field.groups.length; i += MAX_RECORD_COLS) {
+    groupRows.push(field.groups.slice(i, i + MAX_RECORD_COLS))
+  }
 
-  // Render initial cards
+  // Build grid columns string for a row of groups
+  function rowGridCols(rowGroups: RecordGroup[]): string {
+    return rowGroups.map(g => {
+      switch (g.width) {
+        case 'narrow': return 'minmax(0, 0.7fr)'
+        case 'wide': return 'minmax(0, 1.5fr)'
+        default: return 'minmax(0, 1fr)'
+      }
+    }).join(' ')
+  }
+
+  // Render initial cards — each card now has multiple grid rows if needed
   const cards = Array.from({ length: minRecords }, (_, ri) => {
-    const groups = field.groups.map(group => {
-      const subFields = group.fields.map(sf =>
-        renderRecordSubField(field.id, ri, group.id, sf)
-      ).join('')
-      return `<div class="record-group-col">
-        <div class="record-group-header">${esc(group.header)}</div>
-        ${subFields}
-      </div>`
+    const rowsHtml = groupRows.map(rowGroups => {
+      const groupsHtml = rowGroups.map(group => {
+        const subFields = group.fields.map(sf =>
+          renderRecordSubField(field.id, ri, group.id, sf)
+        ).join('')
+        return `<div class="record-group-col">
+          <div class="record-group-header">${esc(group.header)}</div>
+          ${subFields}
+        </div>`
+      }).join('')
+      return `<div class="record-grid" style="grid-template-columns:${rowGridCols(rowGroups)}">${groupsHtml}</div>`
     }).join('')
     return `<div class="record-card" data-record="${fid}" data-record-idx="${ri}" ${ri > 0 ? 'data-hidden="true"' : ''}>
-      <div class="record-grid" style="grid-template-columns:${gridCols}">${groups}</div>
+      <div class="record-rows">${rowsHtml}</div>
     </div>`
   }).join('')
 
@@ -1067,10 +1083,13 @@ function renderRecordField(field: RecordField): string {
     `<button type="button" class="record-dot${i === 0 ? ' active' : ''}" data-record-dot="${fid}" data-dot-idx="${i}" onclick="recordGoTo('${fid}',${i})"></button>`
   ).join('')
 
-  // Print table: group headers as columns
-  const printHeaders = field.groups.map(g => `<th>${esc(g.header)}</th>`).join('')
-  const printRow = `<tr>${field.groups.map(g => `<td>&nbsp;</td>`).join('')}</tr>`
-  const printRows = Array.from({ length: minRecords }, () => printRow).join('')
+  // Print table: split into rows of max MAX_RECORD_COLS to avoid squashing
+  const printTables = groupRows.map(rowGroups => {
+    const headers = rowGroups.map(g => `<th>${esc(g.header)}</th>`).join('')
+    const dataRow = rowGroups.map(() => `<td>&nbsp;</td>`).join('')
+    const rows = Array.from({ length: minRecords }, () => `<tr>${dataRow}</tr>`).join('')
+    return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`
+  }).join('')
 
   return `<div class="field record-container" data-record-field="${fid}" data-min-records="${minRecords}" data-max-records="${maxRecords}">
     <label class="field-label">${esc(field.label)}${req}</label>
@@ -1088,7 +1107,7 @@ function renderRecordField(field: RecordField): string {
     ${cards}
     <div class="record-dots" id="${fid}-dots">${dots}</div>
     <div class="record-print-table">
-      <table><thead><tr>${printHeaders}</tr></thead><tbody>${printRows}</tbody></table>
+      ${printTables}
     </div>
   </div>`
 }
@@ -1719,62 +1738,74 @@ function generateJs(schema: WorksheetSchema, storageKey: string): string {
 
     var groups = RECORD_GROUPS[fid] || [];
     var ri = state.total;
+    var MAX_COLS = 3;
 
-    // Build grid columns
-    var gridCols = groups.map(function(g) {
-      if (g.width === 'narrow') return 'minmax(0,0.7fr)';
-      if (g.width === 'wide') return 'minmax(0,1.5fr)';
-      return 'minmax(0,1fr)';
-    }).join(' ');
+    // Chunk groups into rows of max MAX_COLS
+    var groupRows = [];
+    for (var gi = 0; gi < groups.length; gi += MAX_COLS) {
+      groupRows.push(groups.slice(gi, gi + MAX_COLS));
+    }
 
     var card = document.createElement('div');
     card.className = 'record-card';
     card.dataset.record = fid;
     card.dataset.recordIdx = String(ri);
 
-    var grid = document.createElement('div');
-    grid.className = 'record-grid';
-    grid.style.gridTemplateColumns = gridCols;
+    var rowsWrap = document.createElement('div');
+    rowsWrap.className = 'record-rows';
 
-    groups.forEach(function(group) {
-      var col = document.createElement('div');
-      col.className = 'record-group-col';
-      col.innerHTML = '<div class="record-group-header">' + group.header + '</div>';
-      group.fields.forEach(function(sf) {
-        var elId = fid + '_r' + ri + '_' + group.id + '_' + sf.id;
-        var html = '';
-        var labelHtml = sf.label ? '<div class="record-subfield-label">' + sf.label + '</div>' : '';
-        switch (sf.type) {
-          case 'textarea':
-            html = '<div class="record-subfield">' + labelHtml + '<textarea id="' + elId + '" name="' + elId + '" rows="3" placeholder="' + (sf.placeholder||'') + '"></textarea></div>';
-            break;
-          case 'text':
-            html = '<div class="record-subfield">' + labelHtml + '<input type="text" id="' + elId + '" name="' + elId + '" placeholder="' + (sf.placeholder||'') + '" /></div>';
-            break;
-          case 'number':
-            html = '<div class="record-subfield">' + labelHtml + '<input type="number" id="' + elId + '" name="' + elId + '" /></div>';
-            break;
-          case 'likert':
-            var min = sf.min||0, max = sf.max||100, step = sf.step||1, suffix = sf.suffix||'%';
-            html = '<div class="record-subfield">' + labelHtml + '<div class="record-slider-wrap"><input type="range" id="' + elId + '" name="' + elId + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + min + '" data-likert="1" oninput="document.getElementById(\\'' + elId + '-val\\').textContent=this.value+\\'' + suffix + '\\'" /><span class="record-slider-val" id="' + elId + '-val">' + min + suffix + '</span></div></div>';
-            break;
-          case 'select':
-            var optHtml = '<option value="">' + (sf.placeholder||'Select...') + '</option>';
-            (sf.options||[]).forEach(function(o){optHtml+='<option value="'+o.id+'">'+o.label+'</option>';});
-            html = '<div class="record-subfield">' + labelHtml + '<select id="' + elId + '" name="' + elId + '">' + optHtml + '</select></div>';
-            break;
-          case 'checklist':
-            var cbHtml = '';
-            (sf.options||[]).forEach(function(o){cbHtml+='<label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" name="'+elId+'" value="'+o.id+'" /> '+o.label+'</label>';});
-            html = '<div class="record-subfield">' + labelHtml + '<div>' + cbHtml + '</div></div>';
-            break;
-        }
-        col.insertAdjacentHTML('beforeend', html);
+    groupRows.forEach(function(rowGroups) {
+      var gridCols = rowGroups.map(function(g) {
+        if (g.width === 'narrow') return 'minmax(0,0.7fr)';
+        if (g.width === 'wide') return 'minmax(0,1.5fr)';
+        return 'minmax(0,1fr)';
+      }).join(' ');
+
+      var grid = document.createElement('div');
+      grid.className = 'record-grid';
+      grid.style.gridTemplateColumns = gridCols;
+
+      rowGroups.forEach(function(group) {
+        var col = document.createElement('div');
+        col.className = 'record-group-col';
+        col.innerHTML = '<div class="record-group-header">' + group.header + '</div>';
+        group.fields.forEach(function(sf) {
+          var elId = fid + '_r' + ri + '_' + group.id + '_' + sf.id;
+          var html = '';
+          var labelHtml = sf.label ? '<div class="record-subfield-label">' + sf.label + '</div>' : '';
+          switch (sf.type) {
+            case 'textarea':
+              html = '<div class="record-subfield">' + labelHtml + '<textarea id="' + elId + '" name="' + elId + '" rows="3" placeholder="' + (sf.placeholder||'') + '"></textarea></div>';
+              break;
+            case 'text':
+              html = '<div class="record-subfield">' + labelHtml + '<input type="text" id="' + elId + '" name="' + elId + '" placeholder="' + (sf.placeholder||'') + '" /></div>';
+              break;
+            case 'number':
+              html = '<div class="record-subfield">' + labelHtml + '<input type="number" id="' + elId + '" name="' + elId + '" /></div>';
+              break;
+            case 'likert':
+              var min = sf.min||0, max = sf.max||100, step = sf.step||1, suffix = sf.suffix||'%';
+              html = '<div class="record-subfield">' + labelHtml + '<div class="record-slider-wrap"><input type="range" id="' + elId + '" name="' + elId + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + min + '" data-likert="1" oninput="document.getElementById(\\'' + elId + '-val\\').textContent=this.value+\\'' + suffix + '\\'" /><span class="record-slider-val" id="' + elId + '-val">' + min + suffix + '</span></div></div>';
+              break;
+            case 'select':
+              var optHtml = '<option value="">' + (sf.placeholder||'Select...') + '</option>';
+              (sf.options||[]).forEach(function(o){optHtml+='<option value="'+o.id+'">'+o.label+'</option>';});
+              html = '<div class="record-subfield">' + labelHtml + '<select id="' + elId + '" name="' + elId + '">' + optHtml + '</select></div>';
+              break;
+            case 'checklist':
+              var cbHtml = '';
+              (sf.options||[]).forEach(function(o){cbHtml+='<label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" name="'+elId+'" value="'+o.id+'" /> '+o.label+'</label>';});
+              html = '<div class="record-subfield">' + labelHtml + '<div>' + cbHtml + '</div></div>';
+              break;
+          }
+          col.insertAdjacentHTML('beforeend', html);
+        });
+        grid.appendChild(col);
       });
-      grid.appendChild(col);
+      rowsWrap.appendChild(grid);
     });
 
-    card.appendChild(grid);
+    card.appendChild(rowsWrap);
 
     // Insert before dots
     var dotsEl = document.getElementById(fid + '-dots');

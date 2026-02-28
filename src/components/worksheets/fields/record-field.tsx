@@ -406,7 +406,7 @@ function RecordGroupColumn({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <h4 className="truncate border-b border-primary-100 pb-1.5 text-xs font-semibold uppercase tracking-wide text-primary-500">
+      <h4 className="border-b border-primary-100 pb-1.5 text-xs font-semibold uppercase tracking-wide text-primary-500">
         {group.header}
       </h4>
       <div className="flex flex-col gap-3">
@@ -427,19 +427,21 @@ function RecordGroupColumn({
 
 // ─── Record card ───────────────────────────────────────
 
-function RecordCard({
-  groups,
-  record,
-  onChange,
-  readOnly,
-}: {
-  groups: RecordGroup[]
-  record: RecordEntry
-  onChange: (groupId: string, fieldId: string, value: SubFieldValue) => void
-  readOnly?: boolean
-}) {
-  // Build grid columns based on group widths
-  const gridCols = groups
+// Max columns per row before groups wrap to a new row
+const MAX_RECORD_COLS = 3
+
+/** Split an array into chunks of a given size */
+function chunkGroups(groups: RecordGroup[], maxCols: number): RecordGroup[][] {
+  const rows: RecordGroup[][] = []
+  for (let i = 0; i < groups.length; i += maxCols) {
+    rows.push(groups.slice(i, i + maxCols))
+  }
+  return rows
+}
+
+/** Build grid-template-columns string for a row of groups */
+function buildGridCols(rowGroups: RecordGroup[]): string {
+  return rowGroups
     .map((g) => {
       switch (g.width) {
         case 'narrow':
@@ -451,22 +453,42 @@ function RecordCard({
       }
     })
     .join(' ')
+}
+
+function RecordCard({
+  groups,
+  record,
+  onChange,
+  readOnly,
+}: {
+  groups: RecordGroup[]
+  record: RecordEntry
+  onChange: (groupId: string, fieldId: string, value: SubFieldValue) => void
+  readOnly?: boolean
+}) {
+  // Split groups into rows of max MAX_RECORD_COLS so they don't squash on A4/PDF
+  const rows = chunkGroups(groups, MAX_RECORD_COLS)
 
   return (
     <div className="rounded-2xl border border-primary-200 bg-surface p-4 md:p-5">
-      {/* Desktop: multi-column grid */}
-      <div
-        className="hidden gap-4 md:grid"
-        style={{ gridTemplateColumns: gridCols }}
-      >
-        {groups.map((group) => (
-          <RecordGroupColumn
-            key={group.id}
-            group={group}
-            values={record[group.id] || {}}
-            onChange={(fieldId, value) => onChange(group.id, fieldId, value)}
-            readOnly={readOnly}
-          />
+      {/* Desktop: multi-row grid (each row has its own column template) */}
+      <div className="hidden md:flex md:flex-col md:gap-6">
+        {rows.map((rowGroups, rowIdx) => (
+          <div
+            key={rowIdx}
+            className="grid gap-4"
+            style={{ gridTemplateColumns: buildGridCols(rowGroups) }}
+          >
+            {rowGroups.map((group) => (
+              <RecordGroupColumn
+                key={group.id}
+                group={group}
+                values={record[group.id] || {}}
+                onChange={(fieldId, value) => onChange(group.id, fieldId, value)}
+                readOnly={readOnly}
+              />
+            ))}
+          </div>
         ))}
       </div>
 
