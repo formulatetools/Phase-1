@@ -53,10 +53,12 @@ const MR = 15 * MM       // 42.5 pt — right margin
 const CONTENT_W = PAGE_W - ML - MR  // 496.1 pt
 
 // Header layout
+// Zone: accent bar (top 2mm) → logo row → title → separator → content
+// Vertically centred with equal breathing room
 const ACCENT_H = 2 * MM        // amber bar height
-const LOGO_Y = 297 * MM - 8 * MM      // logo bottom-left Y (PDF Y = bottom-up)
-const LOGO_SIZE = 4 * MM              // slightly smaller for cleaner proportions
-const TITLE_Y = 297 * MM - 12 * MM    // title baseline
+const LOGO_SIZE = 4 * MM
+const LOGO_Y = 297 * MM - 7 * MM      // logo bottom Y — centred between accent bar (295mm) and title (~289mm)
+const TITLE_Y = 297 * MM - 12.5 * MM  // title baseline — nudged down 0.5mm for even spacing
 const SEP_Y = 297 * MM - 15 * MM      // separator line
 const CONTENT_TOP = 297 * MM - 17 * MM // content start
 
