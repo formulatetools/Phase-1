@@ -25,6 +25,7 @@ export function SuperviseeList({
   const [newLabel, setNewLabel] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
 
   const canAdd = maxSupervisees === Infinity || superviseeCount < maxSupervisees
   const atLimit = !canAdd
@@ -75,8 +76,13 @@ export function SuperviseeList({
     await reactivateSupervisee(id)
   }
 
-  const activeSupervisees = relationships.filter((r) => r.status === 'active')
-  const endedSupervisees = relationships.filter((r) => r.status === 'discharged')
+  const searchLower = search.toLowerCase()
+  const activeSupervisees = relationships.filter(
+    (r) => r.status === 'active' && (!search || r.client_label.toLowerCase().includes(searchLower))
+  )
+  const endedSupervisees = relationships.filter(
+    (r) => r.status === 'discharged' && (!search || r.client_label.toLowerCase().includes(searchLower))
+  )
 
   // Tier-gated state: show upgrade prompt
   if (tierBlocked) {
@@ -128,6 +134,22 @@ export function SuperviseeList({
               </Link>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Search */}
+      {relationships.length > 3 && (
+        <div className="relative">
+          <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search supervisees…"
+            className="w-full rounded-lg border border-primary-200 py-2 pl-9 pr-3 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none"
+          />
         </div>
       )}
 
