@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -194,9 +195,15 @@ export default async function BlogPostPage({
 
         {/* Cover image */}
         {p.cover_image_url && (
-          <div className="mt-6 overflow-hidden rounded-xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.cover_image_url} alt={`Cover image for ${p.title}`} className="w-full object-cover" />
+          <div className="relative mt-6 aspect-[2/1] overflow-hidden rounded-xl">
+            <Image
+              src={p.cover_image_url}
+              alt={`Cover image for ${p.title}`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority
+            />
           </div>
         )}
 
