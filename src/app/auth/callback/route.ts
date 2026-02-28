@@ -33,24 +33,29 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      // Send welcome email on first login (fire-and-forget — don't block redirect)
+      // Send welcome email on first login — atomic dedup via welcome_email_sent_at
       const { data: { user } } = await supabase.auth.getUser()
       if (user?.email) {
-        const { data: profile } = await supabase
+        // Atomically claim the welcome email slot: only succeeds if not yet sent
+        const admin = createAdminClient()
+        const { data: claimed } = await admin
           .from('profiles')
-          .select('onboarding_completed, full_name')
+          .update({ welcome_email_sent_at: new Date().toISOString() })
           .eq('id', user.id)
+          .is('welcome_email_sent_at', null)
+          .select('full_name')
           .single()
 
-        if (profile && !profile.onboarding_completed) {
-          const email = welcomeEmail(profile.full_name as string | null)
+        if (claimed) {
+          // First-time callback — send welcome email (fire-and-forget)
+          const email = welcomeEmail(claimed.full_name as string | null)
           sendEmail({ to: user.email, subject: email.subject, html: email.html, emailType: 'welcome' })
 
           // Record terms/privacy acceptance from signup metadata
           const acceptedTermsAt = user.user_metadata?.accepted_terms_at as string | undefined
           const acceptedPrivacyAt = user.user_metadata?.accepted_privacy_at as string | undefined
           if (acceptedTermsAt || acceptedPrivacyAt) {
-            await supabase
+            await admin
               .from('profiles')
               .update({
                 ...(acceptedTermsAt ? { terms_accepted_at: acceptedTermsAt } : {}),
@@ -63,7 +68,6 @@ export async function GET(request: NextRequest) {
           const referralCode = user.user_metadata?.referral_code as string | undefined
           if (referralCode) {
             try {
-              const admin = createAdminClient()
               const { data: refCode } = await admin
                 .from('referral_codes')
                 .select('id, user_id')

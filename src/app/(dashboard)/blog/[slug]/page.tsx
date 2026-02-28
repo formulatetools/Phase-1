@@ -17,7 +17,7 @@ export async function generateMetadata({
 
   const { data: post } = await supabase
     .from('blog_posts')
-    .select('title, excerpt, tags, category, published_at, cover_image_url')
+    .select('title, excerpt, tags, category, published_at, updated_at, cover_image_url')
     .eq('slug', slug)
     .eq('status', 'published')
     .is('deleted_at', null)
@@ -26,22 +26,27 @@ export async function generateMetadata({
   if (!post) return { title: 'Blog — Formulate' }
 
   const p = post as BlogPost
+  const description = p.excerpt || `${p.title} — a ${BLOG_CATEGORY_LABELS[p.category] || p.category} article on Formulate`
 
   return {
     title: p.title,
-    description: p.excerpt || `${p.title} — a ${BLOG_CATEGORY_LABELS[p.category] || p.category} article on Formulate`,
+    description,
     keywords: p.tags,
+    alternates: {
+      canonical: `/blog/${slug}`,
+    },
     openGraph: {
       title: p.title,
-      description: p.excerpt || '',
+      description,
       type: 'article',
       publishedTime: p.published_at || undefined,
-      images: p.cover_image_url ? [{ url: p.cover_image_url }] : undefined,
+      modifiedTime: p.updated_at || undefined,
+      images: p.cover_image_url ? [{ url: p.cover_image_url, alt: p.title }] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
       title: p.title,
-      description: p.excerpt || '',
+      description,
       images: p.cover_image_url ? [p.cover_image_url] : undefined,
     },
   }
@@ -94,6 +99,7 @@ export default async function BlogPostPage({
   }
 
   // JSON-LD structured data
+  const baseUrl = 'https://formulatetools.co.uk'
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -110,10 +116,21 @@ export default async function BlogPostPage({
     publisher: {
       '@type': 'Organization',
       name: 'Formulate',
-      url: 'https://formulatetools.co.uk',
+      url: baseUrl,
     },
-    mainEntityOfPage: `https://formulatetools.co.uk/blog/${p.slug}`,
+    mainEntityOfPage: `${baseUrl}/blog/${p.slug}`,
     ...(p.reading_time_minutes ? { timeRequired: `PT${p.reading_time_minutes}M` } : {}),
+  }
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${baseUrl}/blog` },
+      { '@type': 'ListItem', position: 3, name: BLOG_CATEGORY_LABELS[p.category] || p.category, item: `${baseUrl}/blog?category=${p.category}` },
+      { '@type': 'ListItem', position: 4, name: p.title },
+    ],
   }
 
   return (
@@ -121,6 +138,10 @@ export default async function BlogPostPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
       <article className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
@@ -175,7 +196,7 @@ export default async function BlogPostPage({
         {p.cover_image_url && (
           <div className="mt-6 overflow-hidden rounded-xl">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.cover_image_url} alt="" className="w-full object-cover" />
+            <img src={p.cover_image_url} alt={`Cover image for ${p.title}`} className="w-full object-cover" />
           </div>
         )}
 

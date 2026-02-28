@@ -66,6 +66,7 @@ export interface Profile {
   contributor_roles: ContributorRoles | null
   contributor_profile: ContributorProfile | null
   contributor_agreement_accepted_at: string | null
+  welcome_email_sent_at: string | null
   blog_digest_opt_in: boolean
   deleted_at: string | null
   created_at: string

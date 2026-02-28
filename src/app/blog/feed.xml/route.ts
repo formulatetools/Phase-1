@@ -19,10 +19,11 @@ export async function GET() {
     .limit(20)
 
   const baseUrl = 'https://formulatetools.co.uk'
+  const allPosts = (posts ?? []) as Array<{ title: string; slug: string; excerpt: string | null; category: string; published_at: string }>
 
-  const items = (posts ?? [])
+  const items = allPosts
     .map(
-      (p: { title: string; slug: string; excerpt: string | null; category: string; published_at: string }) => `
+      (p) => `
     <item>
       <title><![CDATA[${p.title}]]></title>
       <link>${baseUrl}/blog/${p.slug}</link>
@@ -34,6 +35,10 @@ export async function GET() {
     )
     .join('')
 
+  const lastBuildDate = allPosts.length > 0
+    ? new Date(allPosts[0].published_at).toUTCString()
+    : new Date().toUTCString()
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
@@ -41,6 +46,7 @@ export async function GET() {
     <link>${baseUrl}/blog</link>
     <description>Clinical articles, worksheet guides, and practice tips for CBT therapists.</description>
     <language>en-gb</language>
+    <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <atom:link href="${baseUrl}/blog/feed.xml" rel="self" type="application/rss+xml"/>
     ${items}
   </channel>

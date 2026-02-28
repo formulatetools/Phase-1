@@ -8,6 +8,9 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Blog — Formulate',
   description: 'Clinical articles, worksheet guides, and practice tips for CBT therapists.',
+  alternates: {
+    canonical: '/blog',
+  },
   openGraph: {
     title: 'Blog — Formulate',
     description: 'Clinical articles, worksheet guides, and practice tips for CBT therapists.',
@@ -121,7 +124,7 @@ export default async function BlogIndexPage({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={p.cover_image_url}
-                    alt=""
+                    alt={p.title}
                     className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
