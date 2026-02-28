@@ -330,6 +330,30 @@ function uniqueFieldName(prefix: string): string {
   return `${prefix}_${fieldCounter}`
 }
 
+// ─── Prompt / hint helpers ───────────────────────────────────────────────────
+
+/** Render placeholder / prompt text as a grey hint line below the field label */
+function renderPlaceholder(
+  cursor: LayoutCursor,
+  placeholder: string | undefined,
+  indent: number = 0,
+): void {
+  if (!placeholder) return
+  const maxW = CONTENT_W - indent
+  const lines = wrapText(placeholder, cursor.fonts.oblique, 8, maxW)
+  for (const line of lines) {
+    cursor.ensureSpace(12)
+    cursor.page.drawText(line, {
+      x: ML + indent,
+      y: cursor.y - 8,
+      size: 8,
+      font: cursor.fonts.oblique,
+      color: GREY_TEXT,
+    })
+    cursor.advance(12)
+  }
+}
+
 // ─── Field renderers ────────────────────────────────────────────────────────
 
 function renderFieldLabel(
@@ -357,6 +381,7 @@ function renderTextFieldPdf(
   values?: Record<string, unknown>,
 ): void {
   renderFieldLabel(cursor, field.label, field.required)
+  renderPlaceholder(cursor, field.placeholder)
   cursor.ensureSpace(TEXT_FIELD_H)
 
   const fieldY = cursor.y - TEXT_FIELD_H
@@ -391,6 +416,7 @@ function renderTextareaFieldPdf(
   values?: Record<string, unknown>,
 ): void {
   renderFieldLabel(cursor, field.label, field.required)
+  renderPlaceholder(cursor, field.placeholder)
   cursor.ensureSpace(TEXTAREA_H)
 
   const fieldY = cursor.y - TEXTAREA_H
@@ -711,6 +737,9 @@ function renderSafetyPlanFieldPdf(
 
     // Textarea for each sub-field in the step
     for (const subField of step.fields) {
+      // Sub-field placeholder as prompt text
+      renderPlaceholder(cursor, subField.placeholder)
+
       cursor.ensureSpace(TEXTAREA_H)
       const fieldY = cursor.y - TEXTAREA_H
       drawFieldBox(cursor.page, ML, fieldY, CONTENT_W, TEXTAREA_H)
@@ -804,6 +833,9 @@ function renderDecisionTreeFieldPdf(
           })
           cursor.advance(14)
         }
+
+        // Sub-field placeholder prompt
+        renderPlaceholder(cursor, subField.placeholder, 8)
 
         const fieldY = cursor.y - height
         drawFieldBox(cursor.page, ML, fieldY, CONTENT_W, height)
@@ -926,6 +958,9 @@ function renderFormulationFieldPdf(
           })
           cursor.advance(14)
         }
+
+        // Sub-field placeholder prompt
+        renderPlaceholder(cursor, nf.placeholder, dotSize + 6)
 
         const fieldY = cursor.y - h
         drawFieldBox(cursor.page, ML, fieldY, CONTENT_W, h)
@@ -1051,6 +1086,8 @@ function renderFormulationFieldPdf(
         cursor.advance(14)
       }
 
+      renderPlaceholder(cursor, tf.placeholder)
+
       const fieldY = cursor.y - h
       drawFieldBox(cursor.page, ML, fieldY, CONTENT_W, h)
 
@@ -1130,6 +1167,9 @@ function renderRecordFieldPdf(
           })
           cursor.advance(14)
         }
+
+        // Sub-field placeholder prompt
+        renderPlaceholder(cursor, sf.placeholder, 8)
 
         if (sf.type === 'checklist' && sf.options) {
           for (const opt of sf.options) {
@@ -1322,12 +1362,17 @@ function renderSection(
   section: WorksheetSection,
   values?: Record<string, unknown>,
 ): void {
-  // Section title
-  if (section.title) {
+  // Section title (or label for safety plan sections) with optional step number
+  const sectionHeading = section.title || section.label
+  if (sectionHeading) {
     cursor.ensureSpace(SECTION_TITLE_HEIGHT)
 
+    const headingText = section.step
+      ? `${section.step}. ${sectionHeading}`
+      : sectionHeading
+
     cursor.page.drawText(
-      truncateText(section.title, cursor.fonts.bold, SECTION_TITLE_SIZE, CONTENT_W),
+      truncateText(headingText, cursor.fonts.bold, SECTION_TITLE_SIZE, CONTENT_W),
       {
         x: ML,
         y: cursor.y - SECTION_TITLE_SIZE,
@@ -1337,6 +1382,23 @@ function renderSection(
       },
     )
     cursor.advance(SECTION_TITLE_HEIGHT)
+  }
+
+  // Section hint (used by safety plan steps, decision tree questions, etc.)
+  if (section.hint) {
+    const hintLines = wrapText(section.hint, cursor.fonts.oblique, SECTION_DESC_SIZE, CONTENT_W)
+    for (const line of hintLines) {
+      cursor.ensureSpace(SECTION_DESC_LINE_H)
+      cursor.page.drawText(line, {
+        x: ML,
+        y: cursor.y - SECTION_DESC_SIZE,
+        size: SECTION_DESC_SIZE,
+        font: cursor.fonts.oblique,
+        color: GREY_TEXT,
+      })
+      cursor.advance(SECTION_DESC_LINE_H)
+    }
+    cursor.advance(4)
   }
 
   // Section description
