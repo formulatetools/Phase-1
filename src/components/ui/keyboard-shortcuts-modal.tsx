@@ -50,7 +50,7 @@ export function KeyboardShortcutsModal({ open, onClose }: KeyboardShortcutsModal
         <button
           onClick={onClose}
           aria-label="Close keyboard shortcuts"
-          className="absolute right-4 top-4 rounded-lg p-1 text-primary-400 hover:bg-primary-50 hover:text-primary-600"
+          className="absolute right-3 top-3 rounded-lg p-2.5 text-primary-400 hover:bg-primary-50 hover:text-primary-600"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

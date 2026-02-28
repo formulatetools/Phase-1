@@ -71,7 +71,7 @@ export function AIGenerateTeaser() {
               <button
                 key={example}
                 onClick={() => setDescription(example)}
-                className="rounded-full border border-primary-100 bg-surface px-3 py-1.5 text-xs text-primary-500 transition-colors hover:border-brand/30 hover:bg-brand/5 hover:text-brand"
+                className="rounded-full border border-primary-100 bg-surface px-3.5 py-2.5 text-xs text-primary-500 transition-colors hover:border-brand/30 hover:bg-brand/5 hover:text-brand"
               >
                 {example}
               </button>

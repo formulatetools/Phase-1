@@ -401,7 +401,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
                 key={item.href}
                 href={item.href}
                 onClick={() => setMoreOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors ${
                   active
                     ? 'bg-brand/10 font-semibold text-brand-dark'
                     : 'text-primary-600 active:bg-primary-50'

@@ -136,10 +136,10 @@ export function TableField({ field, value, onChange }: Props) {
                     <button
                       type="button"
                       onClick={() => removeRow(rowIndex)}
-                      className="text-primary-400 hover:text-red-500"
+                      className="rounded p-2 text-primary-400 hover:bg-red-50 hover:text-red-500"
                       aria-label="Remove row"
                     >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
