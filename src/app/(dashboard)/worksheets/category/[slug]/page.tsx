@@ -21,10 +21,10 @@ export async function generateMetadata({
   if (!category) return { title: 'Category Not Found' }
 
   return {
-    title: `${category.name} Worksheets`,
+    title: `${category.name} Resources`,
     description:
       category.description ||
-      `Browse ${category.name} CBT worksheets and clinical tools.`,
+      `Browse ${category.name} CBT resources and clinical tools.`,
   }
 }
 
@@ -112,7 +112,7 @@ export default async function CategoryPage({
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-primary-200 bg-surface p-10 text-center">
-          <p className="text-sm text-primary-500">No worksheets in this category yet. Check back soon.</p>
+          <p className="text-sm text-primary-500">No resources in this category yet. Check back soon.</p>
         </div>
       )}
     </div>

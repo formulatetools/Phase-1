@@ -13,7 +13,7 @@ const shortcuts = [
     scope: 'Navigation',
     items: [
       { keys: ['G', 'D'], description: 'Go to Dashboard' },
-      { keys: ['G', 'W'], description: 'Go to Worksheets' },
+      { keys: ['G', 'W'], description: 'Go to Resources' },
       { keys: ['G', 'C'], description: 'Go to Clients' },
       { keys: ['G', 'S'], description: 'Go to Settings' },
     ],
@@ -21,7 +21,7 @@ const shortcuts = [
   {
     scope: 'Actions',
     items: [
-      { keys: [modKey, 'K'], description: 'Search worksheets' },
+      { keys: [modKey, 'K'], description: 'Search resources' },
       { keys: ['?'], description: 'Open this reference' },
       { keys: ['Esc'], description: 'Close modal' },
     ],

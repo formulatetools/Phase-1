@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import { WorksheetDetail } from '@/components/worksheets/worksheet-detail'
+import { getResourceType } from '@/lib/utils/resource-type'
 import type { ContributorProfile } from '@/types/database'
 
 // ── Dynamic SEO metadata per worksheet ───────────────────────────────────────
@@ -24,7 +25,7 @@ export async function generateMetadata({
     .is('deleted_at', null)
     .single()
 
-  if (!worksheet) return { title: 'Worksheet Not Found' }
+  if (!worksheet) return { title: 'Resource Not Found' }
 
   const title = worksheet.title
   const description =
@@ -36,13 +37,13 @@ export async function generateMetadata({
     description,
     keywords: worksheet.tags || [],
     openGraph: {
-      title: `${worksheet.title} — CBT Worksheet`,
+      title: `${worksheet.title} — Clinical Resource`,
       description,
       type: 'article',
     },
     twitter: {
       card: 'summary',
-      title: `${worksheet.title} — CBT Worksheet`,
+      title: `${worksheet.title} — Clinical Resource`,
       description,
     },
   }
@@ -147,7 +148,7 @@ export default async function WorksheetPage({
           breadcrumb: {
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Worksheets', item: 'https://formulatetools.co.uk/worksheets' },
+              { '@type': 'ListItem', position: 1, name: 'Resources', item: 'https://formulatetools.co.uk/worksheets' },
               { '@type': 'ListItem', position: 2, name: category.name, item: `https://formulatetools.co.uk/worksheets/category/${category.slug}` },
               { '@type': 'ListItem', position: 3, name: worksheet.title },
             ],
@@ -275,6 +276,7 @@ export default async function WorksheetPage({
               ? Math.max(0, TIER_LIMITS.free.monthlyUses - (profile.monthly_download_count ?? 0))
               : 0
           }
+          resourceType={getResourceType(worksheet.tags)}
         />
       </div>
     </div>

@@ -355,7 +355,7 @@ export default function Home() {
             </div>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-primary-400">
               <Link href="/worksheets" className="hover:text-primary-600 transition-colors">
-                Worksheets
+                Resources
               </Link>
               <Link href="/blog" className="hover:text-primary-600 transition-colors">
                 Blog

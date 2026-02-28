@@ -2,16 +2,18 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { WorksheetSearch } from '@/components/worksheets/worksheet-search'
+import { getResourceType } from '@/lib/utils/resource-type'
+import type { ResourceTypeFilter } from '@/lib/utils/resource-type'
 
 export const metadata = {
-  title: 'Worksheet Library — Formulate',
-  description: 'Browse professional CBT worksheets and clinical tools by category.',
+  title: 'Resource Library — Formulate',
+  description: 'Browse professional CBT resources and clinical tools by category.',
 }
 
 export default async function WorksheetsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; tag?: string }>
+  searchParams: Promise<{ q?: string; tag?: string; type?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -40,14 +42,21 @@ export default async function WorksheetsPage({
     countByCategory[w.category_id] = (countByCategory[w.category_id] || 0) + 1
   })
 
+  // Resource type filter
+  const typeFilter = (params.type || 'all') as ResourceTypeFilter
+
   // Client-side-style filtering (we already fetched everything)
-  let searchResults = null
-  if (params.q || params.tag) {
+  let searchResults: typeof allWorksheets | null = null
+  const hasSearchOrTag = params.q || params.tag
+  const hasTypeFilter = typeFilter !== 'all'
+
+  if (hasSearchOrTag || hasTypeFilter) {
     const q = params.q?.toLowerCase() || ''
     const tag = params.tag || ''
 
     searchResults = (allWorksheets || []).filter(
       (w: { title: string; description: string; tags?: string[] }) => {
+        // Text/tag search filter
         const matchesQuery =
           !q ||
           w.title.toLowerCase().includes(q) ||
@@ -55,7 +64,9 @@ export default async function WorksheetsPage({
           (w.tags || []).some((t: string) => t.toLowerCase().includes(q))
         const matchesTag =
           !tag || (w.tags || []).some((t: string) => t.toLowerCase() === tag.toLowerCase())
-        return matchesQuery && matchesTag
+        // Resource type filter
+        const matchesType = !hasTypeFilter || getResourceType(w.tags) === typeFilter
+        return matchesQuery && matchesTag && matchesType
       }
     )
 
@@ -68,7 +79,7 @@ export default async function WorksheetsPage({
           action: 'read',
           entity_type: 'search',
           entity_id: 'worksheet_search',
-          metadata: { query: q, tag: tag || null, results_count: searchResults.length },
+          metadata: { query: q, tag: tag || null, type: typeFilter, results_count: searchResults.length },
         }).then(() => {})
       }
     }
@@ -90,24 +101,26 @@ export default async function WorksheetsPage({
     <div className="px-4 py-8 sm:px-8 lg:px-12">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-primary-900 sm:text-3xl">
-          Worksheet Library
+          Resource Library
         </h1>
         <p className="mt-1 text-primary-400">
-          {allWorksheets?.length || 0} professional CBT worksheets across{' '}
+          {allWorksheets?.length || 0} professional CBT resources across{' '}
           {categories?.length || 0} categories
         </p>
       </div>
 
-      <WorksheetSearch initialQuery={params.q} initialTag={params.tag} allTags={allTags} />
+      <WorksheetSearch initialQuery={params.q} initialTag={params.tag} initialType={params.type} allTags={allTags} />
 
-      {/* Search results */}
+      {/* Search / filter results */}
       {searchResults ? (
         <div className="mt-8">
-          <h2 className="mb-4 text-base font-semibold text-primary-800">
-            {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}{' '}
-            {params.q && <>for &quot;{params.q}&quot;</>}
-            {params.tag && <> tagged &quot;{params.tag}&quot;</>}
-          </h2>
+          {hasSearchOrTag && (
+            <h2 className="mb-4 text-base font-semibold text-primary-800">
+              {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}{' '}
+              {params.q && <>for &quot;{params.q}&quot;</>}
+              {params.tag && <> tagged &quot;{params.tag}&quot;</>}
+            </h2>
+          )}
           {searchResults.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {searchResults.map(
@@ -203,8 +216,8 @@ export default async function WorksheetsPage({
                   />
                 </svg>
               </div>
-              <p className="mt-3 text-sm font-medium text-primary-500">No worksheets found</p>
-              <p className="mt-1 text-xs text-primary-400">Try a different search term or tag</p>
+              <p className="mt-3 text-sm font-medium text-primary-500">No resources found</p>
+              <p className="mt-1 text-xs text-primary-400">Try a different search term or filter</p>
             </div>
           )}
         </div>

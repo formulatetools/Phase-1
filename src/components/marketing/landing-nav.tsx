@@ -20,7 +20,7 @@ export function LandingNav() {
             href="/worksheets"
             className="text-sm text-primary-600 hover:text-primary-900 transition-colors"
           >
-            Worksheets
+            Resources
           </Link>
           <Link
             href="/blog"
@@ -76,7 +76,7 @@ export function LandingNav() {
               onClick={() => setOpen(false)}
               className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-1"
             >
-              Worksheets
+              Resources
             </Link>
             <Link
               href="/blog"

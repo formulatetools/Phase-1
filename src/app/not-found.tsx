@@ -34,7 +34,7 @@ export default function NotFound() {
           href="/worksheets"
           className="inline-flex items-center justify-center rounded-lg border border-primary-200 px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-primary-50"
         >
-          Browse Worksheets
+          Browse Resources
         </Link>
       </div>
 

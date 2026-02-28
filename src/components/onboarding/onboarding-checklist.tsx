@@ -19,10 +19,10 @@ interface OnboardingChecklistProps {
 const steps = [
   {
     key: 'browsedWorksheets' as const,
-    title: 'Explore the worksheet library',
+    title: 'Explore the resource library',
     description:
-      'Browse evidence-based CBT worksheets organised by therapeutic domain — anxiety, depression, OCD, trauma, and more. Find the right tool for your client.',
-    cta: 'Browse worksheets',
+      'Browse evidence-based CBT resources organised by therapeutic domain — anxiety, depression, OCD, trauma, and more. Find the right tool for your client.',
+    cta: 'Browse resources',
     href: '/worksheets',
   },
   {

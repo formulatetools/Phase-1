@@ -2,10 +2,13 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { RESOURCE_TYPE_FILTERS } from '@/lib/utils/resource-type'
+import type { ResourceTypeFilter } from '@/lib/utils/resource-type'
 
 interface Props {
   initialQuery?: string
   initialTag?: string
+  initialType?: string
   allTags?: string[]
 }
 
@@ -24,9 +27,10 @@ const FEATURED_TAGS = [
   'safety plan',
 ]
 
-export function WorksheetSearch({ initialQuery, initialTag, allTags = [] }: Props) {
+export function WorksheetSearch({ initialQuery, initialTag, initialType, allTags = [] }: Props) {
   const [query, setQuery] = useState(initialQuery || '')
   const [activeTag, setActiveTag] = useState(initialTag || '')
+  const [activeType, setActiveType] = useState<ResourceTypeFilter>((initialType as ResourceTypeFilter) || 'all')
   const [showAllTags, setShowAllTags] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(!!initialTag)
   const router = useRouter()
@@ -36,10 +40,11 @@ export function WorksheetSearch({ initialQuery, initialTag, allTags = [] }: Prop
 
   // Debounced search — triggers after 300ms of no typing
   const pushSearch = useCallback(
-    (q: string, tag: string) => {
+    (q: string, tag: string, type: ResourceTypeFilter) => {
       const params = new URLSearchParams()
       if (q.trim()) params.set('q', q.trim())
       if (tag) params.set('tag', tag)
+      if (type && type !== 'all') params.set('type', type)
       const qs = params.toString()
       router.push(qs ? `/worksheets?${qs}` : '/worksheets')
     },
@@ -55,26 +60,31 @@ export function WorksheetSearch({ initialQuery, initialTag, allTags = [] }: Prop
 
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      pushSearch(query, activeTag)
+      pushSearch(query, activeTag, activeType)
     }, 300)
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [query, activeTag, pushSearch])
+  }, [query, activeTag, activeType, pushSearch])
 
   const handleTagClick = (tag: string) => {
     const newTag = activeTag === tag ? '' : tag
     setActiveTag(newTag)
   }
 
+  const handleTypeClick = (type: ResourceTypeFilter) => {
+    setActiveType(type)
+  }
+
   const clearAll = () => {
     setQuery('')
     setActiveTag('')
+    setActiveType('all')
     router.push('/worksheets')
   }
 
-  const hasFilters = query.trim() || activeTag
+  const hasFilters = query.trim() || activeTag || activeType !== 'all'
 
   // Build the tag list to show
   const displayTags = showAllTags
@@ -83,6 +93,23 @@ export function WorksheetSearch({ initialQuery, initialTag, allTags = [] }: Prop
 
   return (
     <div className="space-y-3">
+      {/* Resource type filter tabs */}
+      <div className="flex gap-1 rounded-xl bg-primary-50 p-1">
+        {RESOURCE_TYPE_FILTERS.map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => handleTypeClick(value)}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+              activeType === value
+                ? 'bg-surface text-primary-900 shadow-sm'
+                : 'text-primary-500 hover:text-primary-700'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Search input */}
       <div className="flex gap-2">
         <div className="relative flex-1">
@@ -104,7 +131,7 @@ export function WorksheetSearch({ initialQuery, initialTag, allTags = [] }: Prop
             data-search-input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search worksheets by title, description, or keyword..."
+            placeholder="Search resources by title, description, or keyword..."
             className="w-full rounded-xl border border-primary-200 bg-surface py-2.5 pl-10 pr-10 text-sm text-primary-900 placeholder-primary-400 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           {query && (

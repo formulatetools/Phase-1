@@ -27,7 +27,7 @@ const navItems = [
     ),
   },
   {
-    label: 'Worksheets',
+    label: 'Resources',
     href: '/worksheets',
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -221,7 +221,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
       <nav className="flex-1 space-y-1 px-3 py-4" data-tour="sidebar-nav">
         {allNavItems.map((item) => {
           const tourId =
-            item.label === 'Worksheets' ? 'nav-worksheets'
+            item.label === 'Resources' ? 'nav-worksheets'
             : item.label === 'Clients' ? 'nav-clients'
             : item.label === 'Settings' ? 'nav-settings'
             : undefined

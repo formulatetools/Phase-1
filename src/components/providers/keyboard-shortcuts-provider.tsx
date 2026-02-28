@@ -51,7 +51,7 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
       {
         keys: 'g w',
         handler: () => router.push('/worksheets'),
-        description: 'Go to Worksheets',
+        description: 'Go to Resources',
         scope: 'Navigation',
       },
       {
@@ -77,7 +77,7 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
             router.push('/worksheets')
           }
         },
-        description: 'Search worksheets',
+        description: 'Search resources',
         scope: 'Actions',
       },
     ],
