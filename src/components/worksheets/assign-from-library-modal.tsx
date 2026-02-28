@@ -146,19 +146,20 @@ export function AssignFromLibraryModal({
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
+      <div role="dialog" aria-modal="true" aria-labelledby="assign-title" className="relative w-full max-w-md rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
         {/* Close button */}
         <button
           onClick={onClose}
+          aria-label="Close assignment form"
           className="absolute right-4 top-4 rounded-lg p-1 text-primary-400 hover:bg-primary-50 hover:text-primary-600"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
         {/* Header */}
-        <h2 className="text-lg font-bold text-primary-900">
+        <h2 id="assign-title" className="text-lg font-bold text-primary-900">
           Assign to {isSupervision ? 'Supervisee' : 'Client'}
         </h2>
         <p className="mt-1 text-sm text-primary-500">

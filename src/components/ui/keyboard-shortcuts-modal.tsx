@@ -45,18 +45,19 @@ export function KeyboardShortcutsModal({ open, onClose }: KeyboardShortcutsModal
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
+      <div role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" className="relative w-full max-w-md rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
         {/* Close button */}
         <button
           onClick={onClose}
+          aria-label="Close keyboard shortcuts"
           className="absolute right-4 top-4 rounded-lg p-1 text-primary-400 hover:bg-primary-50 hover:text-primary-600"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <h2 className="mb-1 text-lg font-bold text-primary-900">Keyboard Shortcuts</h2>
+        <h2 id="shortcuts-title" className="mb-1 text-lg font-bold text-primary-900">Keyboard Shortcuts</h2>
         <p className="mb-5 text-sm text-primary-400">
           Navigate quickly with these shortcuts
         </p>

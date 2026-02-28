@@ -127,16 +127,25 @@ export function ClientList({
       {/* Search */}
       {relationships.length > 3 && (
         <div className="relative">
-          <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <label htmlFor="client-search" className="sr-only">Search clients</label>
+          <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
           <input
+            id="client-search"
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search clients…"
             className="w-full rounded-lg border border-primary-200 py-2 pl-9 pr-3 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none"
           />
+        </div>
+      )}
+
+      {/* Screen reader announcement for search results */}
+      {search && (
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {activeClients.length} active client{activeClients.length !== 1 ? 's' : ''} found
         </div>
       )}
 

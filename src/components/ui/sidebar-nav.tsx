@@ -349,6 +349,8 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
           {/* More tab */}
           <button
             onClick={() => setMoreOpen(v => !v)}
+            aria-expanded={moreOpen}
+            aria-label="Additional navigation menu"
             className={`flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1.5 text-[10px] font-medium transition-colors ${
               moreOpen || isMoreActive
                 ? 'text-primary-800'
@@ -356,7 +358,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
             }`}
           >
             <span className={moreOpen || isMoreActive ? 'text-brand' : ''}>
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
               </svg>
             </span>
@@ -377,6 +379,9 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
       <div
         onTouchStart={handleSheetTouchStart}
         onTouchEnd={handleSheetTouchEnd}
+        role="dialog"
+        aria-modal={moreOpen}
+        aria-label="Additional navigation menu"
         className={`fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-2xl bg-surface shadow-xl transition-transform duration-200 md:hidden ${
           moreOpen ? 'translate-y-0' : 'translate-y-full'
         }`}

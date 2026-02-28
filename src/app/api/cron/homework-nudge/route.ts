@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
     .lt('assigned_at', fortyEightHoursAgo)
     .gt('expires_at', now)
     .is('deleted_at', null)
+    .is('locked_at', null)
 
   if (!candidates || candidates.length === 0) {
     return NextResponse.json({ ok: true, sent: 0, candidates: 0 })

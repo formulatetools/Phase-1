@@ -75,17 +75,21 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
 
   return (
     <div
+      role={toast.type === 'error' ? 'alert' : 'status'}
+      aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
+      aria-atomic="true"
       className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-lg transition-all duration-200 ${
         typeStyles[toast.type]
       } ${visible ? 'translate-y-0 md:translate-y-0 translate-x-0 opacity-100' : 'translate-y-4 md:translate-y-0 md:translate-x-8 opacity-0'}`}
     >
-      <div className="shrink-0 pt-0.5">{typeIcons[toast.type]}</div>
+      <div className="shrink-0 pt-0.5" aria-hidden="true">{typeIcons[toast.type]}</div>
       <p className="flex-1 text-sm font-medium">{toast.message}</p>
       <button
         onClick={handleDismiss}
+        aria-label="Dismiss notification"
         className="shrink-0 rounded-md p-0.5 opacity-60 transition-opacity hover:opacity-100"
       >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
