@@ -286,7 +286,7 @@ export default async function DashboardPage() {
       {/* ── Analytics stat cards ─────────────────────────────────────────── */}
       <div className="mb-8 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         {/* Active Clients */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm">
+        <Link href="/clients" className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
           <div className="flex items-center justify-between">
             <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-brand/10">
               <svg className="h-5 w-5 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -304,10 +304,10 @@ export default async function DashboardPage() {
               <span className="text-primary-300"> · {activeSuperviseeCount} supervisee{(activeSuperviseeCount ?? 0) !== 1 ? 's' : ''}</span>
             )}
           </p>
-        </div>
+        </Link>
 
         {/* Active Assignments */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm">
+        <Link href="/clients" className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
           <div className="flex items-center justify-between">
             <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-blue-50">
               <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -319,12 +319,12 @@ export default async function DashboardPage() {
           <p className="mt-0.5 text-sm text-primary-400">
             Active assignment{(activeAssignmentCount ?? 0) !== 1 ? 's' : ''}
           </p>
-        </div>
+        </Link>
 
         {/* Pending Review */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
+        <Link href="/clients" className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
           <div className="flex items-center justify-between">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${(pendingReviewCount ?? 0) > 0 ? 'bg-amber-50' : 'bg-green-50'}`}>
+            <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${(pendingReviewCount ?? 0) > 0 ? 'bg-amber-50' : 'bg-green-50'}`}>
               {(pendingReviewCount ?? 0) > 0 ? (
                 <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -340,10 +340,10 @@ export default async function DashboardPage() {
           <p className="mt-0.5 text-sm text-primary-400">
             {(pendingReviewCount ?? 0) > 0 ? 'Pending review' : 'All reviewed'}
           </p>
-        </div>
+        </Link>
 
         {/* Completion Rate */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm">
+        <Link href="/clients" className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
           <div className="flex items-center justify-between">
             <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-green-50">
               <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -360,7 +360,7 @@ export default async function DashboardPage() {
               : 'No assignments yet'
             }
           </p>
-        </div>
+        </Link>
       </div>
 
       {/* ── Second row: Plan card + Quick Actions + Activity ─────────────── */}
