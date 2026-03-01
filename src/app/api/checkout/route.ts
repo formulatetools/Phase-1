@@ -23,9 +23,15 @@ export async function POST(request: NextRequest) {
     // Get or create Stripe customer
     const { data: profile } = await supabase
       .from('profiles')
-      .select('stripe_customer_id, email, full_name')
+      .select('stripe_customer_id, email, full_name, subscription_status')
       .eq('id', user.id)
       .single()
+
+    // Prevent double-subscriptions — redirect active subscribers to billing portal
+    if (profile?.subscription_status === 'active') {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      return NextResponse.redirect(new URL('/settings?notice=already_subscribed', appUrl), 303)
+    }
 
     let customerId = profile?.stripe_customer_id
 

@@ -339,8 +339,10 @@ export async function POST(request: NextRequest) {
       }
     }
   } catch (error) {
+    // Log but return 200 to prevent Stripe from retrying non-transient errors
+    // (e.g. profile not found, DB constraint violations). Stripe will retry
+    // indefinitely on 5xx responses, creating noise and wasted compute.
     console.error('Webhook handler error:', error)
-    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
   }
 
   return NextResponse.json({ received: true })
