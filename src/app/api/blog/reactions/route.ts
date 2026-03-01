@@ -25,61 +25,73 @@ async function syncHelpfulCount(postId: string) {
 }
 
 export async function POST(request: Request) {
-  const { user } = await getCurrentUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const { postId } = await request.json()
-  if (!postId) {
-    return NextResponse.json({ error: 'postId required' }, { status: 400 })
-  }
-
-  const supabase = await createClient()
-
-  // Insert reaction (unique constraint prevents duplicates)
-  const { error } = await supabase
-    .from('blog_reactions')
-    .insert({ post_id: postId, user_id: user.id })
-
-  if (error) {
-    if (error.code === '23505') {
-      return NextResponse.json({ error: 'Already reacted' }, { status: 409 })
+  try {
+    const { user } = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    console.error('Reaction insert error:', error)
-    return NextResponse.json({ error: 'Failed' }, { status: 500 })
+
+    const { postId } = await request.json()
+    if (!postId) {
+      return NextResponse.json({ error: 'postId required' }, { status: 400 })
+    }
+
+    const supabase = await createClient()
+
+    // Insert reaction (unique constraint prevents duplicates)
+    const { error } = await supabase
+      .from('blog_reactions')
+      .insert({ post_id: postId, user_id: user.id })
+
+    if (error) {
+      if (error.code === '23505') {
+        return NextResponse.json({ error: 'Already reacted' }, { status: 409 })
+      }
+      console.error('Reaction insert error:', error)
+      return NextResponse.json({ error: 'Failed' }, { status: 500 })
+    }
+
+    // Sync count — don't let a failure here break the response
+    syncHelpfulCount(postId).catch((e) => console.error('syncHelpfulCount error:', e))
+
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error('Reaction POST error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-
-  await syncHelpfulCount(postId)
-
-  return NextResponse.json({ ok: true })
 }
 
 export async function DELETE(request: Request) {
-  const { user } = await getCurrentUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  try {
+    const { user } = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { postId } = await request.json()
+    if (!postId) {
+      return NextResponse.json({ error: 'postId required' }, { status: 400 })
+    }
+
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('blog_reactions')
+      .delete()
+      .eq('post_id', postId)
+      .eq('user_id', user.id)
+
+    if (error) {
+      console.error('Reaction delete error:', error)
+      return NextResponse.json({ error: 'Failed' }, { status: 500 })
+    }
+
+    // Sync count — don't let a failure here break the response
+    syncHelpfulCount(postId).catch((e) => console.error('syncHelpfulCount error:', e))
+
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error('Reaction DELETE error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-
-  const { postId } = await request.json()
-  if (!postId) {
-    return NextResponse.json({ error: 'postId required' }, { status: 400 })
-  }
-
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from('blog_reactions')
-    .delete()
-    .eq('post_id', postId)
-    .eq('user_id', user.id)
-
-  if (error) {
-    console.error('Reaction delete error:', error)
-    return NextResponse.json({ error: 'Failed' }, { status: 500 })
-  }
-
-  await syncHelpfulCount(postId)
-
-  return NextResponse.json({ ok: true })
 }

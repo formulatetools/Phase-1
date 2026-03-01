@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
   const threshold = new Date(Date.now() - RETENTION_DAYS * 86_400_000).toISOString()
 
   const results: Record<string, number> = {}
+  const errors: Record<string, string> = {}
 
   // Delete in foreign-key-safe order (leaf tables first)
   const tables = [
@@ -26,26 +27,36 @@ export async function GET(request: NextRequest) {
     'worksheets',
   ]
 
-  for (const table of tables) {
-    const { count } = await supabase
-      .from(table)
-      .delete({ count: 'exact' })
-      .not('deleted_at', 'is', null)
-      .lt('deleted_at', threshold)
+  try {
+    for (const table of tables) {
+      try {
+        const { count } = await supabase
+          .from(table)
+          .delete({ count: 'exact' })
+          .not('deleted_at', 'is', null)
+          .lt('deleted_at', threshold)
 
-    results[table] = count ?? 0
+        results[table] = count ?? 0
+      } catch (tableErr) {
+        console.error(`[data-retention] Failed to purge ${table}:`, tableErr)
+        errors[table] = String(tableErr)
+      }
+    }
+
+    const total = Object.values(results).reduce((s, n) => s + n, 0)
+
+    // Log to audit_log for compliance trail
+    await supabase.from('audit_log').insert({
+      user_id: null,
+      action: 'delete',
+      entity_type: 'data_retention',
+      entity_id: 'cron_cleanup',
+      metadata: { retention_days: RETENTION_DAYS, purged: results, errors, total },
+    })
+
+    return NextResponse.json({ ok: true, retention_days: RETENTION_DAYS, purged: results, errors, total })
+  } catch (err) {
+    console.error('[data-retention] Cron error:', err)
+    return NextResponse.json({ error: 'Data retention cron failed' }, { status: 500 })
   }
-
-  const total = Object.values(results).reduce((s, n) => s + n, 0)
-
-  // Log to audit_log for compliance trail
-  await supabase.from('audit_log').insert({
-    user_id: null,
-    action: 'delete',
-    entity_type: 'data_retention',
-    entity_id: 'cron_cleanup',
-    metadata: { retention_days: RETENTION_DAYS, purged: results, total },
-  })
-
-  return NextResponse.json({ ok: true, retention_days: RETENTION_DAYS, purged: results, total })
 }
