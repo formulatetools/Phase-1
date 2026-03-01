@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     description:
       'Generate custom CBT worksheets with AI. Interactive formulation diagrams, homework links, and a curated clinical library — all in one platform.',
   },
+  alternates: {
+    canonical: '/',
+  },
 }
 
 export default function Home() {

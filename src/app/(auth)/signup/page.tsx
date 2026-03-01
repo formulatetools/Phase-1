@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: 'Create Account',
   description:
     'Sign up free for access to professional CBT worksheets and clinical tools.',
+  alternates: {
+    canonical: '/signup',
+  },
 }
 
 export default async function SignupPage({

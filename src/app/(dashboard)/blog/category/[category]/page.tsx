@@ -9,6 +9,10 @@ import type { Metadata } from 'next'
 
 const validCategories = ['clinical', 'worksheet-guide', 'practice', 'updates']
 
+export function generateStaticParams() {
+  return validCategories.map((category) => ({ category }))
+}
+
 export async function generateMetadata({
   params,
 }: {

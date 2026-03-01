@@ -7,13 +7,22 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: [
-          '/hw/',        // Client homework pages — private
-          '/clients/',   // Therapist client data
-          '/admin/',     // Admin panel
-          '/api/',       // API routes
-          '/dashboard/', // Authenticated dashboard
-          '/settings/',  // Account settings
-          '/auth/',      // Auth callbacks
+          '/hw/',              // Client homework pages — private
+          '/client/',          // Client portal — private
+          '/clients/',         // Therapist client data
+          '/supervision/',     // Supervision data
+          '/admin/',           // Admin panel
+          '/api/',             // API routes
+          '/dashboard/',       // Authenticated dashboard
+          '/settings/',        // Account settings
+          '/auth/',            // Auth callbacks
+          '/checkout/',        // Checkout flow
+          '/my-tools/',        // Custom tools (authenticated)
+          '/reviews/',         // Worksheet reviews (authenticated)
+          '/content/',         // Content authoring (authenticated)
+          '/referrals/',       // Referral dashboard
+          '/feature-requests/',// Feature requests
+          '/blog/write/',      // Blog authoring
         ],
       },
     ],

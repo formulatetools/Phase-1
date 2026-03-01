@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import { createClient as createDirectClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getBlogPostBySlug } from '@/lib/supabase/queries'
@@ -8,6 +9,19 @@ import { BlogPostContent } from '@/components/blog/blog-post-content'
 import { BLOG_CATEGORY_LABELS } from '@/lib/utils/blog'
 import type { BlogPost } from '@/types/database'
 import type { Metadata } from 'next'
+
+export async function generateStaticParams() {
+  const supabase = createDirectClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { data } = await supabase
+    .from('blog_posts')
+    .select('slug')
+    .eq('status', 'published')
+    .is('deleted_at', null)
+  return (data || []).map((p) => ({ slug: p.slug }))
+}
 
 export async function generateMetadata({
   params,
@@ -115,7 +129,7 @@ export default async function BlogPostPage({
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl },
       { '@type': 'ListItem', position: 2, name: 'Blog', item: `${baseUrl}/blog` },
-      { '@type': 'ListItem', position: 3, name: BLOG_CATEGORY_LABELS[p.category] || p.category, item: `${baseUrl}/blog?category=${p.category}` },
+      { '@type': 'ListItem', position: 3, name: BLOG_CATEGORY_LABELS[p.category] || p.category, item: `${baseUrl}/blog/category/${p.category}` },
       { '@type': 'ListItem', position: 4, name: p.title },
     ],
   }
