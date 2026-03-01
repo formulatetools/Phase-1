@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button-variants'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from './blank-pdf-generator'
 
@@ -110,6 +112,20 @@ export function ConsentGate({
           <p className="mt-4 text-xs text-primary-400">
             Changed your mind? You can open this link again to complete the worksheet online.
           </p>
+
+          {isDemo && (
+            <div className="mt-6 border-t border-primary-100 pt-6">
+              <p className="text-sm font-medium text-primary-700">
+                Ready to send this to a client?
+              </p>
+              <Link
+                href="/signup"
+                className={`mt-3 w-full ${buttonVariants.accent('md')}`}
+              >
+                Get Started Free
+              </Link>
+            </div>
+          )}
         </div>
 
         <BlankPdfGenerator

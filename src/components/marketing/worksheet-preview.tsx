@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { ConsentGate } from '@/components/homework/consent-gate'
+import { buttonVariants } from '@/components/ui/button-variants'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { DEMO_DATA, DEMO_WORKSHEETS } from '@/lib/demo-data'
 
@@ -124,6 +125,19 @@ export function WorksheetPreview({ worksheets }: WorksheetPreviewProps) {
                 readOnly={false}
                 initialValues={demoValues}
               />
+
+              {/* Signup CTA — appears at the bottom of the interactive form */}
+              <div className="mt-8 rounded-xl border border-brand/20 bg-brand-light p-5 text-center">
+                <p className="text-sm font-medium text-primary-800">
+                  Like what you see? Send this to a client in under a minute.
+                </p>
+                <Link
+                  href="/signup"
+                  className={`mt-3 inline-flex ${buttonVariants.accent('md')}`}
+                >
+                  Get Started Free
+                </Link>
+              </div>
             </div>
           </ConsentGate>
         </div>
