@@ -333,10 +333,31 @@ const DECISION_LOGIC = `## Decision Logic
 
 10. Maximum one formulation per worksheet, maximum one record per worksheet
 
-11. Description mentions "daily diary", "weekly log", "repeated entries", "daily monitoring", "mood diary", "activity log" →
-    set schema.repeatable = true and schema.max_entries = 7.
-    Diary mode lets clients add multiple identical entries (Day 1, Day 2, etc.) within the same assignment.
-    Only set this for tools designed for repeated daily/weekly use — NOT for one-off formulations, assessments, or safety plans.`
+11. REPEATABLE (multi-entry diary mode) — set schema.repeatable = true and schema.max_entries = 7 when the worksheet is designed for repeated daily/weekly/per-episode use.
+    Trigger keywords: "diary", "log", "monitor", "record", "tracker", "schedule", "practice record", "experiment record", "exposure record", "daily", "weekly", "per-session", "repeated entries".
+    Worksheet types that should ALWAYS be repeatable:
+    - Thought records (5-col, 7-col, any column count)
+    - Mood/emotion diaries and monitoring worksheets
+    - Sleep diaries and trackers
+    - Activity monitoring and scheduling worksheets
+    - Behavioural experiment worksheets
+    - Exposure/ERP practice records
+    - Food/eating logs and diaries
+    - Pain monitoring diaries
+    - Panic diaries
+    - Symptom diaries (PTSD, OCD, BDD, health anxiety, etc.)
+    - Practice logs (relaxation, mindfulness, attention training, etc.)
+    - Any worksheet with "diary", "log", "record", or "monitor" in the title
+    Worksheet types that should NEVER be repeatable:
+    - Formulations (any layout)
+    - Safety plans
+    - Hierarchies and ladders
+    - One-off assessments, checklists, and surveys
+    - Cost-benefit analyses
+    - Psychoeducation worksheets
+    - Relapse prevention plans
+    - Goal-setting worksheets
+    If unsure, default to repeatable = false.`
 
 const OUTPUT_FORMAT = `## Output Format
 

@@ -90,7 +90,11 @@ const SCHEMA_RULES = `## Rules
     - "Longitudinal" / "Developmental" / early experiences → core beliefs → assumptions chain → layout: "vertical_flow"
     - "Cycle" / "Maintenance cycle" / "Panic cycle" / clockwise loop → layout: "cycle"
     - "Three systems" / "CFT" / "Compassion focused" / threat/drive/soothing → layout: "three_systems"
-    When generating a formulation, wrap it in 3 sections: context/instructions before, formulation field, and reflection/implications after.`
+    When generating a formulation, wrap it in 3 sections: context/instructions before, formulation field, and reflection/implications after.
+13. REPEATABLE (multi-entry diary mode): If the worksheet is designed for repeated daily/weekly/per-episode use, set schema.repeatable = true and schema.max_entries = 7 in the output schema.
+    Always repeatable: thought records, mood/emotion diaries, sleep diaries/trackers, activity monitoring/scheduling, behavioural experiment worksheets, exposure/ERP practice records, food/eating logs, pain/panic/symptom diaries, practice logs (relaxation, mindfulness, attention training), any worksheet with "diary", "log", "record", or "monitor" in the title.
+    Never repeatable: formulations, safety plans, hierarchies, one-off assessments/checklists/surveys, cost-benefit analyses, psychoeducation, relapse prevention plans, goal-setting.
+    If unsure, default to repeatable = false.`
 
 export function buildImportPrompt(documentText: string): string {
   return `You are a clinical psychology worksheet digitiser. Convert the paper-based therapy worksheet below into a structured JSON schema for an interactive web form.
@@ -107,6 +111,7 @@ Return a single JSON object with this exact structure (NO markdown fences, ONLY 
   "tags": ["tag1", "tag2"],
   "schema": {
     "version": 1,
+    "repeatable": false,
     "sections": [
       {
         "id": "s-1",
@@ -144,6 +149,7 @@ Return a single JSON object with this exact structure (NO markdown fences, ONLY 
   "tags": ["tag1", "tag2"],
   "schema": {
     "version": 1,
+    "repeatable": false,
     "sections": [
       {
         "id": "s-1",
