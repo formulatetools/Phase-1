@@ -6,7 +6,6 @@ import type {
   WorksheetAssignment,
   WorksheetResponse,
   Worksheet,
-  Profile,
 } from '@/types/database'
 import { LogoIcon } from '@/components/ui/logo'
 
@@ -30,22 +29,22 @@ export default async function ClientPortalPage({ params }: PageProps) {
 
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
 
-  // 1. Look up relationship by portal token
+  // 1. Look up relationship by portal token (select only needed fields)
   const { data: relationship } = await supabase
     .from('therapeutic_relationships')
-    .select('*')
+    .select('id, therapist_id, client_label')
     .eq('client_portal_token', portalToken)
     .is('deleted_at', null)
     .single()
 
   if (!relationship) notFound()
 
-  const typedRelationship = relationship as TherapeuticRelationship
+  const typedRelationship = relationship as Pick<TherapeuticRelationship, 'id' | 'therapist_id' | 'client_label'>
 
   // 2. Fetch all assignments for this relationship (ordered by date desc)
   const { data: assignmentsData } = await supabase
     .from('worksheet_assignments')
-    .select('*')
+    .select('id, token, status, worksheet_id, assigned_at, due_date, expires_at, completed_at, withdrawn_at, completion_method')
     .eq('relationship_id', typedRelationship.id)
     .is('deleted_at', null)
     .order('assigned_at', { ascending: false })
@@ -58,7 +57,7 @@ export default async function ClientPortalPage({ params }: PageProps) {
   if (assignmentIds.length > 0) {
     const { data: responsesData } = await supabase
       .from('worksheet_responses')
-      .select('*')
+      .select('id, assignment_id, response_data, completed_at')
       .in('assignment_id', assignmentIds)
       .is('deleted_at', null)
 
@@ -71,7 +70,7 @@ export default async function ClientPortalPage({ params }: PageProps) {
   if (worksheetIds.length > 0) {
     const { data: worksheetsData } = await supabase
       .from('worksheets')
-      .select('*')
+      .select('id, title, description, schema')
       .in('id', worksheetIds)
 
     worksheets = (worksheetsData || []) as Worksheet[]
@@ -84,7 +83,7 @@ export default async function ClientPortalPage({ params }: PageProps) {
     .eq('id', typedRelationship.therapist_id)
     .single()
 
-  const therapistName = (therapistProfile as Profile | null)?.full_name || 'your therapist'
+  const therapistName = (therapistProfile as { full_name: string | null } | null)?.full_name || 'your therapist'
 
   return (
     <div className="min-h-screen bg-background">

@@ -51,6 +51,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'This assignment has been locked by your therapist' }, { status: 403 })
     }
 
+    // Check if withdrawn (consent revoked)
+    if (assignment.status === 'withdrawn') {
+      return NextResponse.json({ error: 'This assignment has been withdrawn' }, { status: 403 })
+    }
+
     // Find existing response or create new one
     const { data: existingResponse } = await supabase
       .from('worksheet_responses')
