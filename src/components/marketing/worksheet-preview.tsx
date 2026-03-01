@@ -68,8 +68,8 @@ export function WorksheetPreview({ worksheets }: WorksheetPreviewProps) {
                 onClick={() => handleTabChange(ws.slug)}
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                   isActive
-                    ? 'bg-white text-brand shadow-sm'
-                    : 'text-primary-500 hover:text-primary-700 hover:bg-white/50'
+                    ? 'bg-surface text-brand shadow-sm'
+                    : 'text-primary-500 hover:text-primary-700 hover:bg-surface/50'
                 }`}
               >
                 {meta && ICONS[meta.icon]}
