@@ -621,6 +621,32 @@ function renderLikertFieldPdf(
   cursor.advance(DROPDOWN_H)
 }
 
+function computeColumnWidths(
+  cols: { id: string; header: string; type?: string; width?: string }[],
+): number[] {
+  const NARROW_W = 45 // points — for number columns and explicitly narrow columns
+  const numCols = cols.length
+
+  // Equal distribution for small tables (≤4 columns)
+  if (numCols <= 4) return cols.map(() => CONTENT_W / numCols)
+
+  // Proportional widths: narrow for number/narrow cols, rest shared equally
+  let narrowTotal = 0
+  let wideCount = 0
+  for (const col of cols) {
+    if (col.type === 'number' || col.width === 'narrow') {
+      narrowTotal += NARROW_W
+    } else {
+      wideCount++
+    }
+  }
+
+  const wideW = wideCount > 0 ? (CONTENT_W - narrowTotal) / wideCount : CONTENT_W / numCols
+  return cols.map((col) =>
+    col.type === 'number' || col.width === 'narrow' ? NARROW_W : wideW,
+  )
+}
+
 function renderTableFieldPdf(
   cursor: LayoutCursor,
   form: PDFForm,
@@ -632,45 +658,56 @@ function renderTableFieldPdf(
 
   const cols = field.columns
   const numCols = cols.length
-  const colWidth = CONTENT_W / numCols
+  const colWidths = computeColumnWidths(cols)
+
+  // Use taller header with wrapping for wide tables (>5 cols)
+  const headerH = numCols > 5 ? 28 : TABLE_HEADER_H
+  const headerFontSize = numCols > 5 ? 7 : 8
 
   // Header row
-  cursor.ensureSpace(TABLE_HEADER_H)
-  const headerY = cursor.y - TABLE_HEADER_H
+  cursor.ensureSpace(headerH)
+  const headerY = cursor.y - headerH
 
   // Header background
   cursor.page.drawRectangle({
     x: ML,
     y: headerY,
     width: CONTENT_W,
-    height: TABLE_HEADER_H,
+    height: headerH,
     color: LIGHT_BG,
     borderColor: FIELD_BORDER,
     borderWidth: 0.5,
   })
 
+  let colX = ML
   for (let c = 0; c < numCols; c++) {
-    const colX = ML + c * colWidth
+    const cw = colWidths[c]
     // Column separator
     if (c > 0) {
       cursor.page.drawLine({
         start: { x: colX, y: headerY },
-        end: { x: colX, y: headerY + TABLE_HEADER_H },
+        end: { x: colX, y: headerY + headerH },
         thickness: 0.5,
         color: FIELD_BORDER,
       })
     }
-    // Header text
-    const headerText = truncateText(cols[c].header, cursor.fonts.bold, 8, colWidth - 8)
-    cursor.page.drawText(headerText, {
-      x: colX + 4,
-      y: headerY + TABLE_HEADER_H / 2 - 3,
-      size: 8,
-      font: cursor.fonts.bold,
-      color: DARK,
-    })
+    // Header text — wrap for wide tables, truncate for narrow
+    const headerLines = wrapText(cols[c].header, cursor.fonts.bold, headerFontSize, cw - 8)
+    const lineH = headerFontSize + 2
+    const textBlockH = headerLines.length * lineH
+    const startY = headerY + (headerH + textBlockH) / 2 - headerFontSize
+    for (let l = 0; l < Math.min(headerLines.length, 2); l++) {
+      cursor.page.drawText(headerLines[l], {
+        x: colX + 4,
+        y: startY - l * lineH,
+        size: headerFontSize,
+        font: cursor.fonts.bold,
+        color: DARK,
+      })
+    }
+    colX += cw
   }
-  cursor.advance(TABLE_HEADER_H)
+  cursor.advance(headerH)
 
   // Data rows
   const tableValues = (values?.[field.id] as Record<string, unknown>[] | undefined) || []
@@ -699,14 +736,15 @@ function renderTableFieldPdf(
       color: WHITE,
     })
 
+    let cellX = ML
     for (let c = 0; c < numCols; c++) {
-      const colX = ML + c * colWidth
+      const cw = colWidths[c]
 
       // Column separator
       if (c > 0) {
         cursor.page.drawLine({
-          start: { x: colX, y: rowY },
-          end: { x: colX, y: rowY + TABLE_ROW_H },
+          start: { x: cellX, y: rowY },
+          end: { x: cellX, y: rowY + TABLE_ROW_H },
           thickness: 0.5,
           color: FIELD_BORDER,
         })
@@ -717,9 +755,9 @@ function renderTableFieldPdf(
         uniqueFieldName(`${sectionId}.${field.id}.r${r}.${cols[c].id}`)
       )
       cellField.addToPage(cursor.page, {
-        x: colX + 2,
+        x: cellX + 2,
         y: rowY + 2,
-        width: colWidth - 4,
+        width: cw - 4,
         height: TABLE_ROW_H - 4,
         borderWidth: 0,
       })
@@ -729,6 +767,7 @@ function renderTableFieldPdf(
       if (cellVal !== undefined && cellVal !== null && cellVal !== '') {
         cellField.setText(String(cellVal))
       }
+      cellX += cw
     }
     cursor.advance(TABLE_ROW_H)
   }
