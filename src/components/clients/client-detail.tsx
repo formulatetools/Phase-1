@@ -22,6 +22,7 @@ import {
   gdprErase,
   getPreviewUrl,
   regeneratePortalToken,
+  resetClientPin,
   archiveResource,
 } from '@/app/(dashboard)/clients/actions'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
@@ -90,6 +91,7 @@ export function ClientDetail({
   } | null>(null)
   const [copiedPortalLink, setCopiedPortalLink] = useState(false)
   const [showRegenConfirm, setShowRegenConfirm] = useState(false)
+  const [showPinResetConfirm, setShowPinResetConfirm] = useState(false)
   const [showPrefill, setShowPrefill] = useState(false)
   const [prefillValues, setPrefillValues] = useState<Record<string, unknown>>({})
   const [prefillReadonly, setPrefillReadonly] = useState(true)
@@ -611,6 +613,62 @@ export function ClientDetail({
               </div>
             )}
           </div>
+
+          {/* PIN protection status */}
+          {relationship.portal_pin_set_at && (
+            <div className="mt-3 border-t border-primary-100 pt-3">
+              <div className="flex items-center gap-2">
+                <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
+                <span className="text-xs text-primary-600">
+                  PIN protection enabled
+                  <span className="text-primary-400 ml-1">
+                    (set {new Date(relationship.portal_pin_set_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
+                  </span>
+                </span>
+              </div>
+              {!showPinResetConfirm ? (
+                <button
+                  onClick={() => setShowPinResetConfirm(true)}
+                  className="mt-2 text-xs text-primary-400 hover:text-primary-600 transition-colors underline underline-offset-2"
+                >
+                  Reset client PIN
+                </button>
+              ) : (
+                <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                  <p className="text-xs text-amber-800 font-medium">
+                    Reset this client&apos;s PIN?
+                  </p>
+                  <p className="mt-1 text-[10px] text-amber-700">
+                    This will remove the PIN lock from {relationship.client_label}&apos;s workspace. They will be able to set a new PIN from their portal.
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      onClick={async () => {
+                        await handleAction(
+                          'reset-pin',
+                          () => resetClientPin(relationship.id),
+                          'Client PIN has been reset.'
+                        )
+                        setShowPinResetConfirm(false)
+                      }}
+                      disabled={actionLoading === 'reset-pin'}
+                      className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
+                    >
+                      {actionLoading === 'reset-pin' ? 'Resetting\u2026' : 'Yes, reset PIN'}
+                    </button>
+                    <button
+                      onClick={() => setShowPinResetConfirm(false)}
+                      className="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

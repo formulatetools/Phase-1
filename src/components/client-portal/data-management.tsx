@@ -42,6 +42,9 @@ interface DataWorksheet {
 
 interface DataManagementProps {
   portalToken: string
+  hasPinSet: boolean
+  pinSetAt: string | null
+  appUrl: string
   assignments: DataAssignment[]
   responses: DataResponse[]
   worksheets: DataWorksheet[]
@@ -79,6 +82,9 @@ function formatDate(dateStr: string) {
 
 export function DataManagement({
   portalToken,
+  hasPinSet: initialHasPinSet,
+  pinSetAt: initialPinSetAt,
+  appUrl,
   assignments,
   responses,
   worksheets,
@@ -95,6 +101,20 @@ export function DataManagement({
   )
   const [allDeleted, setAllDeleted] = useState(false)
   const [generatingPdfFor, setGeneratingPdfFor] = useState<string | null>(null)
+
+  // PIN management state
+  const [hasPinSet, setHasPinSet] = useState(initialHasPinSet)
+  const [pinSetAt, setPinSetAt] = useState(initialPinSetAt)
+  const [pinAction, setPinAction] = useState<'none' | 'set' | 'change' | 'remove'>('none')
+  const [pinDigits, setPinDigits] = useState(['', '', '', ''])
+  const [pinConfirmDigits, setPinConfirmDigits] = useState(['', '', '', ''])
+  const [pinCurrentDigits, setPinCurrentDigits] = useState(['', '', '', ''])
+  const [pinStep, setPinStep] = useState<'current' | 'enter' | 'confirm'>('enter')
+  const [pinLoading, setPinLoading] = useState(false)
+  const [pinError, setPinError] = useState<string | null>(null)
+  const pinInputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const pinConfirmRefs = useRef<(HTMLInputElement | null)[]>([])
+  const pinCurrentRefs = useRef<(HTMLInputElement | null)[]>([])
   const blankPdfRefs = useRef<Map<string, BlankPdfGeneratorHandle>>(new Map())
   const responsePdfRefs = useRef<Map<string, ResponsePdfGeneratorHandle>>(
     new Map()
@@ -183,6 +203,198 @@ export function DataManagement({
       setGeneratingPdfFor(null)
     }
   }
+
+  // ─── PIN helpers ─────────────────────────────────────────────
+
+  const handlePinDigitChange = (
+    digits: string[],
+    setDigits: (d: string[]) => void,
+    refs: React.MutableRefObject<(HTMLInputElement | null)[]>,
+    index: number,
+    value: string
+  ) => {
+    const digit = value.replace(/\D/g, '').slice(-1)
+    const newDigits = [...digits]
+    newDigits[index] = digit
+    setDigits(newDigits)
+    setPinError(null)
+    if (digit && index < 3) refs.current[index + 1]?.focus()
+  }
+
+  const handlePinKeyDown = (
+    digits: string[],
+    setDigits: (d: string[]) => void,
+    refs: React.MutableRefObject<(HTMLInputElement | null)[]>,
+    index: number,
+    e: React.KeyboardEvent
+  ) => {
+    if (e.key === 'Backspace' && !digits[index] && index > 0) {
+      refs.current[index - 1]?.focus()
+      const newDigits = [...digits]
+      newDigits[index - 1] = ''
+      setDigits(newDigits)
+    }
+  }
+
+  const resetPinForm = () => {
+    setPinAction('none')
+    setPinStep('enter')
+    setPinDigits(['', '', '', ''])
+    setPinConfirmDigits(['', '', '', ''])
+    setPinCurrentDigits(['', '', '', ''])
+    setPinError(null)
+  }
+
+  const handleSetPin = async () => {
+    const pinValue = pinDigits.join('')
+    const confirmValue = pinConfirmDigits.join('')
+    if (pinValue !== confirmValue) {
+      setPinError('PINs don\'t match. Try again.')
+      setPinConfirmDigits(['', '', '', ''])
+      setTimeout(() => pinConfirmRefs.current[0]?.focus(), 100)
+      return
+    }
+    setPinLoading(true)
+    setPinError(null)
+    try {
+      const res = await fetch(`${appUrl}/api/client-portal/pin/set`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portalToken, pin: pinValue }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setHasPinSet(true)
+        setPinSetAt(new Date().toISOString())
+        resetPinForm()
+        setSuccessMsg('PIN set successfully.')
+        setTimeout(() => setSuccessMsg(null), 5000)
+        return
+      }
+      setPinError(data.error || 'Failed to set PIN')
+    } catch {
+      setPinError('Network error. Please try again.')
+    } finally {
+      setPinLoading(false)
+    }
+  }
+
+  const handleChangePin = async () => {
+    const currentValue = pinCurrentDigits.join('')
+    const newValue = pinDigits.join('')
+    const confirmValue = pinConfirmDigits.join('')
+    if (newValue !== confirmValue) {
+      setPinError('New PINs don\'t match. Try again.')
+      setPinConfirmDigits(['', '', '', ''])
+      setTimeout(() => pinConfirmRefs.current[0]?.focus(), 100)
+      return
+    }
+    setPinLoading(true)
+    setPinError(null)
+    try {
+      const res = await fetch(`${appUrl}/api/client-portal/pin/change`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portalToken, currentPin: currentValue, newPin: newValue }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setPinSetAt(new Date().toISOString())
+        resetPinForm()
+        setSuccessMsg('PIN changed successfully.')
+        setTimeout(() => setSuccessMsg(null), 5000)
+        return
+      }
+      if (res.status === 401) {
+        setPinError(`Incorrect current PIN.${data.attemptsRemaining !== undefined ? ` ${data.attemptsRemaining} attempts remaining.` : ''}`)
+        setPinCurrentDigits(['', '', '', ''])
+        setPinStep('current')
+        setTimeout(() => pinCurrentRefs.current[0]?.focus(), 100)
+        return
+      }
+      if (res.status === 429) {
+        setPinError('Too many attempts. Please try again later.')
+        return
+      }
+      setPinError(data.error || 'Failed to change PIN')
+    } catch {
+      setPinError('Network error. Please try again.')
+    } finally {
+      setPinLoading(false)
+    }
+  }
+
+  const handleRemovePin = async () => {
+    const currentValue = pinCurrentDigits.join('')
+    setPinLoading(true)
+    setPinError(null)
+    try {
+      const res = await fetch(`${appUrl}/api/client-portal/pin/remove`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portalToken, currentPin: currentValue }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setHasPinSet(false)
+        setPinSetAt(null)
+        resetPinForm()
+        setSuccessMsg('PIN removed. Your workspace is no longer PIN-protected.')
+        setTimeout(() => setSuccessMsg(null), 5000)
+        return
+      }
+      if (res.status === 401) {
+        setPinError(`Incorrect PIN.${data.attemptsRemaining !== undefined ? ` ${data.attemptsRemaining} attempts remaining.` : ''}`)
+        setPinCurrentDigits(['', '', '', ''])
+        setTimeout(() => pinCurrentRefs.current[0]?.focus(), 100)
+        return
+      }
+      if (res.status === 429) {
+        setPinError('Too many attempts. Please try again later.')
+        return
+      }
+      setPinError(data.error || 'Failed to remove PIN')
+    } catch {
+      setPinError('Network error. Please try again.')
+    } finally {
+      setPinLoading(false)
+    }
+  }
+
+  const renderPinInputs = (
+    digits: string[],
+    setDigits: (d: string[]) => void,
+    refs: React.MutableRefObject<(HTMLInputElement | null)[]>,
+    onComplete?: () => void
+  ) => (
+    <div className="flex justify-center gap-2">
+      {digits.map((digit, i) => (
+        <input
+          key={i}
+          ref={(el) => { refs.current[i] = el }}
+          type="password"
+          inputMode="numeric"
+          maxLength={1}
+          value={digit}
+          onChange={(e) => {
+            handlePinDigitChange(digits, setDigits, refs, i, e.target.value)
+            const newDigit = e.target.value.replace(/\D/g, '').slice(-1)
+            if (newDigit && i === 3) {
+              const newDigits = [...digits]
+              newDigits[i] = newDigit
+              if (newDigits.every((d) => d) && onComplete) {
+                setTimeout(onComplete, 50)
+              }
+            }
+          }}
+          onKeyDown={(e) => handlePinKeyDown(digits, setDigits, refs, i, e)}
+          disabled={pinLoading}
+          className="h-11 w-10 rounded-lg border-2 border-primary-200 text-center text-lg font-bold text-primary-900 focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none disabled:opacity-50"
+          aria-label={`PIN digit ${i + 1}`}
+        />
+      ))}
+    </div>
+  )
 
   // ─── Post-deletion view ──────────────────────────────────────
 
@@ -498,6 +710,187 @@ export function DataManagement({
           })}
         </div>
       )}
+
+      {/* PIN Protection section */}
+      <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-primary-800">PIN Protection</h3>
+            <p className="mt-1 text-xs text-primary-500">
+              {hasPinSet
+                ? 'Your workspace is protected with a PIN. You\'ll need to enter it each time you visit.'
+                : 'Add a 4-digit PIN to protect your therapy workspace on shared devices.'}
+            </p>
+          </div>
+          {hasPinSet ? (
+            <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-green-700">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true" />
+              Enabled
+            </span>
+          ) : (
+            <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-primary-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary-500">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-300" aria-hidden="true" />
+              Not set
+            </span>
+          )}
+        </div>
+
+        {hasPinSet && pinSetAt && (
+          <p className="mt-2 text-[10px] text-primary-400">
+            Set on {formatDate(pinSetAt)}
+          </p>
+        )}
+
+        {/* PIN action buttons */}
+        {pinAction === 'none' && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {hasPinSet ? (
+              <>
+                <button
+                  onClick={() => {
+                    setPinAction('change')
+                    setPinStep('current')
+                    setTimeout(() => pinCurrentRefs.current[0]?.focus(), 100)
+                  }}
+                  className="rounded-lg border border-primary-200 px-3 py-2 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors min-h-[44px]"
+                >
+                  Change PIN
+                </button>
+                <button
+                  onClick={() => {
+                    setPinAction('remove')
+                    setPinStep('current')
+                    setTimeout(() => pinCurrentRefs.current[0]?.focus(), 100)
+                  }}
+                  className="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors min-h-[44px]"
+                >
+                  Remove PIN
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  setPinAction('set')
+                  setPinStep('enter')
+                  setTimeout(() => pinInputRefs.current[0]?.focus(), 100)
+                }}
+                className="rounded-lg bg-primary-800 px-3 py-2 text-xs font-medium text-white hover:bg-primary-900 transition-colors min-h-[44px]"
+              >
+                Set up PIN
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Set PIN form */}
+        {pinAction === 'set' && (
+          <div className="mt-4 space-y-3 text-center">
+            <p className="text-xs font-medium text-primary-700">
+              {pinStep === 'enter' ? 'Choose a 4-digit PIN' : 'Confirm your PIN'}
+            </p>
+            {pinStep === 'enter'
+              ? renderPinInputs(pinDigits, setPinDigits, pinInputRefs, () => {
+                  setPinStep('confirm')
+                  setPinConfirmDigits(['', '', '', ''])
+                  setTimeout(() => pinConfirmRefs.current[0]?.focus(), 100)
+                })
+              : renderPinInputs(pinConfirmDigits, setPinConfirmDigits, pinConfirmRefs, handleSetPin)
+            }
+            {pinError && <p className="text-xs text-red-600">{pinError}</p>}
+            <div className="flex justify-center gap-2">
+              {pinStep === 'confirm' && (
+                <button
+                  onClick={() => {
+                    setPinStep('enter')
+                    setPinDigits(['', '', '', ''])
+                    setPinError(null)
+                    setTimeout(() => pinInputRefs.current[0]?.focus(), 100)
+                  }}
+                  className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs text-primary-600 hover:bg-primary-50 transition-colors"
+                >
+                  Back
+                </button>
+              )}
+              <button
+                onClick={resetPinForm}
+                className="rounded-lg px-3 py-1.5 text-xs text-primary-400 hover:text-primary-600 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Change PIN form */}
+        {pinAction === 'change' && (
+          <div className="mt-4 space-y-3 text-center">
+            <p className="text-xs font-medium text-primary-700">
+              {pinStep === 'current'
+                ? 'Enter your current PIN'
+                : pinStep === 'enter'
+                  ? 'Choose a new 4-digit PIN'
+                  : 'Confirm your new PIN'}
+            </p>
+            {pinStep === 'current'
+              ? renderPinInputs(pinCurrentDigits, setPinCurrentDigits, pinCurrentRefs, () => {
+                  setPinStep('enter')
+                  setPinDigits(['', '', '', ''])
+                  setTimeout(() => pinInputRefs.current[0]?.focus(), 100)
+                })
+              : pinStep === 'enter'
+                ? renderPinInputs(pinDigits, setPinDigits, pinInputRefs, () => {
+                    setPinStep('confirm')
+                    setPinConfirmDigits(['', '', '', ''])
+                    setTimeout(() => pinConfirmRefs.current[0]?.focus(), 100)
+                  })
+                : renderPinInputs(pinConfirmDigits, setPinConfirmDigits, pinConfirmRefs, handleChangePin)
+            }
+            {pinError && <p className="text-xs text-red-600">{pinError}</p>}
+            <div className="flex justify-center gap-2">
+              {pinStep !== 'current' && (
+                <button
+                  onClick={() => {
+                    if (pinStep === 'confirm') {
+                      setPinStep('enter')
+                      setPinDigits(['', '', '', ''])
+                    } else {
+                      setPinStep('current')
+                      setPinCurrentDigits(['', '', '', ''])
+                    }
+                    setPinError(null)
+                  }}
+                  className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs text-primary-600 hover:bg-primary-50 transition-colors"
+                >
+                  Back
+                </button>
+              )}
+              <button
+                onClick={resetPinForm}
+                className="rounded-lg px-3 py-1.5 text-xs text-primary-400 hover:text-primary-600 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Remove PIN form */}
+        {pinAction === 'remove' && (
+          <div className="mt-4 space-y-3 text-center">
+            <p className="text-xs font-medium text-primary-700">Enter your current PIN to remove it</p>
+            {renderPinInputs(pinCurrentDigits, setPinCurrentDigits, pinCurrentRefs, handleRemovePin)}
+            {pinError && <p className="text-xs text-red-600">{pinError}</p>}
+            <div className="flex justify-center gap-2">
+              <button
+                onClick={resetPinForm}
+                className="rounded-lg px-3 py-1.5 text-xs text-primary-400 hover:text-primary-600 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Delete all data section */}
       {hasDeletableData && (

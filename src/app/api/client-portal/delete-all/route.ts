@@ -87,6 +87,16 @@ export async function POST(request: NextRequest) {
       .eq('relationship_id', relationship.id)
       .is('withdrawn_at', null)
 
+    // 7b. Clear PIN (if set) — PIN is part of the portal, not separately consented
+    await supabase
+      .from('therapeutic_relationships')
+      .update({
+        portal_pin_hash: null,
+        portal_pin_salt: null,
+        portal_pin_set_at: null,
+      })
+      .eq('id', relationship.id)
+
     // 8. Log event
     await supabase.from('homework_events').insert({
       relationship_id: relationship.id,

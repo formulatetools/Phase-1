@@ -11,6 +11,7 @@ import type {
 import Link from 'next/link'
 import { LogoIcon } from '@/components/ui/logo'
 import { ClientPortal } from '@/components/client-portal/client-portal'
+import { isSessionValid } from '@/lib/utils/portal-session'
 
 interface PageProps {
   params: Promise<{ portalToken: string }>
@@ -42,7 +43,7 @@ export default async function ClientPortalPage({ params }: PageProps) {
   // 1. Look up relationship by portal token (include consent fields)
   const { data: relationship } = await supabase
     .from('therapeutic_relationships')
-    .select('id, therapist_id, client_label, portal_consented_at')
+    .select('id, therapist_id, client_label, portal_consented_at, portal_pin_hash, portal_pin_set_at')
     .eq('client_portal_token', portalToken)
     .is('deleted_at', null)
     .single()
@@ -51,10 +52,15 @@ export default async function ClientPortalPage({ params }: PageProps) {
 
   const typedRelationship = relationship as Pick<
     TherapeuticRelationship,
-    'id' | 'therapist_id' | 'client_label' | 'portal_consented_at'
+    'id' | 'therapist_id' | 'client_label' | 'portal_consented_at' | 'portal_pin_hash' | 'portal_pin_set_at'
   >
 
   const hasConsented = !!typedRelationship.portal_consented_at
+  const hasPinSet = !!typedRelationship.portal_pin_hash
+  let pinVerified = !hasPinSet // If no PIN, consider verified
+  if (hasPinSet) {
+    pinVerified = await isSessionValid(typedRelationship.id)
+  }
 
   // 2. Fetch all non-withdrawn assignments for this relationship
   const { data: assignmentsData } = await supabase
@@ -238,6 +244,8 @@ export default async function ClientPortalPage({ params }: PageProps) {
             schema: w.schema,
           }))}
           resources={portalResources}
+          hasPinSet={hasPinSet}
+          pinVerified={pinVerified}
           appUrl={APP_URL}
           completedCount={completedCount}
           weeksActive={weeksActive}

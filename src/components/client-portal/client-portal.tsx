@@ -9,6 +9,8 @@ import { BookmarkBanner } from './bookmark-banner'
 import { PwaInstallBanner } from './pwa-install-banner'
 import { PortalTabs, type PortalTab } from './portal-tabs'
 import { ResourceCard, type PortalResource } from './resource-card'
+import { PinEntry } from './pin-entry'
+import { PinSetupBanner } from './pin-setup-banner'
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -46,6 +48,8 @@ interface ClientPortalProps {
   responses: PortalResponse[]
   worksheets: PortalWorksheet[]
   resources: PortalResource[]
+  hasPinSet: boolean
+  pinVerified: boolean
   appUrl: string
   completedCount: number
   weeksActive: number
@@ -60,6 +64,8 @@ export function ClientPortal({
   responses,
   worksheets,
   resources,
+  hasPinSet,
+  pinVerified,
   appUrl,
   completedCount,
   weeksActive,
@@ -89,6 +95,11 @@ export function ClientPortal({
     )
   }
 
+  // ─── State A2: PIN required but not verified ─────────────────
+  if (hasPinSet && !pinVerified) {
+    return <PinEntry portalToken={portalToken} appUrl={appUrl} />
+  }
+
   // ─── Split assignments into sections ───────────────────────────
   const currentAssignments = assignments
     .filter((a) => a.status === 'assigned' || a.status === 'in_progress')
@@ -115,6 +126,7 @@ export function ClientPortal({
     return (
       <div className="space-y-4">
         <BookmarkBanner />
+        {!hasPinSet && <PinSetupBanner portalToken={portalToken} appUrl={appUrl} />}
         <div className="rounded-2xl border border-dashed border-primary-200 p-8 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
             <svg className="h-6 w-6 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
@@ -138,6 +150,7 @@ export function ClientPortal({
       {/* Banners */}
       <BookmarkBanner />
       <PwaInstallBanner />
+      {!hasPinSet && <PinSetupBanner portalToken={portalToken} appUrl={appUrl} />}
 
       {/* Tabs — only show when there are resources to switch between */}
       {resources.length > 0 && (

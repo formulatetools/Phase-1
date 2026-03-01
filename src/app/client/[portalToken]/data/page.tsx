@@ -10,6 +10,8 @@ import type {
 import Link from 'next/link'
 import { LogoIcon } from '@/components/ui/logo'
 import { DataManagement } from '@/components/client-portal/data-management'
+import { isSessionValid } from '@/lib/utils/portal-session'
+import { PinEntry } from '@/components/client-portal/pin-entry'
 
 interface PageProps {
   params: Promise<{ portalToken: string }>
@@ -29,7 +31,7 @@ export default async function DataManagementPage({ params }: PageProps) {
   // 1. Look up relationship by portal token
   const { data: relationship } = await supabase
     .from('therapeutic_relationships')
-    .select('id, therapist_id, client_label, portal_consented_at')
+    .select('id, therapist_id, client_label, portal_consented_at, portal_pin_hash, portal_pin_set_at')
     .eq('client_portal_token', portalToken)
     .is('deleted_at', null)
     .single()
@@ -38,11 +40,35 @@ export default async function DataManagementPage({ params }: PageProps) {
 
   const typedRelationship = relationship as Pick<
     TherapeuticRelationship,
-    'id' | 'therapist_id' | 'client_label' | 'portal_consented_at'
+    'id' | 'therapist_id' | 'client_label' | 'portal_consented_at' | 'portal_pin_hash' | 'portal_pin_set_at'
   >
 
   // Must have consented to access data management
   if (!typedRelationship.portal_consented_at) notFound()
+
+  // PIN check — if PIN is set, verify session cookie
+  const hasPinSet = !!typedRelationship.portal_pin_hash
+  if (hasPinSet) {
+    const pinValid = await isSessionValid(typedRelationship.id)
+    if (!pinValid) {
+      const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
+      return (
+        <div className="min-h-screen bg-background">
+          <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface">
+            <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-2">
+                <LogoIcon size={20} />
+                <span className="text-sm font-semibold text-primary-800">Formulate</span>
+              </div>
+            </div>
+          </header>
+          <main className="mx-auto max-w-2xl px-4 py-8">
+            <PinEntry portalToken={portalToken} appUrl={APP_URL} />
+          </main>
+        </div>
+      )
+    }
+  }
 
   // 2. Fetch all non-withdrawn assignments
   const { data: assignmentsData } = await supabase
@@ -145,6 +171,9 @@ export default async function DataManagementPage({ params }: PageProps) {
 
         <DataManagement
           portalToken={portalToken}
+          hasPinSet={hasPinSet}
+          pinSetAt={typedRelationship.portal_pin_set_at || null}
+          appUrl={process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'}
           assignments={assignments.map((a) => ({
             id: a.id,
             token: a.token,
