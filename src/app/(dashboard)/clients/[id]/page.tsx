@@ -29,7 +29,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
 
   const supabase = await createClient()
 
-  // Fetch the relationship
+  // Fetch the relationship first (needed for 404 check)
   const { data: relationship } = await supabase
     .from('therapeutic_relationships')
     .select('*')
@@ -40,16 +40,36 @@ export default async function ClientDetailPage({ params }: PageProps) {
 
   if (!relationship) notFound()
 
-  // Fetch assignments for this client
-  const { data: assignments } = await supabase
-    .from('worksheet_assignments')
-    .select('*')
-    .eq('relationship_id', id)
-    .eq('therapist_id', user.id)
-    .is('deleted_at', null)
-    .order('assigned_at', { ascending: false })
+  // Fetch remaining data in parallel
+  const [
+    { data: assignments },
+    { data: worksheets },
+    { count: totalActiveAssignments },
+  ] = await Promise.all([
+    supabase
+      .from('worksheet_assignments')
+      .select('*')
+      .eq('relationship_id', id)
+      .eq('therapist_id', user.id)
+      .is('deleted_at', null)
+      .order('assigned_at', { ascending: false }),
 
-  // Fetch responses for these assignments
+    supabase
+      .from('worksheets')
+      .select('*')
+      .or(`and(is_published.eq.true,is_curated.eq.true),and(created_by.eq.${user.id},is_curated.eq.false)`)
+      .is('deleted_at', null)
+      .order('title'),
+
+    supabase
+      .from('worksheet_assignments')
+      .select('*', { count: 'exact', head: true })
+      .eq('therapist_id', user.id)
+      .in('status', ['assigned', 'in_progress'])
+      .is('deleted_at', null),
+  ])
+
+  // Fetch responses (depends on assignments result)
   const assignmentIds = (assignments || []).map((a) => a.id)
   let responses: WorksheetResponse[] = []
   if (assignmentIds.length > 0) {
@@ -61,23 +81,6 @@ export default async function ClientDetailPage({ params }: PageProps) {
 
     responses = (data || []) as WorksheetResponse[]
   }
-
-  // Fetch worksheets for the picker and response rendering
-  // Include both published curated worksheets AND user's own custom worksheets
-  const { data: worksheets } = await supabase
-    .from('worksheets')
-    .select('*')
-    .or(`and(is_published.eq.true,is_curated.eq.true),and(created_by.eq.${user.id},is_curated.eq.false)`)
-    .is('deleted_at', null)
-    .order('title')
-
-  // Count total active assignments across all clients (for freemium check)
-  const { count: totalActiveAssignments } = await supabase
-    .from('worksheet_assignments')
-    .select('*', { count: 'exact', head: true })
-    .eq('therapist_id', user.id)
-    .in('status', ['assigned', 'in_progress'])
-    .is('deleted_at', null)
 
   const tier = profile.subscription_tier as SubscriptionTier
   const limits = TIER_LIMITS[tier]
