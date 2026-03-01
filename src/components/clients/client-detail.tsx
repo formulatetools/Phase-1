@@ -20,6 +20,7 @@ import {
   markAsPaperCompleted,
   gdprErase,
   getPreviewUrl,
+  regeneratePortalToken,
 } from '@/app/(dashboard)/clients/actions'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
@@ -83,6 +84,7 @@ export function ClientDetail({
     dueDate?: string
   } | null>(null)
   const [copiedPortalLink, setCopiedPortalLink] = useState(false)
+  const [showRegenConfirm, setShowRegenConfirm] = useState(false)
   const [showPrefill, setShowPrefill] = useState(false)
   const [prefillValues, setPrefillValues] = useState<Record<string, unknown>>({})
   const [prefillReadonly, setPrefillReadonly] = useState(true)
@@ -492,13 +494,36 @@ export function ClientDetail({
         </div>
       )}
 
-      {/* Client Data Portal link */}
+      {/* Client Portal */}
       {relationship.client_portal_token && (
         <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-primary-800">Client Data Portal</h3>
-          <p className="mt-1 text-xs text-primary-500">
-            Share this link so {relationship.client_label} can view their homework, download PDFs, or delete their data.
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-primary-800">Client Portal</h3>
+              <p className="mt-1 text-xs text-primary-500">
+                {relationship.client_label}&apos;s personal workspace where they can view assignments, track progress, and manage their data.
+              </p>
+            </div>
+            {/* Portal status badge */}
+            {relationship.portal_consented_at ? (
+              <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-green-700">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true" />
+                Active
+              </span>
+            ) : (
+              <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-primary-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary-500">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-300" aria-hidden="true" />
+                Not yet activated
+              </span>
+            )}
+          </div>
+
+          {relationship.portal_consented_at && (
+            <p className="mt-2 text-[10px] text-primary-400">
+              Consented {new Date(relationship.portal_consented_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          )}
+
           <div className="mt-3 flex items-center gap-2">
             <code className="flex-1 truncate rounded-lg border border-primary-200 bg-primary-50 px-3 py-2 text-xs text-primary-600">
               {appUrl}/client/{relationship.client_portal_token}
@@ -511,8 +536,51 @@ export function ClientDetail({
               }}
               className="shrink-0 rounded-lg border border-primary-200 px-3 py-2 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors"
             >
-              {copiedPortalLink ? 'Copied!' : 'Copy'}
+              {copiedPortalLink ? 'Copied!' : 'Copy link'}
             </button>
+          </div>
+
+          {/* Regenerate link */}
+          <div className="mt-3 border-t border-primary-100 pt-3">
+            {!showRegenConfirm ? (
+              <button
+                onClick={() => setShowRegenConfirm(true)}
+                className="text-xs text-primary-400 hover:text-primary-600 transition-colors underline underline-offset-2"
+              >
+                Regenerate portal link
+              </button>
+            ) : (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="text-xs text-amber-800 font-medium">
+                  Regenerate this portal link?
+                </p>
+                <p className="mt-1 text-[10px] text-amber-700">
+                  The current link will stop working immediately. Your client will need the new link to access their workspace. If they installed the portal as an app, they will need to reinstall it.
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      await handleAction(
+                        'regen-portal',
+                        () => regeneratePortalToken(relationship.id),
+                        'Portal link regenerated. Share the new link with your client.'
+                      )
+                      setShowRegenConfirm(false)
+                    }}
+                    disabled={actionLoading === 'regen-portal'}
+                    className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
+                  >
+                    {actionLoading === 'regen-portal' ? 'Regenerating\u2026' : 'Yes, regenerate'}
+                  </button>
+                  <button
+                    onClick={() => setShowRegenConfirm(false)}
+                    className="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -745,6 +813,7 @@ export function ClientDetail({
         worksheetTitle={shareModal?.title || ''}
         clientLabel={relationship.client_label}
         dueDate={shareModal?.dueDate}
+        portalUrl={relationship.client_portal_token ? `${appUrl}/client/${relationship.client_portal_token}` : undefined}
       />
     </div>
   )

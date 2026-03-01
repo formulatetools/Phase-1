@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
-import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
-import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
-import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from '@/components/homework/blank-pdf-generator'
-import { ResponsePdfGenerator, type ResponsePdfGeneratorHandle } from './response-pdf-generator'
+import { PortalConsent } from './portal-consent'
+import { AssignmentCard } from './assignment-card'
+import { ProgressSection } from './progress-section'
+import { BookmarkBanner } from './bookmark-banner'
+import { PwaInstallBanner } from './pwa-install-banner'
 
 // ─── Types ───────────────────────────────────────────────────────
 
-interface PortalAssignment {
+export interface PortalAssignment {
   id: string
   token: string
   status: string
@@ -18,18 +19,16 @@ interface PortalAssignment {
   due_date: string | null
   expires_at: string
   completed_at: string | null
-  withdrawn_at: string | null
-  completion_method: string | null
 }
 
-interface PortalResponse {
+export interface PortalResponse {
   id: string
   assignment_id: string
   response_data: Record<string, unknown>
   completed_at: string | null
 }
 
-interface PortalWorksheet {
+export interface PortalWorksheet {
   id: string
   title: string
   description: string
@@ -40,484 +39,146 @@ interface ClientPortalProps {
   portalToken: string
   clientLabel: string
   therapistName: string
+  hasConsented: boolean
   assignments: PortalAssignment[]
   responses: PortalResponse[]
   worksheets: PortalWorksheet[]
   appUrl: string
-}
-
-// ─── Status helpers ──────────────────────────────────────────────
-
-const statusColors: Record<string, string> = {
-  assigned: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
-  in_progress: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300',
-  completed: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300',
-  reviewed: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300',
-  pdf_downloaded: 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300',
-  withdrawn: 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-300',
-}
-
-const statusLabels: Record<string, string> = {
-  assigned: 'Pending',
-  in_progress: 'In progress',
-  completed: 'Submitted',
-  reviewed: 'Reviewed',
-  pdf_downloaded: 'Paper copy',
-  withdrawn: 'Withdrawn',
+  completedCount: number
+  weeksActive: number
 }
 
 // ─── Component ───────────────────────────────────────────────────
 
 export function ClientPortal({
   portalToken,
-  clientLabel,
-  therapistName,
+  hasConsented: initialConsented,
   assignments,
   responses,
   worksheets,
   appUrl,
+  completedCount,
+  weeksActive,
 }: ClientPortalProps) {
-  const [viewingResponse, setViewingResponse] = useState<string | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [showDeleteAll, setShowDeleteAll] = useState(false)
-  const [deleteAllConfirm, setDeleteAllConfirm] = useState('')
-  const [deleteAllLoading, setDeleteAllLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [successMsg, setSuccessMsg] = useState<string | null>(null)
-  const [deletedAssignments, setDeletedAssignments] = useState<Set<string>>(new Set())
-  const [allDeleted, setAllDeleted] = useState(false)
-  const [generatingPdfFor, setGeneratingPdfFor] = useState<string | null>(null)
-  const blankPdfRefs = useRef<Map<string, BlankPdfGeneratorHandle>>(new Map())
-  const responsePdfRefs = useRef<Map<string, ResponsePdfGeneratorHandle>>(new Map())
+  const [consented, setConsented] = useState(initialConsented)
 
   const worksheetMap = new Map(worksheets.map((w) => [w.id, w]))
   const responseMap = new Map(responses.map((r) => [r.assignment_id, r]))
 
-  const isExpired = (a: PortalAssignment) => new Date(a.expires_at) < new Date()
-
-  // ─── Handlers ────────────────────────────────────────────────
-
-  const handleDeleteResponse = async (assignmentId: string) => {
-    setError(null)
-    setDeletingId(assignmentId)
-
-    try {
-      const res = await fetch('/api/client-portal/delete-response', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portalToken, assignmentId }),
+  // Register service worker after consent
+  useEffect(() => {
+    if (consented && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/portal-sw.js', { scope: '/client/' }).catch(() => {
+        // Service worker registration failed — not critical
       })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Failed to delete')
-      }
-
-      setDeletedAssignments((prev) => new Set([...prev, assignmentId]))
-      setViewingResponse(null)
-      setSuccessMsg('Response deleted permanently.')
-      setTimeout(() => setSuccessMsg(null), 5000)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
-    } finally {
-      setDeletingId(null)
     }
-  }
+  }, [consented])
 
-  const handleDeleteAll = async () => {
-    if (deleteAllConfirm !== 'DELETE') return
-    setError(null)
-    setDeleteAllLoading(true)
-
-    try {
-      const res = await fetch('/api/client-portal/delete-all', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portalToken, confirmText: 'DELETE' }),
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Failed to delete')
-      }
-
-      setAllDeleted(true)
-      setShowDeleteAll(false)
-      setDeleteAllConfirm('')
-      setSuccessMsg('All your data has been permanently deleted.')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
-    } finally {
-      setDeleteAllLoading(false)
-    }
-  }
-
-  const handleBlankPdf = async (worksheetId: string) => {
-    setGeneratingPdfFor(worksheetId)
-    try {
-      const handle = blankPdfRefs.current.get(worksheetId)
-      if (handle) await handle.generatePdf()
-    } catch {
-      setError('PDF generation failed. Please try again.')
-    } finally {
-      setGeneratingPdfFor(null)
-    }
-  }
-
-  const handleResponsePdf = async (assignmentId: string) => {
-    setGeneratingPdfFor(assignmentId)
-    try {
-      const handle = responsePdfRefs.current.get(assignmentId)
-      if (handle) await handle.generatePdf()
-    } catch {
-      setError('PDF generation failed. Please try again.')
-    } finally {
-      setGeneratingPdfFor(null)
-    }
-  }
-
-  // ─── Post-deletion view ──────────────────────────────────────
-
-  if (allDeleted) {
+  // ─── State A: Not consented ────────────────────────────────────
+  if (!consented) {
     return (
-      <div className="space-y-6">
-        <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-            <svg className="h-7 w-7 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      <PortalConsent
+        portalToken={portalToken}
+        onConsented={() => setConsented(true)}
+      />
+    )
+  }
+
+  // ─── Split assignments into sections ───────────────────────────
+  const currentAssignments = assignments
+    .filter((a) => a.status === 'assigned' || a.status === 'in_progress')
+    .sort((a, b) => {
+      // Sort by due date ascending (nulls last), then assigned date
+      if (a.due_date && b.due_date) return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+      if (a.due_date && !b.due_date) return -1
+      if (!a.due_date && b.due_date) return 1
+      return new Date(a.assigned_at).getTime() - new Date(b.assigned_at).getTime()
+    })
+
+  const completedAssignments = assignments
+    .filter((a) => a.status === 'completed' || a.status === 'reviewed')
+    .filter((a) => responseMap.has(a.id)) // Only show if they have a response to view
+    .sort((a, b) => {
+      // Sort by completed date descending
+      const dateA = a.completed_at ? new Date(a.completed_at).getTime() : 0
+      const dateB = b.completed_at ? new Date(b.completed_at).getTime() : 0
+      return dateB - dateA
+    })
+
+  // ─── State C: Consented but no assignments ─────────────────────
+  if (assignments.length === 0) {
+    return (
+      <div className="space-y-4">
+        <BookmarkBanner />
+        <div className="rounded-2xl border border-dashed border-primary-200 p-8 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
+            <svg className="h-6 w-6 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-primary-900">Data deleted</h2>
-          <p className="mt-2 text-sm text-primary-500">
-            All your homework responses have been permanently deleted. Your therapist has been notified.
+          <p className="text-sm font-medium text-primary-600">
+            No homework assigned yet.
           </p>
-          <p className="mt-4 text-xs text-primary-400">
-            If you are assigned new homework in the future, you will be asked for consent again before any data is stored.
+          <p className="mt-1 text-xs text-primary-400">
+            When your therapist assigns a worksheet, it will appear here.
           </p>
         </div>
       </div>
     )
   }
 
-  // ─── Main portal view ────────────────────────────────────────
-
-  // Determine if any assignments have deletable data
-  const hasDeletableData = assignments.some(
-    (a) =>
-      !deletedAssignments.has(a.id) &&
-      a.status !== 'withdrawn' &&
-      a.status !== 'assigned' &&
-      a.status !== 'pdf_downloaded'
-  )
-
+  // ─── State B: Consented with assignments ───────────────────────
   return (
     <div className="space-y-6">
-      {/* Intro */}
-      <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
-        <h1 className="text-lg font-semibold text-primary-900">Your homework</h1>
-        <p className="mt-1 text-sm text-primary-500">
-          This page shows all worksheets assigned to you by {therapistName}.
-          You can view your responses, download PDFs, or delete your data at any time.
-        </p>
-      </div>
+      {/* Banners */}
+      <BookmarkBanner />
+      <PwaInstallBanner />
 
-      {/* Messages */}
-      {error && (
-        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error}
-          <button onClick={() => setError(null)} className="ml-2 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 rounded">Dismiss</button>
-        </div>
-      )}
-      {successMsg && (
-        <div role="status" className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
-          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
-          {successMsg}
-        </div>
-      )}
-
-      {/* Assignments list */}
-      {assignments.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-primary-200 p-8 text-center">
-          <p className="text-sm text-primary-500">No worksheets have been assigned yet.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {assignments.map((a) => {
-            const worksheet = worksheetMap.get(a.worksheet_id)
-            const response = responseMap.get(a.id)
-            const isWithdrawn = a.status === 'withdrawn' || deletedAssignments.has(a.id)
-            const isViewing = viewingResponse === a.id
-            const expired = isExpired(a)
-
-            return (
-              <div
+      {/* Current Homework */}
+      {currentAssignments.length > 0 && (
+        <section>
+          <h2 className="text-sm font-semibold text-primary-800">Current Homework</h2>
+          <div className="mt-1 h-0.5 w-8 bg-brand" />
+          <div className="mt-4 space-y-3">
+            {currentAssignments.map((a) => (
+              <AssignmentCard
                 key={a.id}
-                className={`rounded-2xl border bg-surface shadow-sm overflow-hidden ${
-                  isWithdrawn ? 'border-red-100 opacity-60' : 'border-primary-100'
-                }`}
-              >
-                {/* Assignment header */}
-                <div className="flex items-center justify-between p-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-primary-800 truncate">
-                        {worksheet?.title || 'Unknown worksheet'}
-                      </p>
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                        isWithdrawn
-                          ? statusColors.withdrawn
-                          : statusColors[a.status] || 'bg-primary-100 text-primary-500'
-                      }`}>
-                        {isWithdrawn ? 'Withdrawn' : statusLabels[a.status] || a.status}
-                      </span>
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-primary-400">
-                      <span>Assigned {new Date(a.assigned_at).toLocaleDateString('en-GB')}</span>
-                      {a.due_date && <span>Due {new Date(a.due_date).toLocaleDateString('en-GB')}</span>}
-                      {isWithdrawn && a.withdrawn_at && (
-                        <span className="text-red-500">
-                          Deleted {new Date(a.withdrawn_at).toLocaleDateString('en-GB')}
-                        </span>
-                      )}
-                      {a.completed_at && !isWithdrawn && (
-                        <span>Completed {new Date(a.completed_at).toLocaleDateString('en-GB')}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-wrap items-center justify-end gap-1.5 ml-3 shrink-0 sm:ml-4 sm:gap-2">
-                    {/* Complete Now — for assigned, non-expired */}
-                    {a.status === 'assigned' && !expired && !isWithdrawn && (
-                      <a
-                        href={`${appUrl}/hw/${a.token}`}
-                        className="rounded-lg bg-primary-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors min-h-[44px] inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
-                      >
-                        Complete Now
-                      </a>
-                    )}
-
-                    {/* Continue — for in_progress */}
-                    {a.status === 'in_progress' && !expired && !isWithdrawn && (
-                      <a
-                        href={`${appUrl}/hw/${a.token}`}
-                        className="rounded-lg bg-primary-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors min-h-[44px] inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
-                      >
-                        Continue
-                      </a>
-                    )}
-
-                    {/* View response */}
-                    {!isWithdrawn && response && (a.status === 'completed' || a.status === 'reviewed' || a.status === 'in_progress') && (
-                      <button
-                        onClick={() => setViewingResponse(isViewing ? null : a.id)}
-                        className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 ${
-                          isViewing
-                            ? 'bg-primary-800 text-white dark:bg-primary-800 dark:text-primary-50'
-                            : 'border border-primary-200 text-primary-600 hover:bg-primary-50'
-                        }`}
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        {isViewing ? 'Hide' : 'View'}
-                      </button>
-                    )}
-
-                    {/* Download response PDF */}
-                    {!isWithdrawn && response && (a.status === 'completed' || a.status === 'reviewed') && (
-                      <button
-                        onClick={() => handleResponsePdf(a.id)}
-                        disabled={generatingPdfFor === a.id}
-                        className="rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 flex items-center gap-1 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
-                        {generatingPdfFor === a.id ? 'Generating…' : 'PDF'}
-                      </button>
-                    )}
-
-                    {/* Download blank PDF — for assigned */}
-                    {a.status === 'assigned' && !isWithdrawn && worksheet && (
-                      <button
-                        onClick={() => handleBlankPdf(a.worksheet_id)}
-                        disabled={generatingPdfFor === a.worksheet_id}
-                        className="rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 flex items-center gap-1 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
-                        <span className="hidden sm:inline">{generatingPdfFor === a.worksheet_id ? 'Generating…' : 'Blank PDF'}</span>
-                        <span className="sm:hidden">{generatingPdfFor === a.worksheet_id ? '…' : 'PDF'}</span>
-                      </button>
-                    )}
-
-                    {/* Delete response */}
-                    {!isWithdrawn && response && a.status !== 'assigned' && a.status !== 'pdf_downloaded' && (
-                      <button
-                        onClick={() => {
-                          if (confirm('Permanently delete your response? This cannot be undone.')) {
-                            handleDeleteResponse(a.id)
-                          }
-                        }}
-                        disabled={deletingId === a.id}
-                        className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
-                      >
-                        {deletingId === a.id ? 'Deleting…' : 'Delete'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Expanded response view */}
-                {isViewing && response && worksheet && !isWithdrawn && (
-                  <div className="border-t border-primary-100 bg-primary-50/50 p-6">
-                    <div className="mb-4 text-sm text-primary-500">
-                      {response.completed_at ? (
-                        <span>
-                          Completed {new Date(response.completed_at).toLocaleDateString('en-GB', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      ) : (
-                        <span>In progress</span>
-                      )}
-                    </div>
-                    <div className="rounded-xl border border-primary-200 bg-surface p-6">
-                      <MultiEntryViewer
-                        schema={worksheet.schema}
-                        responseData={response.response_data}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Delete all data section */}
-      {hasDeletableData && (
-        <div className="rounded-2xl border border-red-100 bg-red-50/30 p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-sm font-semibold text-red-800">Delete all my data</h3>
-              <p className="mt-1 text-xs text-red-600/80">
-                Permanently delete all your homework responses and withdraw consent.
-                This cannot be undone.
-              </p>
-            </div>
-            {!showDeleteAll ? (
-              <button
-                onClick={() => setShowDeleteAll(true)}
-                className="shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
-              >
-                Delete all data
-              </button>
-            ) : (
-              <div className="shrink-0 space-y-2">
-                <p className="text-xs text-red-700">
-                  Type <strong>DELETE</strong> to confirm:
-                </p>
-                <input
-                  type="text"
-                  value={deleteAllConfirm}
-                  onChange={(e) => setDeleteAllConfirm(e.target.value)}
-                  placeholder="DELETE"
-                  aria-label="Type DELETE to confirm data deletion"
-                  className="w-full rounded-lg border border-red-200 px-3 py-1.5 text-sm focus:border-red-400 focus:ring-2 focus:ring-red-200 focus:outline-none"
-                  autoFocus
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleDeleteAll}
-                    disabled={deleteAllLoading || deleteAllConfirm !== 'DELETE'}
-                    className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
-                  >
-                    {deleteAllLoading ? 'Deleting…' : 'Confirm deletion'}
-                  </button>
-                  <button
-                    onClick={() => { setShowDeleteAll(false); setDeleteAllConfirm('') }}
-                    className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
+                assignment={a}
+                worksheet={worksheetMap.get(a.worksheet_id)}
+                portalToken={portalToken}
+                appUrl={appUrl}
+                variant="current"
+              />
+            ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Privacy notice */}
-      <div className="rounded-2xl border border-primary-100 bg-primary-50/50 p-5 text-xs text-primary-500 space-y-2">
-        <p className="font-medium text-primary-600">Your privacy</p>
-        <ul className="space-y-1.5">
-          <li className="flex items-start gap-2">
-            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
-            Your data is stored securely and encrypted.
-          </li>
-          <li className="flex items-start gap-2">
-            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
-            Only you and your therapist can see your responses.
-          </li>
-          <li className="flex items-start gap-2">
-            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
-            You can delete any or all of your data at any time.
-          </li>
-          <li className="flex items-start gap-2">
-            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
-            Deletion is permanent and cannot be undone.
-          </li>
-        </ul>
-      </div>
+      {/* Completed */}
+      {completedAssignments.length > 0 && (
+        <section>
+          <h2 className="text-sm font-semibold text-primary-800">Completed</h2>
+          <div className="mt-1 h-0.5 w-8 bg-brand" />
+          <div className="mt-4 space-y-3">
+            {completedAssignments.map((a) => (
+              <AssignmentCard
+                key={a.id}
+                assignment={a}
+                worksheet={worksheetMap.get(a.worksheet_id)}
+                portalToken={portalToken}
+                appUrl={appUrl}
+                variant="completed"
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* Hidden PDF generators */}
-      {worksheets.map((w) => (
-        <BlankPdfGenerator
-          key={`blank-${w.id}`}
-          ref={(handle) => {
-            if (handle) blankPdfRefs.current.set(w.id, handle)
-            else blankPdfRefs.current.delete(w.id)
-          }}
-          schema={w.schema}
-          worksheetTitle={w.title}
-        />
-      ))}
-      {assignments.map((a) => {
-        const response = responseMap.get(a.id)
-        const worksheet = worksheetMap.get(a.worksheet_id)
-        if (!response || !worksheet) return null
-        return (
-          <ResponsePdfGenerator
-            key={`response-${a.id}`}
-            ref={(handle) => {
-              if (handle) responsePdfRefs.current.set(a.id, handle)
-              else responsePdfRefs.current.delete(a.id)
-            }}
-            schema={worksheet.schema}
-            worksheetTitle={worksheet.title}
-            responseData={response.response_data}
-          />
-        )
-      })}
+      {/* Progress */}
+      <ProgressSection
+        completedCount={completedCount}
+        weeksActive={weeksActive}
+      />
     </div>
   )
 }

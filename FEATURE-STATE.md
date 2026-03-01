@@ -340,13 +340,54 @@ Formulate is a schema-driven CBT worksheet platform for therapists. Therapists b
 - Analytics dashboard for therapists: `analytics` table exists (migration 00010) — admin-level analytics present but therapist-level insights not exposed
 
 ### 10.6 Encrypted Client Email for Homework Reminders (Proposed)
-- **Goal**: Send automated homework reminders to clients without storing plaintext email addresses
-- **Approach**: AES-256-GCM envelope encryption — client email encrypted at point of entry, ciphertext + IV + auth tag stored in a `client_contacts` table, plaintext never hits the database
-- **Send flow**: Cron decrypts in-memory → sends via Resend → discards plaintext immediately
-- **Key management**: `EMAIL_ENCRYPTION_KEY` env var (32-byte), with `key_version` column for future rotation
-- **GDPR benefit**: Satisfies Art 25 (data protection by design) and Art 32 (security). DB breach yields only unintelligible ciphertext — may remove Art 34 notification obligation. Right to erasure = delete the ciphertext row.
-- **Legal basis**: Legitimate interest (Art 6(1)(f)) or explicit consent at the consent gate
-- **Status**: Not yet built — design documented, awaiting prioritisation
+
+**Goal**: Send automated homework reminders to clients without storing plaintext email addresses.
+
+**Two-Zone Architecture**:
+- **Clinical Data Zone** — pseudonymous homework responses, assignments, worksheets. No PII. Existing tables, unchanged.
+- **Contact Data Zone** — new `client_contacts` table storing AES-256-GCM encrypted email (ciphertext + IV + auth tag). No direct FK to clinical content; linked only via `client_id`.
+- A DB breach yields clinical data with no way to tie it to a real person, and encrypted email blobs with no clinical context.
+
+**Encryption**: AES-256-GCM envelope encryption. Email encrypted at point of entry in application code, plaintext never hits the database. `EMAIL_ENCRYPTION_KEY` env var (32-byte), with `key_version` column for future key rotation.
+
+**Send flow**: Cron job decrypts in-memory → sends via Resend → discards plaintext immediately.
+
+**Client Portal GDPR Extension** (`/client/[portalToken]`):
+- View masked email (e.g. j•••@gmail.com) — Art 15 access
+- Update email (re-encrypts) — Art 16 rectification
+- Delete email — Art 17 erasure
+- Opt out of reminders (one-click) — Art 21 right to object
+- Download data export — Art 20 portability
+
+**Consent**: Separate checkbox on homework consent gate for email reminders (not bundled with clinical consent). Email field optional — clients can decline.
+
+**Resend as Data Processor**: Requires DPA. Resend retains delivery logs for ~30 days. List-Unsubscribe header on all reminder emails.
+
+**Known Considerations**:
+- Key loss = all stored emails unrecoverable (need backup/vault strategy)
+- Bounce matching requires decryption or a keyed hash index
+- Portal token alone may be thin auth for PII changes (consider email confirmation before changes)
+- Resend's 30-day log window means plaintext email exists temporarily in third-party infrastructure
+- Therapist needs visibility into opt-out status ("reminders active" / "client opted out")
+
+**Legal basis**: Explicit consent (separate checkbox) or legitimate interest (Art 6(1)(f)).
+
+**Phased approach**: Start with zone separation + Supabase column-level RLS. Layer application-level encryption when scale justifies key-management overhead.
+
+**Status**: Design documented, not yet built — awaiting prioritisation.
+
+### 10.7 Client Portal Upgrade (Proposed)
+- **Goal**: Upgrade the existing client portal (`/client/[portalToken]`) from a GDPR compliance backstop into a useful client-facing dashboard where clients can view all assignments, complete homework, review past responses, and manage their data.
+- **Three states**: Consent gate (first visit) → Active dashboard (assignments exist) → Empty state (no assignments yet)
+- **Client dashboard**: Current homework (with status badges, due dates), completed assignments (read-only response viewer), progress section (completed count only, no clinical scores)
+- **Data management**: Hard-delete for client-initiated deletion (GDPR Art 17), individual response deletion and full account deletion with confirmation
+- **Therapist integration**: Portal link section on client detail page (copy link, regenerate/revoke, status indicator), post-assignment nudge to share portal link
+- **PWA support**: Dynamic manifest with per-client `start_url`, service worker scoped to `/client/` with offline fallback, platform-specific install prompts (Android native, iOS Safari instructional, skip on desktop)
+- **Design decisions**: No "reviewed by therapist" badge (just "Completed"), no therapist notes on client cards, no due-date urgency colouring, bookmark prompt as primary (PWA secondary)
+- **Schema change**: `ALTER TABLE client_portals ADD COLUMN consented_at timestamptz, consent_ip_hash text`
+- **Estimate**: 20-28 hours across 2-3 sessions
+- **Full spec**: `docs/client-portal-upgrade.md`
+- **Status**: Spec complete with agreed design decisions, not yet built — awaiting prioritisation.
 
 ---
 

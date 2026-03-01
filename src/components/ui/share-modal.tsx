@@ -11,6 +11,7 @@ interface ShareModalProps {
   worksheetTitle: string
   clientLabel: string
   dueDate?: string
+  portalUrl?: string
 }
 
 export function ShareModal({
@@ -20,6 +21,7 @@ export function ShareModal({
   worksheetTitle,
   clientLabel,
   dueDate,
+  portalUrl,
 }: ShareModalProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -194,6 +196,17 @@ export function ShareModal({
             Send email
           </a>
         </div>
+
+        {/* Portal link tip */}
+        {portalUrl && (
+          <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50/50 p-3">
+            <p className="text-xs text-amber-800">
+              <strong>Tip:</strong> You can also share {clientLabel}&apos;s{' '}
+              <span className="font-medium">Client Portal</span> link so they can see all their
+              assignments in one place.
+            </p>
+          </div>
+        )}
 
         {/* Done button */}
         <Button

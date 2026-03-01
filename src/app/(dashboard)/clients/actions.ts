@@ -366,6 +366,50 @@ export async function markAsReviewed(assignmentId: string) {
   return { success: true }
 }
 
+export async function regeneratePortalToken(relationshipId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  // Verify ownership
+  const { data: relationship } = await supabase
+    .from('therapeutic_relationships')
+    .select('id, client_label')
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .is('deleted_at', null)
+    .single()
+
+  if (!relationship) return { error: 'Client not found' }
+
+  const newToken = generatePortalToken()
+
+  // Update token and clear consent (client must re-consent with new link)
+  const { error } = await supabase
+    .from('therapeutic_relationships')
+    .update({
+      client_portal_token: newToken,
+      portal_consented_at: null,
+      portal_consent_ip_hash: null,
+    })
+    .eq('id', relationshipId)
+
+  if (error) return { error: error.message }
+
+  // Audit log
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'update',
+    entity_type: 'therapeutic_relationship',
+    entity_id: relationshipId,
+    metadata: { action: 'portal_token_regenerated' },
+  })
+
+  revalidatePath(`/clients/${relationshipId}`)
+  return { success: true, token: newToken }
+}
+
 export async function markAsPaperCompleted(assignmentId: string) {
   const { user } = await getCurrentUser()
   if (!user) return { error: 'Not authenticated' }

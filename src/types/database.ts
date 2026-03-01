@@ -217,6 +217,8 @@ export interface TherapeuticRelationship {
   status: RelationshipStatus
   relationship_type: RelationshipType
   client_portal_token: string | null
+  portal_consented_at: string | null
+  portal_consent_ip_hash: string | null
   started_at: string
   ended_at: string | null
   deleted_at: string | null
