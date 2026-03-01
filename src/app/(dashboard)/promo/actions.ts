@@ -114,8 +114,8 @@ export async function redeemPromoCode(code: string): Promise<
     .update({ redemption_count: pc.redemption_count + 1 })
     .eq('id', pc.id)
 
-  // Update user's subscription tier
-  await supabase
+  // Update user's subscription tier (admin client — RLS blocks user-level tier changes)
+  await admin
     .from('profiles')
     .update({ subscription_tier: pc.tier })
     .eq('id', user.id)

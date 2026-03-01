@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from './server'
+import { createAdminClient } from './admin'
 import type { Profile } from '@/types/database'
 
 // Server-side: get current user and profile.
@@ -46,7 +47,8 @@ export const getCurrentUser = cache(async (): Promise<{
       .single()
 
     if (latest && new Date(latest.access_expires_at) < new Date()) {
-      await supabase
+      const admin = createAdminClient()
+      await admin
         .from('profiles')
         .update({ subscription_tier: 'free' })
         .eq('id', user.id)
