@@ -721,23 +721,55 @@ function generateCss(): string {
       color: var(--text-400);
     }
 
-    /* Save indicator */
+    /* Save indicator — persistent pill */
     .save-indicator {
       position: fixed;
       bottom: 16px;
       right: 16px;
-      padding: 8px 14px;
+      padding: 6px 12px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+      border-radius: 999px;
       font-size: 12px;
       color: var(--text-400);
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       opacity: 0;
       transition: opacity 0.3s;
       pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
     .save-indicator.visible { opacity: 1; }
+    .save-indicator .check { color: #22c55e; font-weight: 600; }
+
+    /* Offline info banner */
+    .offline-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: -4px 0 20px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(228,169,48,0.06), rgba(228,169,48,0.02));
+      border: 1px solid rgba(228,169,48,0.2);
+      border-radius: var(--radius);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-500);
+    }
+    .offline-banner-icon { flex-shrink: 0; font-size: 16px; margin-top: 1px; }
+    .offline-banner-dismiss {
+      flex-shrink: 0;
+      margin-left: auto;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-400);
+      font-size: 16px;
+      padding: 0 0 0 8px;
+      line-height: 1;
+    }
+    .offline-banner-dismiss:hover { color: var(--text-600); }
 
     /* Print styles */
     /* Record field — paginated cards */
@@ -809,6 +841,7 @@ function generateCss(): string {
       body { background: white; }
       .section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
       .save-indicator { display: none; }
+      .offline-banner { display: none; }
       header { border-top: 3px solid var(--brand); border-bottom: 2px solid var(--brand); }
       footer { border-top: 2px solid var(--brand); }
       input[type="range"] { display: none; }
@@ -1617,9 +1650,8 @@ function generateJs(schema: WorksheetSchema, storageKey: string): string {
   function showSaveIndicator() {
     var indicator = document.getElementById('save-indicator');
     if (indicator) {
-      indicator.textContent = 'Saved ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      indicator.innerHTML = '<span class="check">✓</span> Saved ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       indicator.classList.add('visible');
-      setTimeout(function() { indicator.classList.remove('visible'); }, 2000);
     }
   }
 
@@ -1960,6 +1992,43 @@ function generateJs(schema: WorksheetSchema, storageKey: string): string {
     el.addEventListener('change', debouncedSave);
   });
 
+  // ── Offline banner dismiss ──
+  var BANNER_KEY = STORAGE_KEY + '_banner_dismissed';
+  (function() {
+    var banner = document.getElementById('offline-banner');
+    var dismissBtn = document.getElementById('offline-banner-dismiss');
+    if (!banner) return;
+    try {
+      if (localStorage.getItem(BANNER_KEY) === '1') {
+        banner.style.display = 'none';
+        return;
+      }
+    } catch(e) {}
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', function() {
+        banner.style.display = 'none';
+        try { localStorage.setItem(BANNER_KEY, '1'); } catch(e) {}
+      });
+    }
+  })();
+
+  // ── Ctrl+S / Cmd+S intercept ──
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      saveData();
+      var indicator = document.getElementById('save-indicator');
+      if (indicator) {
+        indicator.style.transition = 'none';
+        indicator.style.transform = 'scale(1.06)';
+        setTimeout(function() {
+          indicator.style.transition = 'transform 0.2s';
+          indicator.style.transform = 'scale(1)';
+        }, 120);
+      }
+    }
+  });
+
   // ── Load saved data on init ──
   loadData();
   populatePrintTables();
@@ -2013,6 +2082,11 @@ export function generateInteractiveHtml(
 
   <main class="container">
     <h1 class="worksheet-title">${esc(title)}</h1>
+    <div class="offline-banner" id="offline-banner">
+      <span class="offline-banner-icon">📋</span>
+      <span>Offline worksheet — works without internet. Your responses are saved automatically in this browser and are not sent anywhere.</span>
+      <button class="offline-banner-dismiss" id="offline-banner-dismiss" title="Dismiss">&times;</button>
+    </div>
     ${descHtml}
     ${instructHtml}
     ${body}

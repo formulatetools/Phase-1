@@ -13,7 +13,7 @@ const TOUR_STEPS: TourStep[] = [
   {
     target: 'sidebar-nav',
     title: 'Your Navigation',
-    description: 'Access all areas of Formulate from this sidebar. On mobile, use the bottom tab bar to navigate.',
+    description: 'Navigate between your resource library, clients, and settings from here.',
     position: 'right',
   },
   {
