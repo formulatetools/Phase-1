@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
@@ -9,7 +10,11 @@ import type {
   Worksheet,
   SubscriptionTier,
 } from '@/types/database'
-import { ClientDetail } from '@/components/clients/client-detail'
+
+const ClientDetail = dynamic(
+  () => import('@/components/clients/client-detail').then((m) => m.ClientDetail),
+  { ssr: false }
+)
 
 export const metadata = { title: 'Client — Formulate' }
 

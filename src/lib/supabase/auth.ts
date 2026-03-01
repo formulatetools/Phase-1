@@ -1,12 +1,15 @@
+import { cache } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from './server'
 import type { Profile } from '@/types/database'
 
-// Server-side: get current user and profile
-export async function getCurrentUser(): Promise<{
+// Server-side: get current user and profile.
+// Wrapped in React.cache so that layout + page calls within the same
+// request lifecycle share a single DB round-trip.
+export const getCurrentUser = cache(async (): Promise<{
   user: User | null
   profile: Profile | null
-}> {
+}> => {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -53,4 +56,4 @@ export async function getCurrentUser(): Promise<{
   }
 
   return { user, profile: profile as Profile | null }
-}
+})

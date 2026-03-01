@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
+import { getWorksheetBySlug } from '@/lib/supabase/queries'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import { WorksheetDetail } from '@/components/worksheets/worksheet-detail'
 import { getResourceType } from '@/lib/utils/resource-type'
@@ -15,15 +16,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: worksheet } = await supabase
-    .from('worksheets')
-    .select('title, description, tags, categories(name)')
-    .eq('slug', slug)
-    .eq('is_published', true)
-    .is('deleted_at', null)
-    .single()
+  const worksheet = await getWorksheetBySlug(slug)
 
   if (!worksheet) return { title: 'Resource Not Found' }
 
@@ -55,17 +48,11 @@ export default async function WorksheetPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: worksheet } = await supabase
-    .from('worksheets')
-    .select('*, categories(name, slug)')
-    .eq('slug', slug)
-    .eq('is_published', true)
-    .is('deleted_at', null)
-    .single()
+  const worksheet = await getWorksheetBySlug(slug)
 
   if (!worksheet) notFound()
+
+  const supabase = await createClient()
 
   // Fetch contributor profile if this is a contributed worksheet
   let contributorName: string | null = null

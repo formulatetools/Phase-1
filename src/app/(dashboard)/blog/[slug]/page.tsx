@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getBlogPostBySlug } from '@/lib/supabase/queries'
 import { BlogPostContent } from '@/components/blog/blog-post-content'
 import { BLOG_CATEGORY_LABELS } from '@/lib/utils/blog'
 import type { BlogPost } from '@/types/database'
@@ -14,15 +15,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: post } = await supabase
-    .from('blog_posts')
-    .select('title, excerpt, tags, category, published_at, updated_at, cover_image_url')
-    .eq('slug', slug)
-    .eq('status', 'published')
-    .is('deleted_at', null)
-    .single()
+  const post = await getBlogPostBySlug(slug)
 
   if (!post) return { title: 'Blog — Formulate' }
 
@@ -59,19 +52,12 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: post } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('slug', slug)
-    .eq('status', 'published')
-    .is('deleted_at', null)
-    .single()
+  const post = await getBlogPostBySlug(slug)
 
   if (!post) notFound()
 
   const p = post as BlogPost
+  const supabase = await createClient()
 
   // Fetch author info (use admin client to bypass profiles RLS for anonymous visitors)
   const admin = createAdminClient()

@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic'
 import { createServiceClient } from '@/lib/supabase/service'
 import { notFound } from 'next/navigation'
 import type {
@@ -7,8 +8,12 @@ import type {
   Worksheet,
   Profile,
 } from '@/types/database'
-import { ClientPortal } from '@/components/client-portal/client-portal'
 import { LogoIcon } from '@/components/ui/logo'
+
+const ClientPortal = dynamic(
+  () => import('@/components/client-portal/client-portal').then((m) => m.ClientPortal),
+  { ssr: false }
+)
 
 export const metadata = {
   title: 'My Data — Formulate',

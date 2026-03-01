@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getCategoryBySlug } from '@/lib/supabase/queries'
 
 // ── Dynamic SEO metadata per category ────────────────────────────────────────
 export async function generateMetadata({
@@ -10,13 +11,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: category } = await supabase
-    .from('categories')
-    .select('name, description')
-    .eq('slug', slug)
-    .single()
+  const category = await getCategoryBySlug(slug)
 
   if (!category) return { title: 'Category Not Found' }
 
@@ -34,16 +29,11 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: category } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('slug', slug)
-    .single()
+  const category = await getCategoryBySlug(slug)
 
   if (!category) notFound()
 
+  const supabase = await createClient()
   const { data: worksheets } = await supabase
     .from('worksheets')
     .select('*')

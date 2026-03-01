@@ -1,9 +1,14 @@
+import dynamic from 'next/dynamic'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import type { TherapeuticRelationship, SubscriptionTier } from '@/types/database'
-import { ClientList } from '@/components/clients/client-list'
+
+const ClientList = dynamic(
+  () => import('@/components/clients/client-list').then((m) => m.ClientList),
+  { ssr: false }
+)
 
 export const metadata = { title: 'Clients — Formulate' }
 

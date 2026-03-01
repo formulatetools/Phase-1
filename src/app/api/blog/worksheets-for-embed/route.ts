@@ -33,5 +33,8 @@ export async function GET() {
     }
   })
 
-  return NextResponse.json({ worksheets: mapped })
+  return NextResponse.json(
+    { worksheets: mapped },
+    { headers: { 'Cache-Control': 'private, max-age=3600, stale-while-revalidate=1800' } }
+  )
 }
