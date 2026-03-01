@@ -10,19 +10,23 @@ export default function DashboardLoading() {
       </div>
 
       {/* Stat cards */}
-      <SkeletonStatGrid count={4} />
+      <div className="mb-8">
+        <SkeletonStatGrid count={4} />
+      </div>
 
-      {/* Quick actions */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Plan + Quick Actions + Activity */}
+      <div className="mb-8 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-3">
         <SkeletonCard lines={2} />
         <SkeletonCard lines={2} />
-        <SkeletonCard lines={2} />
+        <div className="col-span-2 lg:col-span-1">
+          <SkeletonCard lines={3} />
+        </div>
       </div>
 
       {/* Recently used */}
-      <div className="mt-8">
+      <div>
         <Skeleton className="mb-4 h-5 w-32" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-3">
           <SkeletonCard lines={2} />
           <SkeletonCard lines={2} />
           <SkeletonCard lines={2} />

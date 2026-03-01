@@ -295,13 +295,13 @@ export default async function DashboardPage() {
             </div>
           </div>
           <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-bold text-primary-900">{activeClientCount ?? 0}</p>
-          <p className="mt-0.5 text-sm text-primary-400">
+          <p className="mt-0.5 text-xs sm:text-sm text-primary-400">
             Active client{(activeClientCount ?? 0) !== 1 ? 's' : ''}
             {(dischargedClientCount ?? 0) > 0 && (
-              <span className="text-primary-300"> · {dischargedClientCount} discharged</span>
+              <span className="hidden sm:inline text-primary-300"> · {dischargedClientCount} discharged</span>
             )}
             {(activeSuperviseeCount ?? 0) > 0 && (
-              <span className="text-primary-300"> · {activeSuperviseeCount} supervisee{(activeSuperviseeCount ?? 0) !== 1 ? 's' : ''}</span>
+              <span className="hidden sm:inline text-primary-300"> · {activeSuperviseeCount} supervisee{(activeSuperviseeCount ?? 0) !== 1 ? 's' : ''}</span>
             )}
           </p>
         </Link>
@@ -316,7 +316,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-bold text-primary-900">{activeAssignmentCount ?? 0}</p>
-          <p className="mt-0.5 text-sm text-primary-400">
+          <p className="mt-0.5 text-xs sm:text-sm text-primary-400">
             Active assignment{(activeAssignmentCount ?? 0) !== 1 ? 's' : ''}
           </p>
         </Link>
@@ -337,7 +337,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-bold text-primary-900">{pendingReviewCount ?? 0}</p>
-          <p className="mt-0.5 text-sm text-primary-400">
+          <p className="mt-0.5 text-xs sm:text-sm text-primary-400">
             {(pendingReviewCount ?? 0) > 0 ? 'Pending review' : 'All reviewed'}
           </p>
         </Link>
@@ -354,7 +354,7 @@ export default async function DashboardPage() {
           <p className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-bold text-primary-900">
             {totalAssignments > 0 ? `${completionRate}%` : '—'}
           </p>
-          <p className="mt-0.5 text-sm text-primary-400">
+          <p className="mt-0.5 text-xs sm:text-sm text-primary-400">
             {totalAssignments > 0
               ? `${completedAssignmentCount ?? 0} of ${totalAssignments} completed`
               : 'No assignments yet'
@@ -364,7 +364,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Second row: Plan card + Quick Actions + Activity ─────────────── */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mb-8 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-3">
         {/* Plan card */}
         <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between">
@@ -451,7 +451,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Recent Activity Feed */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm sm:col-span-2 lg:col-span-1">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm col-span-2 lg:col-span-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Recent Activity</p>
           {(recentActivity && recentActivity.length > 0) ? (
             <div className="mt-4 space-y-3">
