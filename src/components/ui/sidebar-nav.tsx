@@ -218,7 +218,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4" data-tour="sidebar-nav">
+      <nav aria-label="Main" className="flex-1 space-y-1 px-3 py-4" data-tour="sidebar-nav">
         {allNavItems.map((item) => {
           const tourId =
             item.label === 'Resources' ? 'nav-worksheets'
@@ -285,7 +285,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
           onClick={handleSignOut}
           className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
           </svg>
           Sign out
@@ -308,7 +308,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
               href="/pricing"
               className={`${buttonVariants.accent('sm')} rounded-full`}
             >
-              <svg className="h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <svg className="h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
               </svg>
               Upgrade
@@ -318,12 +318,13 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
       </div>
 
       {/* Desktop sidebar — unchanged */}
-      <aside data-sidebar-nav className="hidden md:fixed md:inset-y-0 md:left-0 md:z-20 md:flex md:w-64 md:flex-col md:border-r md:border-primary-100 md:bg-surface">
+      <aside data-sidebar-nav aria-label="Sidebar" className="hidden md:fixed md:inset-y-0 md:left-0 md:z-20 md:flex md:w-64 md:flex-col md:border-r md:border-primary-100 md:bg-surface">
         {sidebarContent}
       </aside>
 
       {/* ── Mobile bottom tab bar ── */}
       <nav
+        aria-label="Main"
         className="fixed bottom-0 left-0 right-0 z-30 border-t border-primary-100 bg-surface md:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
@@ -381,6 +382,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
         onTouchEnd={handleSheetTouchEnd}
         role="dialog"
         aria-modal={moreOpen}
+        aria-hidden={!moreOpen}
         aria-label="Additional navigation menu"
         className={`fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-2xl bg-surface shadow-xl transition-transform duration-200 md:hidden ${
           moreOpen ? 'translate-y-0' : 'translate-y-full'
@@ -393,7 +395,7 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
         </div>
 
         {/* Nav items */}
-        <nav className="px-4 pb-2 space-y-0.5">
+        <nav aria-label="More pages" className="px-4 pb-2 space-y-0.5">
           {moreNavItems.map((item) => {
             const active = isActive(item.href)
             return (
@@ -438,9 +440,9 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
             <button
               onClick={openShortcutsModal}
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
-              title="Keyboard shortcuts (?)"
+              aria-label="Keyboard shortcuts"
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
               </svg>
             </button>

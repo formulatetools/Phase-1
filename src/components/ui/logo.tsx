@@ -11,7 +11,7 @@ export function LogoIcon({ size = 24, color = '#e4a930', className }: LogoIconPr
   const chevronStroke = size <= 20 ? 3 : size <= 32 ? 2.5 : 2
 
   return (
-    <svg width={size} height={size} viewBox="0 0 44 44" className={className}>
+    <svg width={size} height={size} viewBox="0 0 44 44" className={className} aria-hidden="true">
       <g transform="rotate(0, 22, 22)">
         <path d="M12.6 11.6 A14 14 0 0 1 31.4 11.6" fill="none" stroke={color} strokeWidth={arcStroke} strokeLinecap="round" />
         <path d="M30.1 6.2 L31.4 11.6 L25.9 10.9" fill="none" stroke={color} strokeWidth={chevronStroke} strokeLinecap="round" strokeLinejoin="round" />

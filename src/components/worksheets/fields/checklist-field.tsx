@@ -21,7 +21,7 @@ export function ChecklistField({ field, value, onChange }: Props) {
     <fieldset>
       <legend className="block text-sm font-medium text-primary-700">
         {field.label}
-        {field.required && <span className="ml-1 text-red-500">*</span>}
+        {field.required && <span className="ml-1 text-red-500" aria-hidden="true">*</span>}
       </legend>
       <div className="mt-2 space-y-2">
         {field.options.map((option) => (

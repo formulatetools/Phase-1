@@ -183,7 +183,7 @@ export function ClientPortal({
       <div className="space-y-6">
         <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-            <svg className="h-7 w-7 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <svg className="h-7 w-7 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
           </div>
@@ -214,7 +214,7 @@ export function ClientPortal({
     <div className="space-y-6">
       {/* Intro */}
       <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-primary-900">Your homework</h2>
+        <h1 className="text-lg font-semibold text-primary-900">Your homework</h1>
         <p className="mt-1 text-sm text-primary-500">
           This page shows all worksheets assigned to you by {therapistName}.
           You can view your responses, download PDFs, or delete your data at any time.
@@ -223,14 +223,14 @@ export function ClientPortal({
 
       {/* Messages */}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {error}
-          <button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
+          <button onClick={() => setError(null)} className="ml-2 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 rounded">Dismiss</button>
         </div>
       )}
       {successMsg && (
-        <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
-          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+        <div role="status" className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
+          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
           {successMsg}
@@ -293,7 +293,7 @@ export function ClientPortal({
                     {a.status === 'assigned' && !expired && !isWithdrawn && (
                       <a
                         href={`${appUrl}/hw/${a.token}`}
-                        className="rounded-lg bg-primary-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors"
+                        className="rounded-lg bg-primary-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors min-h-[44px] inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
                       >
                         Complete Now
                       </a>
@@ -303,7 +303,7 @@ export function ClientPortal({
                     {a.status === 'in_progress' && !expired && !isWithdrawn && (
                       <a
                         href={`${appUrl}/hw/${a.token}`}
-                        className="rounded-lg bg-primary-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors"
+                        className="rounded-lg bg-primary-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors min-h-[44px] inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
                       >
                         Continue
                       </a>
@@ -313,13 +313,13 @@ export function ClientPortal({
                     {!isWithdrawn && response && (a.status === 'completed' || a.status === 'reviewed' || a.status === 'in_progress') && (
                       <button
                         onClick={() => setViewingResponse(isViewing ? null : a.id)}
-                        className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
+                        className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 ${
                           isViewing
                             ? 'bg-primary-800 text-white dark:bg-primary-800 dark:text-primary-50'
                             : 'border border-primary-200 text-primary-600 hover:bg-primary-50'
                         }`}
                       >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
@@ -332,9 +332,9 @@ export function ClientPortal({
                       <button
                         onClick={() => handleResponsePdf(a.id)}
                         disabled={generatingPdfFor === a.id}
-                        className="rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 flex items-center gap-1"
+                        className="rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 flex items-center gap-1 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
                       >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                         </svg>
                         {generatingPdfFor === a.id ? 'Generating…' : 'PDF'}
@@ -346,9 +346,9 @@ export function ClientPortal({
                       <button
                         onClick={() => handleBlankPdf(a.worksheet_id)}
                         disabled={generatingPdfFor === a.worksheet_id}
-                        className="rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 flex items-center gap-1"
+                        className="rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 flex items-center gap-1 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
                       >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                         </svg>
                         <span className="hidden sm:inline">{generatingPdfFor === a.worksheet_id ? 'Generating…' : 'Blank PDF'}</span>
@@ -365,7 +365,7 @@ export function ClientPortal({
                           }
                         }}
                         disabled={deletingId === a.id}
-                        className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                        className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
                       >
                         {deletingId === a.id ? 'Deleting…' : 'Delete'}
                       </button>
@@ -419,7 +419,7 @@ export function ClientPortal({
             {!showDeleteAll ? (
               <button
                 onClick={() => setShowDeleteAll(true)}
-                className="shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                className="shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
               >
                 Delete all data
               </button>
@@ -433,6 +433,7 @@ export function ClientPortal({
                   value={deleteAllConfirm}
                   onChange={(e) => setDeleteAllConfirm(e.target.value)}
                   placeholder="DELETE"
+                  aria-label="Type DELETE to confirm data deletion"
                   className="w-full rounded-lg border border-red-200 px-3 py-1.5 text-sm focus:border-red-400 focus:ring-2 focus:ring-red-200 focus:outline-none"
                   autoFocus
                 />
@@ -440,13 +441,13 @@ export function ClientPortal({
                   <button
                     onClick={handleDeleteAll}
                     disabled={deleteAllLoading || deleteAllConfirm !== 'DELETE'}
-                    className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                    className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
                   >
                     {deleteAllLoading ? 'Deleting…' : 'Confirm deletion'}
                   </button>
                   <button
                     onClick={() => { setShowDeleteAll(false); setDeleteAllConfirm('') }}
-                    className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                    className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
                   >
                     Cancel
                   </button>
@@ -462,25 +463,25 @@ export function ClientPortal({
         <p className="font-medium text-primary-600">Your privacy</p>
         <ul className="space-y-1.5">
           <li className="flex items-start gap-2">
-            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
             Your data is stored securely and encrypted.
           </li>
           <li className="flex items-start gap-2">
-            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
             Only you and your therapist can see your responses.
           </li>
           <li className="flex items-start gap-2">
-            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
             You can delete any or all of your data at any time.
           </li>
           <li className="flex items-start gap-2">
-            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
             Deletion is permanent and cannot be undone.

@@ -14,7 +14,7 @@ export function TextareaField({ field, value, onChange }: Props) {
     <div>
       <label htmlFor={field.id} className="block text-sm font-medium text-primary-700">
         {field.label}
-        {field.required && <span className="ml-1 text-red-500">*</span>}
+        {field.required && <span className="ml-1 text-red-500" aria-hidden="true">*</span>}
       </label>
       <AutoTextarea
         id={field.id}
