@@ -114,13 +114,13 @@ export function ConsentGate({
           </p>
 
           {isDemo && (
-            <div className="mt-6 border-t border-primary-100 pt-6">
+            <div className="mt-6 border-t border-primary-100 pt-6 text-center">
               <p className="text-sm font-medium text-primary-700">
                 Ready to send this to a client?
               </p>
               <Link
                 href="/signup"
-                className={`mt-3 w-full ${buttonVariants.accent('md')}`}
+                className={`mt-3 ${buttonVariants.accent('md')}`}
               >
                 Get Started Free
               </Link>

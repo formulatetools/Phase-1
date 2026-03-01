@@ -6,7 +6,6 @@ import { MarketingFooter } from '@/components/marketing/marketing-footer'
 import { WorksheetPreview } from '@/components/marketing/worksheet-preview'
 import { AIGenerateTeaser } from '@/components/marketing/ai-generate-teaser'
 import { PricingTable } from '@/components/marketing/pricing-table'
-import { ClientExperienceDemo } from '@/components/marketing/client-experience-demo'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { DEMO_WORKSHEETS } from '@/lib/demo-data'
 import type { Worksheet } from '@/types/database'
@@ -240,13 +239,6 @@ export default async function Home() {
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Try the client experience */}
-      <section id="demo" className="py-20">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <ClientExperienceDemo />
         </div>
       </section>
 

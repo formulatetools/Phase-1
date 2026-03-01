@@ -59,13 +59,16 @@ export function WorksheetPreview({ worksheets }: WorksheetPreviewProps) {
     <div className="mx-auto max-w-3xl">
       {/* Tabs */}
       <div className="mb-4 flex justify-center">
-        <div className="inline-flex rounded-xl border border-primary-200 bg-primary-50/50 p-1 gap-1">
+        <div role="tablist" aria-label="Demo worksheets" className="inline-flex rounded-xl border border-primary-200 bg-primary-50/50 p-1 gap-1">
           {worksheets.map((ws) => {
             const meta = DEMO_WORKSHEETS.find((m) => m.slug === ws.slug)
             const isActive = ws.slug === activeSlug
             return (
               <button
                 key={ws.slug}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls="worksheet-preview-panel"
                 onClick={() => handleTabChange(ws.slug)}
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                   isActive
@@ -83,7 +86,7 @@ export function WorksheetPreview({ worksheets }: WorksheetPreviewProps) {
       </div>
 
       {/* Browser-chrome wrapper */}
-      <div className="rounded-2xl border border-primary-200 bg-surface shadow-xl overflow-hidden">
+      <div id="worksheet-preview-panel" role="tabpanel" className="rounded-2xl border border-primary-200 bg-surface shadow-xl overflow-hidden">
         {/* Title bar */}
         <div className="flex items-center gap-3 border-b border-primary-100 bg-primary-50/50 px-4 py-3">
           <div className="flex gap-1.5">
@@ -127,8 +130,8 @@ export function WorksheetPreview({ worksheets }: WorksheetPreviewProps) {
               />
 
               {/* Signup CTA — appears at the bottom of the interactive form */}
-              <div className="mt-8 rounded-xl border border-brand/20 bg-brand-light p-5 text-center">
-                <p className="text-sm font-medium text-primary-800">
+              <div className="mt-10 border-t border-primary-100 pt-6 text-center">
+                <p className="text-sm font-medium text-primary-700">
                   Like what you see? Send this to a client in under a minute.
                 </p>
                 <Link
