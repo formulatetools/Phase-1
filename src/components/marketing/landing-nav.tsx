@@ -35,6 +35,12 @@ export function LandingNav() {
             Pricing
           </Link>
           <Link
+            href="/faq"
+            className="text-sm text-primary-600 hover:text-primary-900 transition-colors"
+          >
+            FAQ
+          </Link>
+          <Link
             href="/login"
             className="text-sm text-primary-600 hover:text-primary-900 transition-colors"
           >
@@ -91,6 +97,13 @@ export function LandingNav() {
               className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-1"
             >
               Pricing
+            </Link>
+            <Link
+              href="/faq"
+              onClick={() => setOpen(false)}
+              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-1"
+            >
+              FAQ
             </Link>
             <Link
               href="/login"
