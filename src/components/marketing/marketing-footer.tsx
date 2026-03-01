@@ -22,6 +22,9 @@ export function MarketingFooter() {
             <Link href="/pricing" className="hover:text-primary-600 transition-colors">
               Pricing
             </Link>
+            <Link href="/faq" className="hover:text-primary-600 transition-colors">
+              FAQ
+            </Link>
             <Link href="/feature-requests" className="hover:text-primary-600 transition-colors">
               Feature Requests
             </Link>
