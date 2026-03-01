@@ -92,7 +92,7 @@ export function KeyboardShortcutsModal({ open, onClose }: KeyboardShortcutsModal
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" className="relative w-full max-w-md rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
         {/* Close button */}
         <button
           onClick={onClose}

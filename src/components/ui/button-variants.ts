@@ -25,6 +25,7 @@ export const btnVariants: Record<ButtonVariant, string> = {
     'bg-brand text-[#6b4d0f] font-semibold',
     'shadow-[var(--shadow-btn)]',
     'hover:bg-brand-dark hover:text-white hover:shadow-[var(--shadow-btn-hover)] hover:-translate-y-px',
+    'dark:text-white',
   ].join(' '),
 
   ghost: [

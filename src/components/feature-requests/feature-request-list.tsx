@@ -14,9 +14,9 @@ const CATEGORY_LABELS: Record<FeatureRequestCategory, string> = {
 
 const CATEGORY_COLORS: Record<FeatureRequestCategory, string> = {
   new_worksheet_or_tool: 'bg-brand/10 text-brand-dark',
-  new_psychometric_measure: 'bg-blue-50 text-blue-700',
-  platform_feature: 'bg-purple-50 text-purple-700',
-  integration: 'bg-green-50 text-green-700',
+  new_psychometric_measure: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
+  platform_feature: 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300',
+  integration: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300',
   other: 'bg-primary-100 text-primary-600',
 }
 

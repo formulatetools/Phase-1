@@ -49,12 +49,12 @@ interface ClientPortalProps {
 // ─── Status helpers ──────────────────────────────────────────────
 
 const statusColors: Record<string, string> = {
-  assigned: 'bg-blue-50 text-blue-700',
-  in_progress: 'bg-amber-50 text-amber-700',
-  completed: 'bg-green-50 text-green-700',
-  reviewed: 'bg-green-50 text-green-700',
-  pdf_downloaded: 'bg-purple-50 text-purple-700',
-  withdrawn: 'bg-red-50 text-red-600',
+  assigned: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
+  in_progress: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300',
+  completed: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300',
+  reviewed: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300',
+  pdf_downloaded: 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300',
+  withdrawn: 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-300',
 }
 
 const statusLabels: Record<string, string> = {

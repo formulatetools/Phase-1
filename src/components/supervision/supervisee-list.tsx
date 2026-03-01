@@ -184,7 +184,7 @@ export function SuperviseeList({
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
           {error}
           {error.includes('Upgrade') && (
             <Link href="/pricing" className="ml-2 font-medium underline underline-offset-2">
@@ -275,7 +275,7 @@ export function SuperviseeList({
                     </span>
                   )}
                   {stats.completed > 0 && (
-                    <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                    <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300">
                       {stats.completed} completed
                     </span>
                   )}

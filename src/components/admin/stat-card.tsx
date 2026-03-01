@@ -35,7 +35,7 @@ export function StatCard({
         )}
       </p>
       {trend && (
-        <p className={`mt-1 text-xs font-medium ${trend.value >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+        <p className={`mt-1 text-xs font-medium ${trend.value >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
           {trend.value >= 0 ? '↑' : '↓'} {Math.abs(trend.value)}% {trend.label}
         </p>
       )}

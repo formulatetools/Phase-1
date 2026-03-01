@@ -270,12 +270,12 @@ export function ClientList({
                     </span>
                   )}
                   {stats.completed > 0 && (
-                    <span className="hidden sm:inline rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                    <span className="hidden sm:inline rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300">
                       {stats.completed} completed
                     </span>
                   )}
                   {(stats.active > 0 || stats.completed > 0) && (
-                    <span className="sm:hidden rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-medium text-primary-600">
+                    <span className="sm:hidden rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-medium text-primary-600">
                       {stats.active + stats.completed}
                     </span>
                   )}

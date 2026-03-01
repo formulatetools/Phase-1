@@ -38,12 +38,12 @@ interface ClientDetailProps {
 }
 
 const statusColors: Record<string, string> = {
-  assigned: 'bg-blue-50 text-blue-700',
-  in_progress: 'bg-amber-50 text-amber-700',
-  completed: 'bg-green-50 text-green-700',
+  assigned: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
+  in_progress: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300',
+  completed: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300',
   reviewed: 'bg-primary-100 text-primary-600',
-  pdf_downloaded: 'bg-purple-50 text-purple-700',
-  withdrawn: 'bg-red-50 text-red-600',
+  pdf_downloaded: 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300',
+  withdrawn: 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-300',
 }
 
 const statusLabels: Record<string, string> = {
@@ -269,7 +269,7 @@ export function ClientDetail({
           </div>
           <div className="mt-1 flex items-center gap-3 text-sm text-primary-500">
             <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-              relationship.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-primary-100 text-primary-500'
+              relationship.status === 'active' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300' : 'bg-primary-100 text-primary-500'
             }`}>
               {relationship.status === 'active' ? '● Active' : '○ Discharged'}
             </span>
@@ -298,7 +298,7 @@ export function ClientDetail({
 
       {/* Copied link banner */}
       {copiedToken && (
-        <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
+        <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300 flex items-center gap-2">
           <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
@@ -326,7 +326,7 @@ export function ClientDetail({
       )}
 
       {assignError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
           {assignError}
           {assignError.includes('Upgrade') && (
             <Link href="/pricing" className="ml-2 font-medium underline underline-offset-2">
@@ -518,11 +518,11 @@ export function ClientDetail({
       )}
 
       {/* GDPR Erasure section */}
-      <div className="rounded-2xl border border-red-100 bg-red-50/30 p-5">
+      <div className="rounded-2xl border border-red-100 bg-red-50/30 dark:border-red-900 dark:bg-red-900/10 p-5">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-red-800">Permanently Delete Client Data</h3>
-            <p className="mt-1 text-xs text-red-600/80">
+            <h3 className="text-sm font-semibold text-red-800 dark:text-red-300">Permanently Delete Client Data</h3>
+            <p className="mt-1 text-xs text-red-600/80 dark:text-red-400/80">
               This will permanently and irreversibly delete all worksheets, responses, and assignment
               data for this client. Audit records of the deletion will be retained.
             </p>
@@ -593,7 +593,7 @@ export function ClientDetail({
                           {statusLabels[a.status]}
                         </span>
                         {expired && a.status === 'assigned' && (
-                          <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600">
+                          <span className="shrink-0 rounded-full bg-red-50 dark:bg-red-900/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-300">
                             Expired
                           </span>
                         )}

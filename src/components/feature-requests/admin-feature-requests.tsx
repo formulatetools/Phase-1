@@ -15,18 +15,18 @@ const CATEGORY_LABELS: Record<FeatureRequestCategory, string> = {
 
 const CATEGORY_COLORS: Record<FeatureRequestCategory, string> = {
   new_worksheet_or_tool: 'bg-brand/10 text-brand-dark',
-  new_psychometric_measure: 'bg-blue-50 text-blue-700',
-  platform_feature: 'bg-purple-50 text-purple-700',
-  integration: 'bg-green-50 text-green-700',
+  new_psychometric_measure: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
+  platform_feature: 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300',
+  integration: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300',
   other: 'bg-primary-100 text-primary-600',
 }
 
 const STATUS_OPTIONS: { value: FeatureRequestStatus; label: string; color: string }[] = [
   { value: 'submitted', label: 'Submitted', color: 'bg-primary-100 text-primary-600' },
-  { value: 'under_review', label: 'Under Review', color: 'bg-amber-50 text-amber-700' },
-  { value: 'planned', label: 'Planned', color: 'bg-blue-50 text-blue-700' },
-  { value: 'shipped', label: 'Shipped', color: 'bg-green-50 text-green-700' },
-  { value: 'declined', label: 'Declined', color: 'bg-red-50 text-red-700' },
+  { value: 'under_review', label: 'Under Review', color: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300' },
+  { value: 'planned', label: 'Planned', color: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300' },
+  { value: 'shipped', label: 'Shipped', color: 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300' },
+  { value: 'declined', label: 'Declined', color: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300' },
 ]
 
 interface Props {
@@ -310,7 +310,7 @@ export function AdminFeatureRequests({ requests, voteCounts, userMap }: Props) {
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
             {saveSuccess && (
-              <span className="text-sm text-green-600 flex items-center gap-1">
+              <span className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>

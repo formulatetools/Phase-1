@@ -115,7 +115,7 @@ export function ShareModal({
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="share-title" className="relative w-full max-w-md rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="share-title" className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -129,8 +129,8 @@ export function ShareModal({
 
         {/* Header */}
         <div className="mb-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50">
-            <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 dark:bg-green-900/20">
+            <svg className="h-5 w-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
           </div>
@@ -165,7 +165,7 @@ export function ShareModal({
               alt="QR code for homework link"
               width={140}
               height={140}
-              className="rounded-lg"
+              className="max-w-full rounded-lg"
             />
             <p className="mt-2 text-xs text-primary-400">
               Scan to open on a phone or tablet
