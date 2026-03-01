@@ -29,7 +29,7 @@ function wrap(body: string, options: WrapOptions = {}) {
   const {
     preheader,
     signature = true,
-    footerContext = `You received this email because you have a <a href="${APP_URL}" style="color:#999;">Formulate</a> account.`,
+    footerContext = `You received this email because you have a <a href="${APP_URL}" style="color:#767676;">Formulate</a> account.`,
     showPreferencesLink = false,
   } = options
 
@@ -42,7 +42,7 @@ function wrap(body: string, options: WrapOptions = {}) {
     : ''
 
   const prefsHtml = showPreferencesLink
-    ? `<p style="margin:8px 0 0;font-size:12px;color:#999;"><a href="${APP_URL}/settings" style="color:#999;">Manage email preferences</a></p>`
+    ? `<p style="margin:8px 0 0;font-size:12px;color:#767676;"><a href="${APP_URL}/settings" style="color:#767676;">Manage email preferences</a></p>`
     : ''
 
   return `<!DOCTYPE html>
@@ -54,21 +54,21 @@ function wrap(body: string, options: WrapOptions = {}) {
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
         <!-- Header -->
-        <tr><td style="padding:32px 32px 24px;">
+        <tr><td style="background:#ffffff;padding:32px 32px 24px;border-radius:12px 12px 0 0;">
           <img src="${LOGO_URL}" alt="Formulate" height="32" style="height:32px;border:0;" />
         </td></tr>
         <!-- Body -->
-        <tr><td style="background:#ffffff;padding:32px;border-radius:12px;">
+        <tr><td style="background:#ffffff;padding:32px;border-radius:0 0 12px 12px;">
           ${body}
           ${signatureHtml}
         </td></tr>
         <!-- Footer -->
         <tr><td style="padding:24px 32px;text-align:center;">
           <div style="width:24px;height:2px;background:#e4a930;border-radius:2px;margin:0 auto 12px;"></div>
-          <p style="margin:0 0 4px;font-size:12px;color:#999;">
+          <p style="margin:0 0 4px;font-size:12px;color:#767676;">
             Formulate &mdash; Professional CBT tools for clinicians
           </p>
-          <p style="margin:0;font-size:12px;color:#999;">
+          <p style="margin:0;font-size:12px;color:#767676;">
             ${footerContext}
           </p>
           ${prefsHtml}
@@ -127,9 +127,9 @@ export function welcomeEmail(name: string | null): { subject: string; html: stri
         Want to explore first? Browse the full library &mdash; every tool is free to preview.
       </p>
       ${buttonSecondary('Browse Worksheets &rarr;', `${APP_URL}/worksheets`)}
-      <p style="margin:16px 0 0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:16px 0 0;font-size:13px;color:#666;line-height:1.5;">
         Need more than 5 tools a month?
-        <a href="${APP_URL}/pricing" style="color:#c48d1e;text-decoration:underline;">Upgrade anytime</a> from &pound;4.99/month.
+        <a href="${APP_URL}/pricing" style="color:#9a6e15;text-decoration:underline;">Upgrade anytime</a> from &pound;4.99/month.
       </p>
     `, {
       preheader: 'Your free toolkit is ready — 5 worksheet uses per month',
@@ -162,7 +162,7 @@ export function engagementEmail(name: string | null): { subject: string; html: s
         Each worksheet can be completed on-screen and exported as a clean PDF.
       </p>
       ${button('Try Your First Worksheet', `${APP_URL}/worksheets`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:0;font-size:13px;color:#666;line-height:1.5;">
         Your free plan includes 5 worksheet uses per month &mdash; no credit card required.
       </p>
     `, {
@@ -299,7 +299,7 @@ export function subscriptionCancelledEmail(
         If you&rsquo;d like to re-subscribe at any time:
       </p>
       ${button('View Plans', `${APP_URL}/pricing`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:0;font-size:13px;color:#666;line-height:1.5;">
         If this was a mistake or you need help, just reply to this email.
       </p>
     `, {
@@ -331,7 +331,7 @@ export function paymentFailedEmail(
         Your access remains active for now, but please update your payment method to avoid any interruption to your service.
       </p>
       ${button('Update Payment Method', `${APP_URL}/settings`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:0;font-size:13px;color:#666;line-height:1.5;">
         Stripe will retry the payment automatically. If you believe this is an error, just reply to this email.
       </p>
     `, {
@@ -364,7 +364,7 @@ export function abandonedCheckoutEmail(
         Pick up where you left off and unlock unlimited access to professional CBT worksheets:
       </p>
       ${button('Complete Your Upgrade', `${APP_URL}/pricing`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:0;font-size:13px;color:#666;line-height:1.5;">
         If you ran into any issues during checkout, just reply to this email and we&rsquo;ll help.
       </p>
     `, {
@@ -405,7 +405,7 @@ export function promoExpiryEmail(
         To keep unlimited access and all ${esc(tierLabel)} features, upgrade before your promo ends:
       </p>
       ${button('Upgrade Your Plan', `${APP_URL}/pricing`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:0;font-size:13px;color:#666;line-height:1.5;">
         If you have any questions, just reply to this email.
       </p>
     `, {
@@ -648,9 +648,9 @@ export function freeResetEmail(
         <li>Up to 3 clients with homework links</li>
       </ul>
       ${button('Open Your Dashboard', `${APP_URL}/dashboard`)}
-      <p style="margin:16px 0 0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:16px 0 0;font-size:13px;color:#666;line-height:1.5;">
         Need unlimited access?
-        <a href="${APP_URL}/pricing" style="color:#c48d1e;text-decoration:underline;">Upgrade from &pound;4.99/month</a>.
+        <a href="${APP_URL}/pricing" style="color:#9a6e15;text-decoration:underline;">Upgrade from &pound;4.99/month</a>.
       </p>
     `, {
       preheader: 'Your 5 free worksheet uses are ready',
@@ -775,14 +775,14 @@ export function blogDigestEmail(
     .map(
       (p) => `
     <tr><td style="padding:12px 0;border-bottom:1px solid #f1f0ee;">
-      <span style="display:inline-block;background:#fdf6e3;color:#c48d1e;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;text-transform:uppercase;margin-bottom:4px;">
+      <span style="display:inline-block;background:#fdf6e3;color:#9a6e15;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;text-transform:uppercase;margin-bottom:4px;">
         ${esc(BLOG_CATEGORY_LABELS[p.category] || p.category)}
       </span>
       <p style="margin:4px 0 0;font-size:16px;font-weight:600;color:#2d2d2d;">
         <a href="${APP_URL}/blog/${esc(p.slug)}" style="color:#2d2d2d;text-decoration:none;">${esc(p.title)}</a>
       </p>
       ${p.excerpt ? `<p style="margin:4px 0 0;font-size:14px;color:#666;line-height:1.5;">${esc(p.excerpt)}</p>` : ''}
-      ${p.reading_time_minutes ? `<p style="margin:4px 0 0;font-size:12px;color:#999;">${p.reading_time_minutes} min read</p>` : ''}
+      ${p.reading_time_minutes ? `<p style="margin:4px 0 0;font-size:12px;color:#767676;">${p.reading_time_minutes} min read</p>` : ''}
     </td></tr>`
     )
     .join('')
@@ -801,7 +801,7 @@ export function blogDigestEmail(
       preheader: `${posts.length} new article${posts.length !== 1 ? 's' : ''} this week on the Formulate blog`,
       signature: false,
       showPreferencesLink: true,
-      footerContext: `You&rsquo;re receiving this because you opted in to the blog digest. <a href="${APP_URL}/settings" style="color:#999;">Unsubscribe</a>`,
+      footerContext: `You&rsquo;re receiving this because you opted in to the blog digest. <a href="${APP_URL}/settings" style="color:#767676;">Unsubscribe</a>`,
     }),
   }
 }
