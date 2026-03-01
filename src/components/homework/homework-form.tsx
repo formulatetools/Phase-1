@@ -412,7 +412,14 @@ export function HomeworkForm({
     <div className="space-y-6">
       {/* Progress bar — thin amber bar at top */}
       {!readOnly && !submitted && (
-        <div className="rounded-full bg-primary-100 h-1.5 overflow-hidden">
+        <div
+          className="rounded-full bg-primary-100 h-1.5 overflow-hidden"
+          role="progressbar"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Worksheet progress"
+        >
           <div
             className="h-full rounded-full bg-brand transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -436,19 +443,25 @@ export function HomeworkForm({
       {/* Entry tabs for diary mode */}
       {isRepeatable && (
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-          {Array.from({ length: entryCount }, (_, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveEntryIndex(i)}
-              className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                i === activeEntryIndex
-                  ? 'bg-brand text-white shadow-sm'
-                  : 'bg-primary-100 text-primary-600 hover:bg-primary-200 dark:bg-primary-700 dark:text-primary-300'
-              }`}
-            >
-              Entry {i + 1}
-            </button>
-          ))}
+          <div role="tablist" aria-label="Diary entries" className="flex items-center gap-1.5">
+            {Array.from({ length: entryCount }, (_, i) => (
+              <button
+                key={i}
+                role="tab"
+                aria-selected={i === activeEntryIndex}
+                aria-controls="entry-tabpanel"
+                id={`entry-tab-${i}`}
+                onClick={() => setActiveEntryIndex(i)}
+                className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 ${
+                  i === activeEntryIndex
+                    ? 'bg-brand text-white shadow-sm'
+                    : 'bg-primary-100 text-primary-600 hover:bg-primary-200 dark:bg-primary-700 dark:text-primary-300'
+                }`}
+              >
+                Entry {i + 1}
+              </button>
+            ))}
+          </div>
           {!readOnly && !submitted && entryCount < maxEntries && (
             <button
               onClick={() => {
@@ -458,7 +471,7 @@ export function HomeworkForm({
                 setActiveEntryIndex(newIndex)
                 hasChangesRef.current = true
               }}
-              className="shrink-0 rounded-lg border-2 border-dashed border-primary-200 px-3 py-1.5 text-sm text-primary-400 transition-colors hover:border-brand/30 hover:text-brand dark:border-primary-600"
+              className="shrink-0 rounded-lg border-2 border-dashed border-primary-200 px-3 py-1.5 text-sm text-primary-400 transition-colors hover:border-brand/30 hover:text-brand dark:border-primary-600 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
             >
               + Add entry
             </button>
@@ -473,10 +486,10 @@ export function HomeworkForm({
                 setActiveEntryIndex(Math.min(activeEntryIndex, newCount - 1))
                 hasChangesRef.current = true
               }}
-              className="shrink-0 rounded-lg px-2 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
-              title="Delete current entry"
+              className="shrink-0 rounded-lg px-2 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
+              aria-label={`Delete Entry ${activeEntryIndex + 1}`}
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
               </svg>
             </button>
@@ -485,7 +498,10 @@ export function HomeworkForm({
       )}
 
       {/* Worksheet form */}
-      <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm">
+      <div
+        className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm"
+        {...(isRepeatable ? { role: 'tabpanel', id: 'entry-tabpanel', 'aria-labelledby': `entry-tab-${activeEntryIndex}` } : {})}
+      >
         <WorksheetRenderer
           key={isRepeatable ? `entry-${activeEntryIndex}` : 'single'}
           schema={schema}
@@ -498,7 +514,7 @@ export function HomeworkForm({
 
       {/* Server error message */}
       {errorMessage && connectionStatus === 'error' && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {errorMessage}
         </div>
       )}
@@ -607,8 +623,8 @@ function ConnectionIndicator({
   switch (status) {
     case 'connected':
       return (
-        <div className="flex items-center gap-2 text-xs text-primary-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+        <div role="status" aria-live="polite" className="flex items-center gap-2 text-xs text-primary-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true" />
           {lastSaved ? (
             <span>Saved {lastSaved.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
           ) : existingResponse ? (

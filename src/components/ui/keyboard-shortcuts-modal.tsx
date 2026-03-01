@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
+
 interface KeyboardShortcutsModalProps {
   open: boolean
   onClose: () => void
@@ -37,6 +39,51 @@ function Kbd({ children }: { children: React.ReactNode }) {
 }
 
 export function KeyboardShortcutsModal({ open, onClose }: KeyboardShortcutsModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<Element | null>(null)
+
+  // Focus trap + Escape key
+  useEffect(() => {
+    if (!open) return
+
+    triggerRef.current = document.activeElement
+
+    const timer = setTimeout(() => {
+      modalRef.current?.querySelector<HTMLElement>('button')?.focus()
+    }, 0)
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+      if (e.key !== 'Tab' || !modalRef.current) return
+
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('keydown', handleKeyDown)
+      if (triggerRef.current instanceof HTMLElement) triggerRef.current.focus()
+    }
+  }, [open, onClose])
+
   if (!open) return null
 
   return (
@@ -45,7 +92,7 @@ export function KeyboardShortcutsModal({ open, onClose }: KeyboardShortcutsModal
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" className="relative w-full max-w-md rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" className="relative w-full max-w-md rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
         {/* Close button */}
         <button
           onClick={onClose}
