@@ -29,28 +29,22 @@ export const DEMO_WORKSHEETS = [
 
 export const DEMO_DATA: Record<string, Record<string, unknown>> = {
   '7-column-thought-record': {
-    date: '2026-02-28',
-    situation:
-      'Sitting at my desk at work. My manager walked past without saying hello. I had just sent a report that I wasn\'t fully confident about.',
-    emotions_table: [
-      { emotion: 'Anxious', intensity: 80 },
-      { emotion: 'Embarrassed', intensity: 65 },
-      { emotion: 'Sad', intensity: 40 },
-    ],
-    hot_thought:
-      'She\'s ignoring me because my report was terrible. She probably thinks I\'m not good enough for this role.',
-    belief_rating: 85,
-    evidence_for:
-      'She did walk past without acknowledging me. I was unsure about one section of the report. She gave me constructive feedback last month on a similar task.',
-    evidence_against:
-      'She often walks past quickly when she\'s heading to a meeting — it\'s not unusual. She praised my last project and said I was doing well. I\'ve had no formal concerns raised. Other colleagues also didn\'t get a hello today. One uncertain section doesn\'t mean the whole report is bad.',
-    balanced_thought:
-      'My manager was probably rushing to a meeting — she walks past everyone quickly when she\'s busy. One section I\'m unsure about doesn\'t mean the whole report is bad. She\'s given me positive feedback recently, so there\'s no real evidence she thinks I\'m not good enough.',
-    balanced_belief: 70,
-    outcome_emotions: [
-      { emotion: 'Anxious', intensity: 35 },
-      { emotion: 'Embarrassed', intensity: 20 },
-      { emotion: 'Sad', intensity: 15 },
+    'record-table': [
+      {
+        situation:
+          'Sitting at my desk at work. My manager walked past without saying hello. I had just sent a report that I wasn\'t fully confident about.',
+        emotion: 'Anxious (80%), Embarrassed (65%), Sad (40%)',
+        hot_thought:
+          'She\'s ignoring me because my report was terrible. She probably thinks I\'m not good enough for this role.',
+        belief_before: 85,
+        evidence_for:
+          'She did walk past without acknowledging me. I was unsure about one section of the report. She gave me constructive feedback last month.',
+        evidence_against:
+          'She often walks past quickly when heading to a meeting — it\'s not unusual. She praised my last project. No formal concerns raised. Other colleagues also didn\'t get a hello today.',
+        balanced_thought:
+          'My manager was probably rushing to a meeting. One section I\'m unsure about doesn\'t mean the whole report is bad. She\'s given me positive feedback recently.',
+        belief_after: 30,
+      },
     ],
   },
 
