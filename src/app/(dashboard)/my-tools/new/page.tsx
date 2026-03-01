@@ -1,15 +1,10 @@
-import dynamic from 'next/dynamic'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import type { SubscriptionTier, ContributorRoles } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
-
-const CustomWorksheetBuilder = dynamic(
-  () => import('@/components/my-tools/custom-worksheet-builder').then((m) => m.CustomWorksheetBuilder),
-  { ssr: false }
-)
+import { CustomWorksheetBuilder } from '@/components/my-tools/custom-worksheet-builder'
 
 export const metadata = { title: 'Create Tool — Formulate' }
 

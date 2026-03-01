@@ -249,18 +249,19 @@ function generateCss(): string {
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #f8fafc;
+      --bg: #faf9f6;
       --surface: #ffffff;
-      --border: #e2e8f0;
-      --border-light: #f1f5f9;
-      --text-900: #0f172a;
-      --text-800: #1e293b;
-      --text-700: #334155;
-      --text-600: #475569;
-      --text-500: #64748b;
-      --text-400: #94a3b8;
-      --text-300: #cbd5e1;
+      --border: #e8e5e0;
+      --border-light: #f0ede8;
+      --text-900: #2d2d2d;
+      --text-800: #3d3d3d;
+      --text-700: #4d4d4d;
+      --text-600: #5d5d5d;
+      --text-500: #7d7d7d;
+      --text-400: #9d9d9d;
+      --text-300: #bdbdbd;
       --brand: #e4a930;
+      --brand-dark: #c48d1a;
       --brand-light: #fdf6e3;
       --green: #16a34a;
       --green-light: #f0fdf4;
@@ -677,6 +678,27 @@ function generateCss(): string {
     }
     .formulation-node .field { margin-bottom: 12px; }
     .formulation-node .field:last-child { margin-bottom: 0; }
+
+    /* Formulation mobile stacking */
+    @media (max-width: 640px) {
+      .formulation-spatial {
+        width: 100% !important;
+        min-height: auto !important;
+        height: auto !important;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .formulation-spatial svg { display: none; }
+      .formulation-spatial-node {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        width: 100% !important;
+        height: auto !important;
+        transform: none !important;
+      }
+    }
 
     /* Footer */
     footer {
@@ -1862,6 +1884,59 @@ function generateJs(schema: WorksheetSchema, storageKey: string): string {
     debouncedSave();
   };
 
+  // ── Populate print tables from record card data ──
+
+  function populatePrintTables() {
+    document.querySelectorAll('[data-record-field]').forEach(function(container) {
+      var fid = container.dataset.recordField;
+      var cards = container.querySelectorAll('.record-card[data-record="' + fid + '"]');
+      var printTable = container.querySelector('.record-print-table');
+      if (!printTable || !cards.length) return;
+
+      // Collect all tables in the print-table container (may be multiple for chunked groups)
+      var tables = printTable.querySelectorAll('table');
+      if (!tables.length) return;
+
+      // For each record card, extract values and fill into print table rows
+      cards.forEach(function(card, ri) {
+        var groupIdx = 0;
+        // Each table corresponds to a chunk of groups
+        tables.forEach(function(table) {
+          var headerCells = table.querySelectorAll('thead th');
+          var bodyRows = table.querySelectorAll('tbody tr');
+          if (ri >= bodyRows.length) return;
+          var row = bodyRows[ri];
+          var cells = row.querySelectorAll('td');
+
+          cells.forEach(function(cell, ci) {
+            var allGroups = card.querySelectorAll('.record-group-col');
+            var globalGroupIdx = groupIdx + ci;
+            if (globalGroupIdx < allGroups.length) {
+              var groupCol = allGroups[globalGroupIdx];
+              var inputs = groupCol.querySelectorAll('input, textarea, select');
+              var parts = [];
+              inputs.forEach(function(inp) {
+                var val = '';
+                if (inp.type === 'checkbox') {
+                  if (inp.checked) parts.push(inp.parentElement ? inp.parentElement.textContent.trim() : inp.value);
+                  return;
+                } else if (inp.type === 'range') {
+                  var display = document.getElementById(inp.id + '-val');
+                  val = display ? display.textContent : inp.value;
+                } else {
+                  val = inp.value;
+                }
+                if (val && val.trim()) parts.push(val.trim());
+              });
+              cell.textContent = parts.join('; ') || '\u00a0';
+            }
+          });
+          groupIdx += headerCells.length;
+        });
+      });
+    });
+  }
+
   // ── Auto-save on all inputs ──
 
   document.querySelectorAll('input:not([type="range"]), textarea, select').forEach(function(el) {
@@ -1871,6 +1946,12 @@ function generateJs(schema: WorksheetSchema, storageKey: string): string {
 
   // ── Load saved data on init ──
   loadData();
+  populatePrintTables();
+
+  // Re-populate print tables whenever data changes
+  document.addEventListener('input', function() {
+    setTimeout(populatePrintTables, 100);
+  });
 })();
 `
 }

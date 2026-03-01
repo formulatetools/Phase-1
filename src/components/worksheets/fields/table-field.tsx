@@ -54,7 +54,7 @@ export function TableField({ field, value, onChange }: Props) {
 
   const renderCell = (col: TableColumn, rowIndex: number, cellValue: CellValue) => {
     const baseClass =
-      'w-full border-0 bg-transparent px-2 py-1.5 text-sm text-primary-900 placeholder-primary-400 focus:outline-none focus:ring-0'
+      'w-full border-0 bg-transparent px-2 py-1.5 text-base md:text-sm text-primary-900 placeholder-primary-400 focus:outline-none focus:ring-0'
     const cellLabel = `${col.header}, row ${rowIndex + 1}`
 
     switch (col.type) {

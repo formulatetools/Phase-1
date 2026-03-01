@@ -64,7 +64,7 @@ function RecordSubFieldRenderer({
   compact?: boolean
 }) {
   const baseInputClass =
-    'w-full rounded-lg border border-primary-200 bg-surface px-3 py-2 text-sm text-primary-900 placeholder-primary-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30'
+    'w-full rounded-lg border border-primary-200 bg-surface px-3 py-2 text-base md:text-sm text-primary-900 placeholder-primary-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30'
 
   if (readOnly) {
     return <RecordSubFieldReadOnly subField={subField} value={value} />
