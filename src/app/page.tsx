@@ -5,6 +5,7 @@ import { MarketingFooter } from '@/components/marketing/marketing-footer'
 import { WorksheetPreview } from '@/components/marketing/worksheet-preview'
 import { AIGenerateTeaser } from '@/components/marketing/ai-generate-teaser'
 import { PricingTable } from '@/components/marketing/pricing-table'
+import { ClientExperienceDemo } from '@/components/marketing/client-experience-demo'
 import { buttonVariants } from '@/components/ui/button-variants'
 import type { Metadata } from 'next'
 
@@ -218,8 +219,15 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Try the client experience */}
+      <section id="demo" className="py-20">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <ClientExperienceDemo />
+        </div>
+      </section>
+
       {/* Features */}
-      <section className="py-20">
+      <section className="border-t border-primary-100 bg-primary-100/50 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-center text-3xl font-bold text-primary-900">
             Everything you need in one place
