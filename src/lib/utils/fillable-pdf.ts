@@ -84,6 +84,7 @@ const CHECKBOX_ROW_H = 16
 const DROPDOWN_H = 22
 const TABLE_HEADER_H = 18
 const TABLE_ROW_H = 22
+const DIARY_TABLE_ROW_H = 40   // Taller rows for diary/repeatable worksheets (more writing room)
 const SECTION_GAP = 20
 const FIELD_GAP = 10
 const INSTRUCTIONS_SIZE = 9
@@ -653,6 +654,7 @@ function renderTableFieldPdf(
   field: TableField | HierarchyField,
   sectionId: string,
   values?: Record<string, unknown>,
+  isDiary?: boolean,
 ): void {
   renderFieldLabel(cursor, field.label, field.required)
 
@@ -711,6 +713,10 @@ function renderTableFieldPdf(
 
   // Data rows
   const tableValues = (values?.[field.id] as Record<string, unknown>[] | undefined) || []
+
+  // Base row height — taller for diary worksheets
+  const baseRowH = isDiary ? DIARY_TABLE_ROW_H : TABLE_ROW_H
+
   // Smart blank row heuristic for paper-usable PDFs:
   //   - If min_rows is already ≥ 3, trust it (e.g. 7 for weekly schedules)
   //   - If max_rows is high (≥10) but min_rows is low, use 5 (implies "fill many in")
@@ -718,11 +724,26 @@ function renderTableFieldPdf(
   const minR = field.min_rows || 1
   const maxR = field.max_rows || 20
   const blankMinRows = minR >= 3 ? minR : maxR >= 10 ? 5 : 3
-  const numRows = Math.max(blankMinRows, tableValues.length)
+
+  // For diary worksheets with no pre-filled values, fill the remaining page
+  let numRows: number
+  let rowH: number
+
+  if (isDiary && tableValues.length === 0) {
+    // Calculate how many rows fit in the remaining page space
+    const availableSpace = cursor.y - CONTENT_BOTTOM
+    const rowsThatFit = Math.floor(availableSpace / baseRowH)
+    numRows = Math.max(blankMinRows, rowsThatFit)
+    // Distribute space evenly across rows to fill the page
+    rowH = Math.max(baseRowH, availableSpace / numRows)
+  } else {
+    numRows = Math.max(blankMinRows, tableValues.length)
+    rowH = baseRowH
+  }
 
   for (let r = 0; r < numRows; r++) {
-    cursor.ensureSpace(TABLE_ROW_H)
-    const rowY = cursor.y - TABLE_ROW_H
+    cursor.ensureSpace(rowH)
+    const rowY = cursor.y - rowH
     const rowVals = tableValues[r] || {}
 
     // Row border
@@ -730,7 +751,7 @@ function renderTableFieldPdf(
       x: ML,
       y: rowY,
       width: CONTENT_W,
-      height: TABLE_ROW_H,
+      height: rowH,
       borderColor: FIELD_BORDER,
       borderWidth: 0.5,
       color: WHITE,
@@ -744,7 +765,7 @@ function renderTableFieldPdf(
       if (c > 0) {
         cursor.page.drawLine({
           start: { x: cellX, y: rowY },
-          end: { x: cellX, y: rowY + TABLE_ROW_H },
+          end: { x: cellX, y: rowY + rowH },
           thickness: 0.5,
           color: FIELD_BORDER,
         })
@@ -758,7 +779,7 @@ function renderTableFieldPdf(
         x: cellX + 2,
         y: rowY + 2,
         width: cw - 4,
-        height: TABLE_ROW_H - 4,
+        height: rowH - 4,
         borderWidth: 0,
       })
       cellField.setFontSize(9)
@@ -769,7 +790,7 @@ function renderTableFieldPdf(
       }
       cellX += cw
     }
-    cursor.advance(TABLE_ROW_H)
+    cursor.advance(rowH)
   }
 }
 
@@ -1455,6 +1476,7 @@ function renderField(
   field: WorksheetField,
   sectionId: string,
   values?: Record<string, unknown>,
+  isDiary?: boolean,
 ): void {
   switch (field.type) {
     case 'text':
@@ -1477,7 +1499,7 @@ function renderField(
       break
     case 'table':
     case 'hierarchy':
-      renderTableFieldPdf(cursor, form, field as TableField | HierarchyField, sectionId, values)
+      renderTableFieldPdf(cursor, form, field as TableField | HierarchyField, sectionId, values, isDiary)
       break
     case 'safety_plan':
       renderSafetyPlanFieldPdf(cursor, form, field as SafetyPlanField, sectionId, values)
@@ -1503,6 +1525,7 @@ function renderSection(
   form: PDFForm,
   section: WorksheetSection,
   values?: Record<string, unknown>,
+  isDiary?: boolean,
 ): void {
   // Section title (or label for safety plan sections) with optional step number
   const sectionHeading = section.title || section.label
@@ -1562,7 +1585,7 @@ function renderSection(
 
   // Fields
   for (const field of section.fields) {
-    renderField(cursor, form, field, section.id, values)
+    renderField(cursor, form, field, section.id, values, isDiary)
     cursor.advance(FIELD_GAP)
   }
 }
@@ -1658,14 +1681,15 @@ export async function generateFillablePdf(options: FillablePdfOptions): Promise<
   }
 
   // Handle diary/repeatable worksheets and multi-entry responses
-  if (schema.repeatable) {
+  const isDiary = schema.repeatable === true
+  if (isDiary) {
     if (values && isMultiEntryResponse(values)) {
       // Pre-filled multi-entry: render each submitted entry
       const entries = (values as { _entries: Record<string, unknown>[] })._entries
       for (let entryIdx = 0; entryIdx < entries.length; entryIdx++) {
         renderEntryHeader(cursor, entryIdx + 1, fonts)
         for (const section of schema.sections) {
-          renderSection(cursor, form, section, entries[entryIdx])
+          renderSection(cursor, form, section, entries[entryIdx], isDiary)
           cursor.advance(SECTION_GAP)
         }
       }
@@ -1675,7 +1699,7 @@ export async function generateFillablePdf(options: FillablePdfOptions): Promise<
       for (let entryIdx = 0; entryIdx < blankEntries; entryIdx++) {
         renderEntryHeader(cursor, entryIdx + 1, fonts)
         for (const section of schema.sections) {
-          renderSection(cursor, form, section, undefined)
+          renderSection(cursor, form, section, undefined, isDiary)
           cursor.advance(SECTION_GAP)
         }
       }
@@ -1683,7 +1707,7 @@ export async function generateFillablePdf(options: FillablePdfOptions): Promise<
   } else {
     // Non-diary: single set of sections
     for (const section of schema.sections) {
-      renderSection(cursor, form, section, values)
+      renderSection(cursor, form, section, values, false)
       cursor.advance(SECTION_GAP)
     }
   }

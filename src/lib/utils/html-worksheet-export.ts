@@ -472,6 +472,12 @@ function generateCss(): string {
       box-shadow: 0 0 0 2px rgba(228, 169, 48, 0.1);
     }
     td textarea { min-height: 60px; }
+
+    /* Diary/repeatable worksheets — taller rows for more writing room */
+    .diary-table td textarea { min-height: 100px; }
+    .diary-table td input[type="text"] { padding: 10px 8px; }
+    .diary-table td { padding: 8px; }
+
     .row-num {
       width: 32px;
       text-align: center;
@@ -811,6 +817,12 @@ function generateCss(): string {
       .formulation-spatial { page-break-inside: avoid; }
       .formulation-spatial svg { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .formulation-spatial-node { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+
+      /* Diary table print — taller rows, fill page */
+      .diary-table td { min-height: 45px; height: 45px; }
+      .diary-table td textarea { min-height: 40px; height: 40px; }
+      .diary-table { page-break-inside: auto; }
+      .diary-table tr { page-break-inside: avoid; }
     }
   `
 }
@@ -950,17 +962,20 @@ function renderTableRow(fieldId: string, columns: TableColumn[], rowIndex: numbe
   </tr>`
 }
 
-function renderTableField(field: TableField): string {
+function renderTableField(field: TableField, isDiary?: boolean): string {
   const req = field.required ? '<span class="required">*</span>' : ''
   const minRows = field.min_rows || 1
   const maxRows = field.max_rows || 20
-  const rows = Array.from({ length: minRows }, (_, i) =>
+  // Diary worksheets: show more blank rows by default for paper use
+  const displayRows = isDiary ? Math.max(minRows, 5) : minRows
+  const rows = Array.from({ length: displayRows }, (_, i) =>
     renderTableRow(field.id, field.columns, i)
   ).join('')
+  const diaryClass = isDiary ? ' diary-table' : ''
   return `<div class="field">
     <label class="field-label">${esc(field.label)}${req}</label>
     <div class="table-wrap">
-      <table data-table="${esc(field.id)}" data-max-rows="${maxRows}" data-min-rows="${minRows}">
+      <table class="${diaryClass}" data-table="${esc(field.id)}" data-max-rows="${maxRows}" data-min-rows="${minRows}">
         <thead><tr>${renderTableColumnHeaders(field.columns)}</tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -1349,7 +1364,7 @@ function renderFormulationField(field: FormulationField): string {
 
 // ── Dispatch field rendering ──
 
-function renderField(field: WorksheetField): string {
+function renderField(field: WorksheetField, isDiary?: boolean): string {
   switch (field.type) {
     case 'text': return renderTextField(field)
     case 'textarea': return renderTextareaField(field)
@@ -1359,7 +1374,7 @@ function renderField(field: WorksheetField): string {
     case 'select': return renderSelectField(field as SelectField)
     case 'checklist': return renderChecklistField(field as ChecklistField)
     case 'likert': return renderLikertField(field as LikertField)
-    case 'table': return renderTableField(field as TableField)
+    case 'table': return renderTableField(field as TableField, isDiary)
     case 'hierarchy': return renderHierarchyField(field as HierarchyField)
     case 'computed': return renderComputedField(field)
     case 'safety_plan': return renderSafetyPlanField(field as SafetyPlanField)
@@ -1372,14 +1387,14 @@ function renderField(field: WorksheetField): string {
 
 // ── Section rendering ──
 
-function renderSection(section: WorksheetSection): string {
+function renderSection(section: WorksheetSection, isDiary?: boolean): string {
   const title = section.title
     ? `<div class="section-title">${esc(section.title)}</div>`
     : ''
   const desc = section.description
     ? `<div class="section-description">${esc(section.description)}</div>`
     : ''
-  const fields = section.fields.map(renderField).join('')
+  const fields = section.fields.map(f => renderField(f, isDiary)).join('')
   return `<div class="section">${title}${desc}${fields}</div>`
 }
 
@@ -1465,12 +1480,13 @@ function renderFormulationLayout(schema: WorksheetSchema): string {
     const desc = section.description
       ? `<div class="section-description">${esc(section.description)}</div>`
       : ''
-    const fields = section.fields.map(renderField).join('')
+    const fields = section.fields.map(f => renderField(f)).join('')
     return `<div class="section"><div class="formulation-section">${domain}${title}${desc}${fields}</div></div>`
   }).join('')
 }
 
 function renderBody(schema: WorksheetSchema): string {
+  const isDiary = schema.repeatable === true
   switch (schema.layout) {
     case 'safety_plan':
       return renderSafetyPlanLayout(schema)
@@ -1481,7 +1497,7 @@ function renderBody(schema: WorksheetSchema): string {
     case 'formulation_longitudinal':
       return renderFormulationLayout(schema)
     default:
-      return schema.sections.map(renderSection).join('')
+      return schema.sections.map(s => renderSection(s, isDiary)).join('')
   }
 }
 
