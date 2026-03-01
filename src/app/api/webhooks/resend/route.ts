@@ -46,7 +46,7 @@ interface ResendWebhookPayload {
  *   3. The signature header contains one or more "v1,<base64>" entries
  */
 function verifySignature(body: string, headers: Headers): boolean {
-  if (!WEBHOOK_SECRET) return true // Skip if no secret configured
+  if (!WEBHOOK_SECRET) return false // Reject if secret not configured
 
   const msgId = headers.get('svix-id')
   const timestamp = headers.get('svix-timestamp')

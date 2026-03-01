@@ -2,14 +2,14 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/email'
 import { freeResetEmail } from '@/lib/email-templates'
+import { verifyCronSecret } from '@/lib/utils/verify-cron-secret'
 
 // Runs on the 1st of each month at 9 AM.
 // Sends "your 5 free uses have reset" to free-tier users who
 // actually used at least 1 worksheet last month (no point emailing
 // someone who never used the product).
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!verifyCronSecret(request.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

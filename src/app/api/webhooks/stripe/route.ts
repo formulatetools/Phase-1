@@ -44,7 +44,9 @@ export async function POST(request: NextRequest) {
         const userId = session.metadata?.supabase_user_id
         const subscriptionId = session.subscription as string
 
-        if (!userId || !subscriptionId) break
+        // Validate userId is a UUID to prevent injection via Stripe metadata
+        const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        if (!userId || !uuidRe.test(userId) || !subscriptionId) break
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
         const priceId = subscription.items.data[0]?.price.id

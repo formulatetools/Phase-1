@@ -16,6 +16,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing token or response_data' }, { status: 400 })
     }
 
+    // Validate action field — only 'save' and 'submit' are valid
+    if (action !== undefined && action !== 'save' && action !== 'submit') {
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+    }
+
     // Reject oversized payloads (max 2MB for response data)
     const payloadSize = JSON.stringify(response_data).length
     if (payloadSize > 2 * 1024 * 1024) {

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/email'
 import { blogDigestEmail } from '@/lib/email-templates'
+import { verifyCronSecret } from '@/lib/utils/verify-cron-secret'
 
 /**
  * Weekly blog digest email.
@@ -9,8 +10,7 @@ import { blogDigestEmail } from '@/lib/email-templates'
  * to users who opted in via blog_digest_opt_in.
  */
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!verifyCronSecret(request.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

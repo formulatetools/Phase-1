@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { verifyCronSecret } from '@/lib/utils/verify-cron-secret'
 
 const RETENTION_DAYS = parseInt(process.env.DATA_RETENTION_DAYS || '90', 10)
 
 export async function GET(request: NextRequest) {
-  // Verify cron secret (Vercel injects this for scheduled crons)
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Verify cron secret (timing-safe)
+  if (!verifyCronSecret(request.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
