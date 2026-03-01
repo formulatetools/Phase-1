@@ -8,6 +8,7 @@ import type {
   WorksheetAssignment,
   WorksheetResponse,
   Worksheet,
+  SharedResource,
   SubscriptionTier,
 } from '@/types/database'
 import {
@@ -21,10 +22,12 @@ import {
   gdprErase,
   getPreviewUrl,
   regeneratePortalToken,
+  archiveResource,
 } from '@/app/(dashboard)/clients/actions'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
 import { ShareModal } from '@/components/ui/share-modal'
+import { ShareResourceForm } from '@/components/clients/share-resource-form'
 import { useToast } from '@/hooks/use-toast'
 
 interface ClientDetailProps {
@@ -32,6 +35,7 @@ interface ClientDetailProps {
   assignments: WorksheetAssignment[]
   responses: WorksheetResponse[]
   worksheets: Worksheet[]
+  sharedResources: SharedResource[]
   totalActiveAssignments: number
   maxActiveAssignments: number
   tier: SubscriptionTier
@@ -61,6 +65,7 @@ export function ClientDetail({
   assignments,
   responses,
   worksheets,
+  sharedResources,
   totalActiveAssignments,
   maxActiveAssignments,
   tier,
@@ -88,6 +93,7 @@ export function ClientDetail({
   const [showPrefill, setShowPrefill] = useState(false)
   const [prefillValues, setPrefillValues] = useState<Record<string, unknown>>({})
   const [prefillReadonly, setPrefillReadonly] = useState(true)
+  const [showShareResource, setShowShareResource] = useState(false)
 
   const router = useRouter()
   const { toast } = useToast()
@@ -308,23 +314,34 @@ export function ClientDetail({
         </div>
       )}
 
-      {/* Assign worksheet button */}
-      {relationship.status === 'active' && !showAssign && (
-        <button
-          onClick={() => {
-            if (!canAssign) {
-              setAssignError(`Free plan is limited to ${maxActiveAssignments} active assignments. Upgrade for unlimited.`)
-              return
-            }
-            setShowAssign(true)
-          }}
-          className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Assign worksheet
-        </button>
+      {/* Action buttons */}
+      {relationship.status === 'active' && !showAssign && !showShareResource && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              if (!canAssign) {
+                setAssignError(`Free plan is limited to ${maxActiveAssignments} active assignments. Upgrade for unlimited.`)
+                return
+              }
+              setShowAssign(true)
+            }}
+            className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Assign worksheet
+          </button>
+          <button
+            onClick={() => setShowShareResource(true)}
+            className="flex items-center gap-2 rounded-lg border border-primary-200 px-4 py-2.5 text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 6.364L6.002 13.5a4.5 4.5 0 006.364 6.364l4.5-4.5a4.5 4.5 0 001.242-7.244" />
+            </svg>
+            Share resource
+          </button>
+        </div>
       )}
 
       {assignError && (
@@ -492,6 +509,18 @@ export function ClientDetail({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Share resource form */}
+      {showShareResource && (
+        <ShareResourceForm
+          relationshipId={relationship.id}
+          onShared={() => {
+            setShowShareResource(false)
+            router.refresh()
+          }}
+          onCancel={() => setShowShareResource(false)}
+        />
       )}
 
       {/* Client Portal */}
@@ -804,6 +833,69 @@ export function ClientDetail({
           </div>
         )}
       </div>
+
+      {/* Shared Resources */}
+      {sharedResources.length > 0 && (
+        <div>
+          <h2 className="mb-4 text-lg font-semibold text-primary-900">
+            Shared Resources ({sharedResources.length})
+          </h2>
+          <div className="space-y-3">
+            {sharedResources.map((r) => (
+              <div
+                key={r.id}
+                className="rounded-2xl border border-primary-100 bg-surface shadow-sm overflow-hidden border-l-[3px] border-l-brand"
+              >
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <svg className="h-4 w-4 shrink-0 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 6.364L6.002 13.5a4.5 4.5 0 006.364 6.364l4.5-4.5a4.5 4.5 0 001.242-7.244" />
+                      </svg>
+                      <p className="font-medium text-primary-800 truncate">
+                        {r.og_title || r.title}
+                      </p>
+                      {r.viewed_at && (
+                        <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          Viewed
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1 flex items-center gap-3 text-xs text-primary-400">
+                      <span>Shared {new Date(r.shared_at).toLocaleDateString('en-GB')}</span>
+                      {r.url && (
+                        <a
+                          href={r.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-brand hover:underline truncate max-w-[200px]"
+                        >
+                          {r.og_site_name || new URL(r.url).hostname.replace(/^www\./, '')}
+                        </a>
+                      )}
+                      {r.viewed_at && (
+                        <span>Viewed {new Date(r.viewed_at).toLocaleDateString('en-GB')}</span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleAction(`archive-${r.id}`, () => archiveResource(r.id), 'Resource archived')}
+                    disabled={actionLoading === `archive-${r.id}`}
+                    className="shrink-0 ml-3 rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-500 hover:bg-primary-50 transition-colors disabled:opacity-50"
+                    title="Archive resource"
+                  >
+                    {actionLoading === `archive-${r.id}` ? 'Archiving…' : 'Archive'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Share modal */}
       <ShareModal

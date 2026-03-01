@@ -6,6 +6,7 @@ import type {
   WorksheetAssignment,
   WorksheetResponse,
   Worksheet,
+  SharedResource,
 } from '@/types/database'
 import Link from 'next/link'
 import { LogoIcon } from '@/components/ui/logo'
@@ -91,16 +92,47 @@ export default async function ClientPortalPage({ params }: PageProps) {
     worksheets = (worksheetsData || []) as Worksheet[]
   }
 
-  // 5. Fetch therapist name
-  const { data: therapistProfile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', typedRelationship.therapist_id)
-    .single()
+  // 5. Fetch therapist name and shared resources in parallel
+  const [{ data: therapistProfile }, { data: resourcesData }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', typedRelationship.therapist_id)
+      .single(),
+
+    supabase
+      .from('shared_resources')
+      .select('id, resource_type, title, therapist_note, shared_at, viewed_at, url, og_title, og_description, og_image_url, og_site_name, article_id')
+      .eq('relationship_id', typedRelationship.id)
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .order('shared_at', { ascending: false }),
+  ])
 
   const therapistName =
     (therapistProfile as { full_name: string | null } | null)?.full_name ||
     'your therapist'
+
+  const sharedResources = (resourcesData || []) as SharedResource[]
+
+  // Map to portal resource shape (article fields null for now — populated when psychoed is built)
+  const portalResources = sharedResources.map((r) => ({
+    id: r.id,
+    resource_type: r.resource_type,
+    title: r.title,
+    therapist_note: r.therapist_note,
+    shared_at: r.shared_at,
+    viewed_at: r.viewed_at,
+    url: r.url,
+    og_title: r.og_title,
+    og_description: r.og_description,
+    og_image_url: r.og_image_url,
+    og_site_name: r.og_site_name,
+    article_id: r.article_id,
+    article_summary: null,
+    article_category: null,
+    article_reading_time: null,
+  }))
 
   // 6. Compute progress stats
   const completedCount = assignments.filter(
@@ -205,6 +237,7 @@ export default async function ClientPortalPage({ params }: PageProps) {
             description: w.description,
             schema: w.schema,
           }))}
+          resources={portalResources}
           appUrl={APP_URL}
           completedCount={completedCount}
           weeksActive={weeksActive}

@@ -6,14 +6,14 @@ export type SubscriptionStatus = 'free' | 'active' | 'cancelled' | 'past_due'
 export type SubscriptionTier = 'free' | 'starter' | 'standard' | 'professional'
 export type StripeSubscriptionStatus = 'active' | 'cancelled' | 'past_due' | 'trialing'
 export type AccessType = 'view' | 'interact' | 'export'
-export type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'login' | 'logout' | 'assign' | 'share' | 'fork' | 'upvote' | 'remove_upvote' | 'redeem'
+export type AuditAction = 'create' | 'read' | 'update' | 'delete' | 'export' | 'login' | 'logout' | 'assign' | 'share' | 'share_resource' | 'fork' | 'upvote' | 'remove_upvote' | 'redeem'
 export type FeatureRequestStatus = 'submitted' | 'under_review' | 'planned' | 'shipped' | 'declined'
 export type FeatureRequestCategory = 'new_worksheet_or_tool' | 'new_psychometric_measure' | 'platform_feature' | 'integration' | 'other'
 export type WorksheetVisibility = 'curated' | 'private' | 'organisation' | 'public'
 export type TrackingFrequency = 'daily' | 'weekly' | 'session' | 'custom'
 export type AssignmentStatus = 'assigned' | 'in_progress' | 'completed' | 'reviewed' | 'pdf_downloaded' | 'withdrawn'
 export type CompletionMethod = 'digital' | 'paper'
-export type HomeworkEventType = 'consent_granted' | 'consent_declined' | 'consent_withdrawn' | 'pdf_downloaded'
+export type HomeworkEventType = 'consent_granted' | 'consent_declined' | 'consent_withdrawn' | 'pdf_downloaded' | 'resource_viewed'
 export type ResponseSource = 'manual' | 'assigned' | 'ai_generated'
 export type RelationshipStatus = 'active' | 'discharged' | 'paused'
 export type RelationshipType = 'clinical' | 'supervision'
@@ -422,6 +422,33 @@ export interface BlogReaction {
   post_id: string
   user_id: string
   created_at: string
+}
+
+// Shared resources — therapist shares links / psychoed articles with clients
+export type SharedResourceType = 'link' | 'psychoeducation'
+export type SharedResourceStatus = 'active' | 'archived'
+
+export interface SharedResource {
+  id: string
+  relationship_id: string
+  therapist_id: string
+  resource_type: SharedResourceType
+  title: string
+  therapist_note: string | null
+  status: SharedResourceStatus
+  shared_at: string
+  viewed_at: string | null
+  archived_at: string | null
+  url: string | null
+  og_title: string | null
+  og_description: string | null
+  og_image_url: string | null
+  og_site_name: string | null
+  og_fetched_at: string | null
+  article_id: string | null
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
 }
 
 // Note: We use untyped Supabase clients and cast query results to our

@@ -7,6 +7,8 @@ import { AssignmentCard } from './assignment-card'
 import { ProgressSection } from './progress-section'
 import { BookmarkBanner } from './bookmark-banner'
 import { PwaInstallBanner } from './pwa-install-banner'
+import { PortalTabs, type PortalTab } from './portal-tabs'
+import { ResourceCard, type PortalResource } from './resource-card'
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -43,6 +45,7 @@ interface ClientPortalProps {
   assignments: PortalAssignment[]
   responses: PortalResponse[]
   worksheets: PortalWorksheet[]
+  resources: PortalResource[]
   appUrl: string
   completedCount: number
   weeksActive: number
@@ -56,11 +59,13 @@ export function ClientPortal({
   assignments,
   responses,
   worksheets,
+  resources,
   appUrl,
   completedCount,
   weeksActive,
 }: ClientPortalProps) {
   const [consented, setConsented] = useState(initialConsented)
+  const [activeTab, setActiveTab] = useState<PortalTab>('homework')
 
   const worksheetMap = new Map(worksheets.map((w) => [w.id, w]))
   const responseMap = new Map(responses.map((r) => [r.assignment_id, r]))
@@ -106,7 +111,7 @@ export function ClientPortal({
     })
 
   // ─── State C: Consented but no assignments ─────────────────────
-  if (assignments.length === 0) {
+  if (assignments.length === 0 && resources.length === 0) {
     return (
       <div className="space-y-4">
         <BookmarkBanner />
@@ -117,68 +122,119 @@ export function ClientPortal({
             </svg>
           </div>
           <p className="text-sm font-medium text-primary-600">
-            No homework assigned yet.
+            Nothing here yet.
           </p>
           <p className="mt-1 text-xs text-primary-400">
-            When your therapist assigns a worksheet, it will appear here.
+            When your therapist assigns homework or shares resources, they will appear here.
           </p>
         </div>
       </div>
     )
   }
 
-  // ─── State B: Consented with assignments ───────────────────────
+  // ─── State B: Consented with content ────────────────────────────
   return (
     <div className="space-y-6">
       {/* Banners */}
       <BookmarkBanner />
       <PwaInstallBanner />
 
-      {/* Current Homework */}
-      {currentAssignments.length > 0 && (
-        <section>
-          <h2 className="text-sm font-semibold text-primary-800">Current Homework</h2>
-          <div className="mt-1 h-0.5 w-8 bg-brand" />
-          <div className="mt-4 space-y-3">
-            {currentAssignments.map((a) => (
-              <AssignmentCard
-                key={a.id}
-                assignment={a}
-                worksheet={worksheetMap.get(a.worksheet_id)}
-                portalToken={portalToken}
-                appUrl={appUrl}
-                variant="current"
-              />
-            ))}
-          </div>
-        </section>
+      {/* Tabs — only show when there are resources to switch between */}
+      {resources.length > 0 && (
+        <PortalTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          resourceCount={resources.length}
+        />
       )}
 
-      {/* Completed */}
-      {completedAssignments.length > 0 && (
-        <section>
-          <h2 className="text-sm font-semibold text-primary-800">Completed</h2>
-          <div className="mt-1 h-0.5 w-8 bg-brand" />
-          <div className="mt-4 space-y-3">
-            {completedAssignments.map((a) => (
-              <AssignmentCard
-                key={a.id}
-                assignment={a}
-                worksheet={worksheetMap.get(a.worksheet_id)}
-                portalToken={portalToken}
-                appUrl={appUrl}
-                variant="completed"
-              />
-            ))}
-          </div>
-        </section>
+      {/* Homework Tab (default) */}
+      {activeTab === 'homework' && (
+        <>
+          {/* Current Homework */}
+          {currentAssignments.length > 0 && (
+            <section>
+              <h2 className="text-sm font-semibold text-primary-800">Current Homework</h2>
+              <div className="mt-1 h-0.5 w-8 bg-brand" />
+              <div className="mt-4 space-y-3">
+                {currentAssignments.map((a) => (
+                  <AssignmentCard
+                    key={a.id}
+                    assignment={a}
+                    worksheet={worksheetMap.get(a.worksheet_id)}
+                    portalToken={portalToken}
+                    appUrl={appUrl}
+                    variant="current"
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Completed */}
+          {completedAssignments.length > 0 && (
+            <section>
+              <h2 className="text-sm font-semibold text-primary-800">Completed</h2>
+              <div className="mt-1 h-0.5 w-8 bg-brand" />
+              <div className="mt-4 space-y-3">
+                {completedAssignments.map((a) => (
+                  <AssignmentCard
+                    key={a.id}
+                    assignment={a}
+                    worksheet={worksheetMap.get(a.worksheet_id)}
+                    portalToken={portalToken}
+                    appUrl={appUrl}
+                    variant="completed"
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* No assignments empty state (but resources exist, so tabs are visible) */}
+          {assignments.length === 0 && resources.length > 0 && (
+            <div className="rounded-2xl border border-dashed border-primary-200 p-6 text-center">
+              <p className="text-sm text-primary-500">No homework assigned yet.</p>
+              <p className="mt-1 text-xs text-primary-400">
+                When your therapist assigns a worksheet, it will appear here.
+              </p>
+            </div>
+          )}
+
+          {/* Progress */}
+          {(currentAssignments.length > 0 || completedAssignments.length > 0) && (
+            <ProgressSection
+              completedCount={completedCount}
+              weeksActive={weeksActive}
+            />
+          )}
+        </>
       )}
 
-      {/* Progress */}
-      <ProgressSection
-        completedCount={completedCount}
-        weeksActive={weeksActive}
-      />
+      {/* Resources Tab */}
+      {activeTab === 'resources' && (
+        <>
+          {resources.length > 0 ? (
+            <div className="space-y-3">
+              {resources.map((r) => (
+                <ResourceCard
+                  key={r.id}
+                  resource={r}
+                  portalToken={portalToken}
+                  appUrl={appUrl}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-primary-200 p-6 text-center">
+              <p className="text-sm text-primary-500">No resources shared yet.</p>
+              <p className="mt-1 text-xs text-primary-400">
+                Your therapist can share helpful links and articles here.
+              </p>
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

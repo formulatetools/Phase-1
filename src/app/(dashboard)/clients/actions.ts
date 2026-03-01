@@ -8,8 +8,10 @@ import { revalidatePath } from 'next/cache'
 import type {
   TherapeuticRelationship,
   WorksheetAssignment,
+  SharedResource,
   SubscriptionTier,
 } from '@/types/database'
+import { unfurlUrl } from '@/lib/og-unfurl'
 import { validateClientLabel } from '@/lib/validation/client-label'
 import { generatePreviewHash } from '@/lib/preview'
 
@@ -307,6 +309,12 @@ export async function gdprErase(relationshipId: string) {
     .delete()
     .eq('relationship_id', relationshipId)
 
+  // Hard-delete shared resources linked to this relationship
+  await supabase
+    .from('shared_resources')
+    .delete()
+    .eq('relationship_id', relationshipId)
+
   // Hard-delete all worksheet assignments linked to this relationship
   const { error: assignError } = await supabase
     .from('worksheet_assignments')
@@ -436,6 +444,142 @@ export async function markAsPaperCompleted(assignmentId: string) {
     entity_id: assignmentId,
     metadata: { action: 'marked_as_paper_completed' },
   })
+
+  revalidatePath('/clients')
+  return { success: true }
+}
+
+// ============================================================================
+// SHARED RESOURCE ACTIONS
+// ============================================================================
+
+export async function shareResource(
+  relationshipId: string,
+  data: {
+    title: string
+    url: string
+    note?: string
+  }
+) {
+  const { user, profile } = await getCurrentUser()
+  if (!user || !profile) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+  const tier = profile.subscription_tier as SubscriptionTier
+
+  // Verify ownership + clinical relationship
+  const { data: rel } = await supabase
+    .from('therapeutic_relationships')
+    .select('id, relationship_type, client_portal_token')
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .is('deleted_at', null)
+    .single()
+
+  if (!rel) return { error: 'Client not found' }
+  if (rel.relationship_type !== 'clinical') {
+    return { error: 'Cannot share resources with supervision relationships.' }
+  }
+
+  // Validate URL
+  if (!data.url) return { error: 'URL is required' }
+  try {
+    new URL(data.url)
+  } catch {
+    return { error: 'Invalid URL' }
+  }
+
+  // Check tier limit — count active (non-archived, non-deleted) resources for this relationship
+  const { count } = await supabase
+    .from('shared_resources')
+    .select('*', { count: 'exact', head: true })
+    .eq('relationship_id', relationshipId)
+    .eq('status', 'active')
+    .is('deleted_at', null)
+
+  const limit = TIER_LIMITS[tier].maxSharedResourcesPerClient
+  if (count !== null && count >= limit) {
+    return {
+      error: `Your plan allows up to ${limit} shared resources per client. Archive some or upgrade for more.`,
+      limitReached: true,
+    }
+  }
+
+  // Insert resource
+  const { data: resource, error } = await supabase
+    .from('shared_resources')
+    .insert({
+      relationship_id: relationshipId,
+      therapist_id: user.id,
+      resource_type: 'link',
+      title: data.title.trim(),
+      therapist_note: data.note?.trim() || null,
+      url: data.url,
+    })
+    .select()
+    .single()
+
+  if (error) return { error: error.message }
+
+  const typedResource = resource as SharedResource
+
+  // Audit log
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'share_resource',
+    entity_type: 'shared_resource',
+    entity_id: typedResource.id,
+    metadata: {
+      resource_type: 'link',
+      relationship_id: relationshipId,
+      url: data.url,
+    },
+  })
+
+  // Lazy-generate portal token if needed
+  if (!rel.client_portal_token) {
+    await supabase
+      .from('therapeutic_relationships')
+      .update({ client_portal_token: generatePortalToken() })
+      .eq('id', relationshipId)
+  }
+
+  // Fire-and-forget OG unfurling — non-blocking
+  unfurlUrl(data.url)
+    .then(async (ogData) => {
+      const innerSupabase = await createClient()
+      await innerSupabase
+        .from('shared_resources')
+        .update({
+          ...ogData,
+          og_fetched_at: new Date().toISOString(),
+        })
+        .eq('id', typedResource.id)
+    })
+    .catch(() => {
+      // OG fetch failure is non-critical
+    })
+
+  revalidatePath(`/clients/${relationshipId}`)
+  return { data: typedResource }
+}
+
+export async function archiveResource(resourceId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('shared_resources')
+    .update({
+      status: 'archived',
+      archived_at: new Date().toISOString(),
+    })
+    .eq('id', resourceId)
+    .eq('therapist_id', user.id)
+
+  if (error) return { error: error.message }
 
   revalidatePath('/clients')
   return { success: true }

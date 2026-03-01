@@ -7,6 +7,7 @@ import type {
   WorksheetAssignment,
   WorksheetResponse,
   Worksheet,
+  SharedResource,
   SubscriptionTier,
 } from '@/types/database'
 import { ClientDetail } from '@/components/clients/client-detail'
@@ -40,6 +41,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
     { data: assignments },
     { data: worksheets },
     { count: totalActiveAssignments },
+    { data: sharedResources },
   ] = await Promise.all([
     supabase
       .from('worksheet_assignments')
@@ -62,6 +64,14 @@ export default async function ClientDetailPage({ params }: PageProps) {
       .eq('therapist_id', user.id)
       .in('status', ['assigned', 'in_progress'])
       .is('deleted_at', null),
+
+    supabase
+      .from('shared_resources')
+      .select('*')
+      .eq('relationship_id', id)
+      .eq('therapist_id', user.id)
+      .is('deleted_at', null)
+      .order('shared_at', { ascending: false }),
   ])
 
   // Fetch responses (depends on assignments result)
@@ -89,6 +99,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
         assignments={(assignments || []) as WorksheetAssignment[]}
         responses={responses}
         worksheets={(worksheets || []) as Worksheet[]}
+        sharedResources={(sharedResources || []) as SharedResource[]}
         totalActiveAssignments={totalActiveAssignments || 0}
         maxActiveAssignments={limits.maxActiveAssignments}
         tier={tier}
