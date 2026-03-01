@@ -19,17 +19,20 @@ export const metadata: Metadata = {
   },
 }
 
+const POSTS_PER_PAGE = 12
+
 export default async function BlogIndexPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; q?: string }>
+  searchParams: Promise<{ category?: string; q?: string; page?: string }>
 }) {
-  const { category, q } = await searchParams
+  const { category, q, page } = await searchParams
+  const currentPage = Math.max(1, parseInt(page || '1', 10) || 1)
   const supabase = await createClient()
 
   let query = supabase
     .from('blog_posts')
-    .select('id, title, slug, excerpt, category, cover_image_url, published_at, reading_time_minutes, helpful_count, author_id, tags')
+    .select('id, title, slug, excerpt, category, cover_image_url, published_at, reading_time_minutes, helpful_count, author_id, tags', { count: 'exact' })
     .eq('status', 'published')
     .is('deleted_at', null)
     .order('published_at', { ascending: false })
@@ -38,10 +41,17 @@ export default async function BlogIndexPage({
     query = query.eq('category', category)
   }
 
-  const { data: posts } = await query
-  let blogPosts = (posts ?? []) as BlogPost[]
+  // If searching, fetch all for text filtering; otherwise paginate at DB level
+  if (!q) {
+    const from = (currentPage - 1) * POSTS_PER_PAGE
+    query = query.range(from, from + POSTS_PER_PAGE - 1)
+  }
 
-  // Client-side text search filter
+  const { data: posts, count } = await query
+  let blogPosts = (posts ?? []) as BlogPost[]
+  let totalCount = count ?? blogPosts.length
+
+  // Text search filter (applied after fetch when q is present)
   if (q) {
     const searchLower = q.toLowerCase()
     blogPosts = blogPosts.filter(
@@ -50,7 +60,11 @@ export default async function BlogIndexPage({
         (p.excerpt && p.excerpt.toLowerCase().includes(searchLower)) ||
         p.tags.some((t) => t.toLowerCase().includes(searchLower))
     )
+    totalCount = blogPosts.length
+    blogPosts = blogPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE)
   }
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / POSTS_PER_PAGE))
 
   // Fetch author names (use admin client to bypass profiles RLS for anonymous visitors)
   const authorIds = [...new Set(blogPosts.map((p) => p.author_id))]
@@ -74,6 +88,16 @@ export default async function BlogIndexPage({
     { value: 'practice', label: 'Practice Tips' },
     { value: 'updates', label: 'Updates' },
   ]
+
+  // Build pagination URL helper
+  function pageUrl(p: number) {
+    const params = new URLSearchParams()
+    if (category && category !== 'all') params.set('category', category)
+    if (q) params.set('q', q)
+    if (p > 1) params.set('page', String(p))
+    const qs = params.toString()
+    return `/blog${qs ? `?${qs}` : ''}`
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -168,6 +192,56 @@ export default async function BlogIndexPage({
             </Link>
           ))}
         </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <nav aria-label="Blog pagination" className="mt-8 flex items-center justify-center gap-1">
+          {currentPage > 1 && (
+            <Link
+              href={pageUrl(currentPage - 1)}
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-100 transition-colors"
+            >
+              Previous
+            </Link>
+          )}
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+            .map((p, idx, arr) => {
+              const items: React.ReactNode[] = []
+              if (idx > 0 && arr[idx - 1] !== p - 1) {
+                items.push(
+                  <span key={`ellipsis-${p}`} className="px-1 text-sm text-primary-300">
+                    ...
+                  </span>
+                )
+              }
+              items.push(
+                <Link
+                  key={p}
+                  href={pageUrl(p)}
+                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                    p === currentPage
+                      ? 'bg-brand text-white'
+                      : 'text-primary-600 hover:bg-primary-100'
+                  }`}
+                >
+                  {p}
+                </Link>
+              )
+              return items
+            })}
+
+          {currentPage < totalPages && (
+            <Link
+              href={pageUrl(currentPage + 1)}
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-100 transition-colors"
+            >
+              Next
+            </Link>
+          )}
+        </nav>
       )}
     </div>
   )

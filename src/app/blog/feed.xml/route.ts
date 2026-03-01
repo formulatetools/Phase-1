@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { BLOG_CATEGORY_LABELS } from '@/lib/utils/blog'
 
 /**
  * RSS 2.0 feed for published blog posts.
@@ -12,25 +13,34 @@ export async function GET() {
 
   const { data: posts } = await supabase
     .from('blog_posts')
-    .select('title, slug, excerpt, category, published_at')
+    .select('title, slug, excerpt, category, published_at, cover_image_url')
     .eq('status', 'published')
     .is('deleted_at', null)
     .order('published_at', { ascending: false })
-    .limit(20)
+    .limit(50)
 
   const baseUrl = 'https://formulatetools.co.uk'
-  const allPosts = (posts ?? []) as Array<{ title: string; slug: string; excerpt: string | null; category: string; published_at: string }>
+  const allPosts = (posts ?? []) as Array<{ title: string; slug: string; excerpt: string | null; category: string; published_at: string; cover_image_url: string | null }>
+
+  /** Escape XML special characters in text content */
+  function escXml(str: string): string {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  }
 
   const items = allPosts
     .map(
       (p) => `
     <item>
       <title><![CDATA[${p.title}]]></title>
-      <link>${baseUrl}/blog/${p.slug}</link>
-      <guid isPermaLink="true">${baseUrl}/blog/${p.slug}</guid>
+      <link>${baseUrl}/blog/${escXml(p.slug)}</link>
+      <guid isPermaLink="true">${baseUrl}/blog/${escXml(p.slug)}</guid>
       <description><![CDATA[${p.excerpt || ''}]]></description>
-      <category>${p.category}</category>
-      <pubDate>${new Date(p.published_at).toUTCString()}</pubDate>
+      <category>${escXml(BLOG_CATEGORY_LABELS[p.category] || p.category)}</category>
+      <pubDate>${new Date(p.published_at).toUTCString()}</pubDate>${
+        p.cover_image_url
+          ? `\n      <enclosure url="${escXml(p.cover_image_url)}" type="image/jpeg" length="0"/>`
+          : ''
+      }
     </item>`
     )
     .join('')
@@ -46,6 +56,7 @@ export async function GET() {
     <link>${baseUrl}/blog</link>
     <description>Clinical articles, worksheet guides, and practice tips for CBT therapists.</description>
     <language>en-gb</language>
+    <generator>Formulate</generator>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <atom:link href="${baseUrl}/blog/feed.xml" rel="self" type="application/rss+xml"/>
     ${items}

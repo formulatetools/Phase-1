@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
 /**
@@ -85,13 +86,17 @@ function renderNode(node: TiptapNode, index: number): React.ReactNode {
       return <span key={index}>{renderMarks(node.text || '', node.marks)}</span>
     case 'image':
       return (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={index}
-          src={node.attrs?.src as string}
-          alt={(node.attrs?.alt as string) || ''}
-          className="rounded-xl max-w-full my-4"
-        />
+        <figure key={index} className="my-4">
+          <Image
+            src={node.attrs?.src as string}
+            alt={(node.attrs?.alt as string) || ''}
+            width={768}
+            height={432}
+            className="rounded-xl w-full h-auto"
+            sizes="(max-width: 768px) 100vw, 768px"
+            loading="lazy"
+          />
+        </figure>
       )
     case 'worksheetEmbed':
       return (

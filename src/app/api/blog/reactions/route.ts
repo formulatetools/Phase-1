@@ -6,7 +6,23 @@ import { createAdminClient } from '@/lib/supabase/admin'
 /**
  * POST — add "helpful" reaction
  * DELETE — remove "helpful" reaction
+ *
+ * The denormalized helpful_count is synced by counting actual reactions,
+ * which avoids race conditions from concurrent read-modify-write cycles.
  */
+
+async function syncHelpfulCount(postId: string) {
+  const admin = createAdminClient()
+  const { count } = await admin
+    .from('blog_reactions')
+    .select('*', { count: 'exact', head: true })
+    .eq('post_id', postId)
+
+  await admin
+    .from('blog_posts')
+    .update({ helpful_count: count ?? 0 })
+    .eq('id', postId)
+}
 
 export async function POST(request: Request) {
   const { user } = await getCurrentUser()
@@ -34,20 +50,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed' }, { status: 500 })
   }
 
-  // Increment denormalized count
-  const admin = createAdminClient()
-  const { data: post } = await admin
-    .from('blog_posts')
-    .select('helpful_count')
-    .eq('id', postId)
-    .single()
-
-  if (post) {
-    await admin
-      .from('blog_posts')
-      .update({ helpful_count: ((post as { helpful_count: number }).helpful_count || 0) + 1 })
-      .eq('id', postId)
-  }
+  await syncHelpfulCount(postId)
 
   return NextResponse.json({ ok: true })
 }
@@ -76,21 +79,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Failed' }, { status: 500 })
   }
 
-  // Decrement denormalized count
-  const admin = createAdminClient()
-  const { data: post } = await admin
-    .from('blog_posts')
-    .select('helpful_count')
-    .eq('id', postId)
-    .single()
-
-  if (post) {
-    const current = (post as { helpful_count: number }).helpful_count || 0
-    await admin
-      .from('blog_posts')
-      .update({ helpful_count: Math.max(0, current - 1) })
-      .eq('id', postId)
-  }
+  await syncHelpfulCount(postId)
 
   return NextResponse.json({ ok: true })
 }
