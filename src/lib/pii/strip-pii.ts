@@ -16,6 +16,17 @@ import {
   COMMON_NAMES,
 } from '@/lib/validation/client-label'
 
+// Names that are also common English words — excluded from the standalone name check
+// to avoid false positives like "Mark your score" or "A penny for your thoughts".
+// These are still caught when part of a multi-word name (e.g. "Mark Johnson").
+const AMBIGUOUS_STANDALONE = new Set([
+  'mark', 'grace', 'frank', 'dawn', 'dean', 'penny', 'jay', 'glen',
+  'iris', 'ivy', 'lily', 'holly', 'hazel', 'amber', 'ruby', 'cole',
+  'mason', 'max', 'pat', 'sue', 'bob', 'art', 'lance', 'joy',
+  'hope', 'faith', 'dale', 'ray', 'bill', 'will', 'rob', 'pearl',
+  'flo', 'dot', 'val',
+])
+
 export interface StripPiiResult {
   text: string
   strippedCounts: {
@@ -90,14 +101,47 @@ export function stripPii(input: string): StripPiiResult {
     return match
   })
 
-  // 7. Full names — two or more capitalised words where at least one is a common name
-  //    e.g. "Sarah Johnson" → "[NAME]", but "Thought Record" → unchanged
+  // 7a. Full names (Title Case) — two or more capitalised words where at least one is a common name
+  //     e.g. "Sarah Johnson" → "[NAME]", but "Thought Record" → unchanged
   text = text.replace(
     /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/g,
     (match) => {
       const words = match.toLowerCase().split(/\s+/)
       const hasCommonName = words.some((w) => COMMON_NAMES.has(w))
       if (hasCommonName) {
+        counts.names++
+        return '[NAME]'
+      }
+      return match
+    }
+  )
+
+  // 7b. Full names (ALL CAPS) — two or more uppercase words where at least one is a common name
+  //     e.g. "SARAH JONES" → "[NAME]"
+  text = text.replace(
+    /\b([A-Z]{2,}(?:\s+[A-Z]{2,})+)\b/g,
+    (match) => {
+      const words = match.toLowerCase().split(/\s+/)
+      const hasCommonName = words.some((w) => COMMON_NAMES.has(w))
+      if (hasCommonName) {
+        counts.names++
+        return '[NAME]'
+      }
+      return match
+    }
+  )
+
+  // 7c. Standalone capitalised common names — single word with initial cap that is a known name
+  //     e.g. "My client Sarah mentioned..." → "My client [NAME] mentioned..."
+  //     Uses word boundaries and requires the word to start with uppercase to avoid
+  //     matching lowercase occurrences inside sentences like "I will grace the stage".
+  //     Names that double as common English words (Mark, Grace, Dawn, etc.) are excluded
+  //     to prevent false positives — they're still caught when part of a multi-word name.
+  text = text.replace(
+    /\b([A-Z][a-z]+)\b/g,
+    (match) => {
+      const lower = match.toLowerCase()
+      if (COMMON_NAMES.has(lower) && !AMBIGUOUS_STANDALONE.has(lower)) {
         counts.names++
         return '[NAME]'
       }

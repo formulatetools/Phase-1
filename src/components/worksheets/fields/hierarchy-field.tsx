@@ -103,7 +103,7 @@ export function HierarchyField({ field, value, onChange }: Props) {
     <div>
       <label className="block text-sm font-medium text-primary-700">
         {field.label}
-        {field.required && <span className="ml-1 text-red-500">*</span>}
+        {field.required && <span className="ml-1 text-red-500" aria-hidden="true">*</span>}
       </label>
       <div className="mt-3 space-y-2">
         {sortedIndices.map((originalIndex) => {
@@ -204,6 +204,7 @@ export function HierarchyField({ field, value, onChange }: Props) {
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -230,6 +231,7 @@ export function HierarchyField({ field, value, onChange }: Props) {
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"

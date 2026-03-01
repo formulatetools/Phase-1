@@ -44,7 +44,9 @@ export async function POST(request: NextRequest) {
         const userId = session.metadata?.supabase_user_id
         const subscriptionId = session.subscription as string
 
-        if (!userId || !subscriptionId) break
+        // Validate userId is a UUID to prevent injection via Stripe metadata
+        const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        if (!userId || !uuidRe.test(userId) || !subscriptionId) break
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
         const priceId = subscription.items.data[0]?.price.id
@@ -339,8 +341,10 @@ export async function POST(request: NextRequest) {
       }
     }
   } catch (error) {
+    // Log but return 200 to prevent Stripe from retrying non-transient errors
+    // (e.g. profile not found, DB constraint violations). Stripe will retry
+    // indefinitely on 5xx responses, creating noise and wasted compute.
     console.error('Webhook handler error:', error)
-    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
   }
 
   return NextResponse.json({ received: true })

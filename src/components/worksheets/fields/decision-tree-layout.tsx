@@ -61,7 +61,7 @@ export function DecisionTreeLayout({
                 onClick={() => updateValue(section.id, 'yes')}
                 className={`rounded-lg border-2 px-5 py-2 text-sm font-semibold transition-colors ${
                   branchValue === 'yes'
-                    ? 'border-green-500 bg-green-50 text-green-700'
+                    ? 'border-green-500 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300 dark:border-green-400'
                     : 'border-primary-200 text-primary-500 hover:border-green-300 hover:text-green-600'
                 }`}
               >
@@ -72,7 +72,7 @@ export function DecisionTreeLayout({
                 onClick={() => updateValue(section.id, 'no')}
                 className={`rounded-lg border-2 px-5 py-2 text-sm font-semibold transition-colors ${
                   branchValue === 'no'
-                    ? 'border-red-500 bg-red-50 text-red-700'
+                    ? 'border-red-500 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-400'
                     : 'border-primary-200 text-primary-500 hover:border-red-300 hover:text-red-600'
                 }`}
               >
@@ -82,8 +82,8 @@ export function DecisionTreeLayout({
 
             {/* Selected branch content */}
             {branchValue === 'yes' && (
-              <div className="rounded-xl border-2 border-green-200 bg-green-50 p-4 space-y-3">
-                <p className="text-sm font-semibold text-green-700">
+              <div className="rounded-xl border-2 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20 p-4 space-y-3">
+                <p className="text-sm font-semibold text-green-700 dark:text-green-300">
                   {branches.yes.label}
                 </p>
                 {branches.yes.fields?.map((f) => {
@@ -95,15 +95,15 @@ export function DecisionTreeLayout({
                   }
                   return renderField(fieldDef)
                 })}
-                <div className="mt-2 rounded-lg bg-green-100 p-3 text-sm text-green-800">
+                <div className="mt-2 rounded-lg bg-green-100 dark:bg-green-900/30 p-3 text-sm text-green-800 dark:text-green-200">
                   {branches.yes.outcome}
                 </div>
               </div>
             )}
 
             {branchValue === 'no' && (
-              <div className="rounded-xl border-2 border-red-200 bg-red-50 p-4 space-y-3">
-                <p className="text-sm font-semibold text-red-700">
+              <div className="rounded-xl border-2 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20 p-4 space-y-3">
+                <p className="text-sm font-semibold text-red-700 dark:text-red-300">
                   {branches.no.label}
                 </p>
                 {branches.no.fields?.map((f) => {
@@ -115,7 +115,7 @@ export function DecisionTreeLayout({
                   }
                   return renderField(fieldDef)
                 })}
-                <div className="mt-2 rounded-lg bg-red-100 p-3 text-sm text-red-800">
+                <div className="mt-2 rounded-lg bg-red-100 dark:bg-red-900/30 p-3 text-sm text-red-800 dark:text-red-200">
                   {branches.no.outcome}
                 </div>
               </div>
@@ -164,13 +164,13 @@ export function DecisionTreeReadOnly({
 
         return (
           <div key={section.id} className="space-y-3">
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20 p-3">
               <p className="text-sm font-medium text-primary-700">
                 {section.question}
               </p>
               <p
                 className={`mt-1 text-sm font-semibold ${
-                  isYes ? 'text-green-700' : 'text-red-700'
+                  isYes ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
                 }`}
               >
                 {isYes ? 'Yes' : 'No'} \u2014 {selectedBranch.label}
@@ -190,8 +190,8 @@ export function DecisionTreeReadOnly({
             <div
               className={`rounded-lg p-3 text-sm ${
                 isYes
-                  ? 'bg-green-50 text-green-800 border border-green-200'
-                  : 'bg-red-50 text-red-800 border border-red-200'
+                  ? 'bg-green-50 text-green-800 border border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-800'
+                  : 'bg-red-50 text-red-800 border border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-800'
               }`}
             >
               {selectedBranch.outcome}

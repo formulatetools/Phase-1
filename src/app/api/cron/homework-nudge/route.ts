@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/email'
 import { homeworkNudgeEmail, homeworkFollowUpEmail } from '@/lib/email-templates'
+import { verifyCronSecret } from '@/lib/utils/verify-cron-secret'
 
 /**
  * Homework nudge cron — sends therapist reminders when a client's
@@ -28,9 +29,8 @@ const NUDGE_TIERS = [
 ] as const
 
 export async function GET(request: NextRequest) {
-  // Verify cron secret
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Verify cron secret (timing-safe)
+  if (!verifyCronSecret(request.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
     .lt('assigned_at', fortyEightHoursAgo)
     .gt('expires_at', now)
     .is('deleted_at', null)
+    .is('locked_at', null)
 
   if (!candidates || candidates.length === 0) {
     return NextResponse.json({ ok: true, sent: 0, candidates: 0 })

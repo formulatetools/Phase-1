@@ -55,6 +55,7 @@ export function TableField({ field, value, onChange }: Props) {
   const renderCell = (col: TableColumn, rowIndex: number, cellValue: CellValue) => {
     const baseClass =
       'w-full border-0 bg-transparent px-2 py-1.5 text-sm text-primary-900 placeholder-primary-400 focus:outline-none focus:ring-0'
+    const cellLabel = `${col.header}, row ${rowIndex + 1}`
 
     switch (col.type) {
       case 'number':
@@ -72,6 +73,7 @@ export function TableField({ field, value, onChange }: Props) {
             min={col.min}
             max={col.max}
             step={col.step}
+            aria-label={cellLabel}
             className={baseClass}
           />
         )
@@ -81,6 +83,7 @@ export function TableField({ field, value, onChange }: Props) {
             value={cellValue}
             onChange={(e) => updateCell(rowIndex, col.id, e.target.value)}
             rows={2}
+            aria-label={cellLabel}
             className={`${baseClass} resize-y`}
           />
         )
@@ -90,6 +93,7 @@ export function TableField({ field, value, onChange }: Props) {
             type="text"
             value={cellValue}
             onChange={(e) => updateCell(rowIndex, col.id, e.target.value)}
+            aria-label={cellLabel}
             className={baseClass}
           />
         )
@@ -100,7 +104,7 @@ export function TableField({ field, value, onChange }: Props) {
     <div>
       <label className="block text-sm font-medium text-primary-700">
         {field.label}
-        {field.required && <span className="ml-1 text-red-500">*</span>}
+        {field.required && <span className="ml-1 text-red-500" aria-hidden="true">*</span>}
       </label>
       <div className="mt-2 overflow-x-auto rounded-lg border border-primary-200">
         <table className="w-full min-w-[600px]">
@@ -136,10 +140,10 @@ export function TableField({ field, value, onChange }: Props) {
                     <button
                       type="button"
                       onClick={() => removeRow(rowIndex)}
-                      className="text-primary-400 hover:text-red-500"
+                      className="rounded p-2 text-primary-400 hover:bg-red-50 hover:text-red-500"
                       aria-label="Remove row"
                     >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -154,9 +158,9 @@ export function TableField({ field, value, onChange }: Props) {
         <button
           type="button"
           onClick={addRow}
-          className="mt-2 flex items-center gap-1 text-sm font-medium text-brand-text hover:text-brand-dark"
+          className="mt-2 flex items-center gap-1 text-sm font-medium text-brand-text hover:text-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 rounded"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
           Add row

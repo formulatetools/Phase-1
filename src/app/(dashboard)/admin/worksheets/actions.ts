@@ -4,6 +4,9 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
 
+// Slug must be lowercase alphanumeric with hyphens, 2-100 chars
+const SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{0,98}[a-z0-9])?$/
+
 export async function createWorksheet(formData: FormData) {
   const { profile } = await getCurrentUser()
   if (!profile || profile.role !== 'admin') redirect('/dashboard')
@@ -12,6 +15,11 @@ export async function createWorksheet(formData: FormData) {
 
   const title = formData.get('title') as string
   const slug = formData.get('slug') as string
+
+  if (!title?.trim()) return { error: 'Title is required' }
+  if (!slug || !SLUG_REGEX.test(slug)) {
+    return { error: 'Slug must be lowercase letters, numbers, and hyphens (2-100 chars)' }
+  }
   const description = formData.get('description') as string
   const instructions = formData.get('instructions') as string
   const categoryId = formData.get('category_id') as string
@@ -77,6 +85,11 @@ export async function updateWorksheet(worksheetId: string, formData: FormData) {
   const tagsRaw = formData.get('tags') as string
   const estimatedMinutes = formData.get('estimated_minutes') as string
   const schemaJson = formData.get('schema') as string
+
+  if (!title?.trim()) return { error: 'Title is required' }
+  if (!slug || !SLUG_REGEX.test(slug)) {
+    return { error: 'Slug must be lowercase letters, numbers, and hyphens (2-100 chars)' }
+  }
 
   let schema
   try {

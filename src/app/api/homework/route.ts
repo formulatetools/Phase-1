@@ -16,6 +16,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing token or response_data' }, { status: 400 })
     }
 
+    // Validate action field — only 'save' and 'submit' are valid
+    if (action !== undefined && action !== 'save' && action !== 'submit') {
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+    }
+
+    // Reject oversized payloads (max 2MB for response data)
+    const payloadSize = JSON.stringify(response_data).length
+    if (payloadSize > 2 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Response data is too large' }, { status: 413 })
+    }
+
     // Validate multi-entry format if present
     if (response_data._entries !== undefined && !Array.isArray(response_data._entries)) {
       return NextResponse.json({ error: 'Invalid response format' }, { status: 400 })
@@ -23,10 +34,10 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceClient()
 
-    // Look up assignment by token
+    // Look up assignment by token (select only needed fields)
     const { data: assignment, error: lookupError } = await supabase
       .from('worksheet_assignments')
-      .select('*')
+      .select('id, expires_at, locked_at, status, worksheet_id, relationship_id')
       .eq('token', token)
       .is('deleted_at', null)
       .single()
@@ -43,6 +54,28 @@ export async function POST(request: NextRequest) {
     // Check if locked
     if (assignment.locked_at) {
       return NextResponse.json({ error: 'This assignment has been locked by your therapist' }, { status: 403 })
+    }
+
+    // Check if withdrawn (consent revoked)
+    if (assignment.status === 'withdrawn') {
+      return NextResponse.json({ error: 'This assignment has been withdrawn' }, { status: 403 })
+    }
+
+    // Enforce max_entries for multi-entry (diary) worksheets
+    if (Array.isArray(response_data._entries) && response_data._entries.length > 0) {
+      const { data: ws } = await supabase
+        .from('worksheets')
+        .select('schema')
+        .eq('id', assignment.worksheet_id)
+        .single()
+
+      const maxEntries = (ws?.schema as { max_entries?: number } | null)?.max_entries ?? 7
+      if (response_data._entries.length > maxEntries) {
+        return NextResponse.json(
+          { error: `Maximum ${maxEntries} entries allowed` },
+          { status: 400 }
+        )
+      }
     }
 
     // Find existing response or create new one

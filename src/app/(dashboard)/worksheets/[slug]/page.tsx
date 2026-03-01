@@ -1,12 +1,27 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { createClient as createDirectClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
+import { getWorksheetBySlug } from '@/lib/supabase/queries'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import { WorksheetDetail } from '@/components/worksheets/worksheet-detail'
 import { getResourceType } from '@/lib/utils/resource-type'
 import type { ContributorProfile } from '@/types/database'
+
+export async function generateStaticParams() {
+  const supabase = createDirectClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { data } = await supabase
+    .from('worksheets')
+    .select('slug')
+    .eq('is_published', true)
+    .is('deleted_at', null)
+  return (data || []).map((w) => ({ slug: w.slug }))
+}
 
 // ── Dynamic SEO metadata per worksheet ───────────────────────────────────────
 export async function generateMetadata({
@@ -15,15 +30,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: worksheet } = await supabase
-    .from('worksheets')
-    .select('title, description, tags, categories(name)')
-    .eq('slug', slug)
-    .eq('is_published', true)
-    .is('deleted_at', null)
-    .single()
+  const worksheet = await getWorksheetBySlug(slug)
 
   if (!worksheet) return { title: 'Resource Not Found' }
 
@@ -36,15 +43,20 @@ export async function generateMetadata({
     title,
     description,
     keywords: worksheet.tags || [],
+    alternates: {
+      canonical: `/worksheets/${slug}`,
+    },
     openGraph: {
       title: `${worksheet.title} — Clinical Resource`,
       description,
       type: 'article',
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: `${worksheet.title} — Formulate` }],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: `${worksheet.title} — Clinical Resource`,
       description,
+      images: ['/og-image.png'],
     },
   }
 }
@@ -55,17 +67,11 @@ export default async function WorksheetPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: worksheet } = await supabase
-    .from('worksheets')
-    .select('*, categories(name, slug)')
-    .eq('slug', slug)
-    .eq('is_published', true)
-    .is('deleted_at', null)
-    .single()
+  const worksheet = await getWorksheetBySlug(slug)
 
   if (!worksheet) notFound()
+
+  const supabase = await createClient()
 
   // Fetch contributor profile if this is a contributed worksheet
   let contributorName: string | null = null

@@ -13,28 +13,27 @@ export default async function SupervisionPage() {
 
   const supabase = await createClient()
 
-  // Fetch all non-deleted supervision relationships
-  const { data: relationships } = await supabase
-    .from('therapeutic_relationships')
-    .select('*')
-    .eq('therapist_id', user.id)
-    .eq('relationship_type', 'supervision')
-    .is('deleted_at', null)
-    .order('started_at', { ascending: false })
+  // Fetch relationships and assignments in parallel
+  const [{ data: relationships }, { data: allAssignments }] = await Promise.all([
+    supabase
+      .from('therapeutic_relationships')
+      .select('*')
+      .eq('therapist_id', user.id)
+      .eq('relationship_type', 'supervision')
+      .is('deleted_at', null)
+      .order('started_at', { ascending: false }),
 
-  // Count active assignments per supervisee
-  const relationshipIds = (relationships || []).map((r) => r.id)
-  let assignments: { id: string; relationship_id: string; status: string }[] = []
-  if (relationshipIds.length > 0) {
-    const { data } = await supabase
+    supabase
       .from('worksheet_assignments')
       .select('id, relationship_id, status')
       .eq('therapist_id', user.id)
-      .in('relationship_id', relationshipIds)
-      .is('deleted_at', null)
+      .is('deleted_at', null),
+  ])
 
-    assignments = (data || []) as { id: string; relationship_id: string; status: string }[]
-  }
+  // Filter assignments to only supervision relationships
+  const relationshipIds = new Set((relationships || []).map((r) => r.id))
+  const assignments = ((allAssignments || []) as { id: string; relationship_id: string; status: string }[])
+    .filter((a) => relationshipIds.has(a.relationship_id))
 
   const tier = profile.subscription_tier as SubscriptionTier
   const limits = TIER_LIMITS[tier]

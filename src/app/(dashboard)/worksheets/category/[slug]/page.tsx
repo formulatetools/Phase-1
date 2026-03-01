@@ -1,7 +1,18 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { createClient as createDirectClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
+import { getCategoryBySlug } from '@/lib/supabase/queries'
+
+export async function generateStaticParams() {
+  const supabase = createDirectClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { data } = await supabase.from('categories').select('slug')
+  return (data || []).map((c) => ({ slug: c.slug }))
+}
 
 // ── Dynamic SEO metadata per category ────────────────────────────────────────
 export async function generateMetadata({
@@ -10,13 +21,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: category } = await supabase
-    .from('categories')
-    .select('name, description')
-    .eq('slug', slug)
-    .single()
+  const category = await getCategoryBySlug(slug)
 
   if (!category) return { title: 'Category Not Found' }
 
@@ -25,6 +30,9 @@ export async function generateMetadata({
     description:
       category.description ||
       `Browse ${category.name} CBT resources and clinical tools.`,
+    alternates: {
+      canonical: `/worksheets/category/${slug}`,
+    },
   }
 }
 
@@ -34,16 +42,11 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: category } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('slug', slug)
-    .single()
+  const category = await getCategoryBySlug(slug)
 
   if (!category) notFound()
 
+  const supabase = await createClient()
   const { data: worksheets } = await supabase
     .from('worksheets')
     .select('*')

@@ -53,7 +53,11 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
       if (error) {
         setError(error.message)
       } else {
-        setMessage('Check your email for a confirmation link.')
+        setMessage(
+          redirectTo?.includes('/my-tools/ai')
+            ? 'Almost there — confirm your email and we\u2019ll generate your worksheet instantly.'
+            : 'Check your email for a confirmation link.'
+        )
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({

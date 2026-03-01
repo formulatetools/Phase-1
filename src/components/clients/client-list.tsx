@@ -30,6 +30,7 @@ export function ClientList({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [piiWarning, setPiiWarning] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
 
   const canAddClient = maxClients === Infinity || clientCount < maxClients
   const atLimit = !canAddClient
@@ -84,8 +85,13 @@ export function ClientList({
     await reactivateClient(id)
   }
 
-  const activeClients = relationships.filter((r) => r.status === 'active')
-  const dischargedClients = relationships.filter((r) => r.status === 'discharged')
+  const searchLower = search.toLowerCase()
+  const activeClients = relationships.filter(
+    (r) => r.status === 'active' && (!search || r.client_label.toLowerCase().includes(searchLower))
+  )
+  const dischargedClients = relationships.filter(
+    (r) => r.status === 'discharged' && (!search || r.client_label.toLowerCase().includes(searchLower))
+  )
 
   return (
     <div className="space-y-6">
@@ -115,6 +121,31 @@ export function ClientList({
               </Link>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Search */}
+      {relationships.length > 3 && (
+        <div className="relative">
+          <label htmlFor="client-search" className="sr-only">Search clients</label>
+          <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          <input
+            id="client-search"
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search clients…"
+            className="w-full rounded-lg border border-primary-200 py-2 pl-9 pr-3 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none"
+          />
+        </div>
+      )}
+
+      {/* Screen reader announcement for search results */}
+      {search && (
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {activeClients.length} active client{activeClients.length !== 1 ? 's' : ''} found
         </div>
       )}
 
@@ -239,12 +270,12 @@ export function ClientList({
                     </span>
                   )}
                   {stats.completed > 0 && (
-                    <span className="hidden sm:inline rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                    <span className="hidden sm:inline rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300">
                       {stats.completed} completed
                     </span>
                   )}
                   {(stats.active > 0 || stats.completed > 0) && (
-                    <span className="sm:hidden rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-medium text-primary-600">
+                    <span className="sm:hidden rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-medium text-primary-600">
                       {stats.active + stats.completed}
                     </span>
                   )}

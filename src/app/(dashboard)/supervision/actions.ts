@@ -334,6 +334,18 @@ export async function gdprEraseSupervision(relationshipId: string) {
 
   if (respError) return { error: `Failed to delete responses: ${respError.message}` }
 
+  // Hard-delete homework events linked to this relationship
+  await supabase
+    .from('homework_events')
+    .delete()
+    .eq('relationship_id', relationshipId)
+
+  // Hard-delete homework consent records linked to this relationship
+  await supabase
+    .from('homework_consent')
+    .delete()
+    .eq('relationship_id', relationshipId)
+
   // Hard-delete all worksheet assignments
   const { error: assignError } = await supabase
     .from('worksheet_assignments')

@@ -25,6 +25,7 @@ export function SuperviseeList({
   const [newLabel, setNewLabel] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
 
   const canAdd = maxSupervisees === Infinity || superviseeCount < maxSupervisees
   const atLimit = !canAdd
@@ -75,8 +76,13 @@ export function SuperviseeList({
     await reactivateSupervisee(id)
   }
 
-  const activeSupervisees = relationships.filter((r) => r.status === 'active')
-  const endedSupervisees = relationships.filter((r) => r.status === 'discharged')
+  const searchLower = search.toLowerCase()
+  const activeSupervisees = relationships.filter(
+    (r) => r.status === 'active' && (!search || r.client_label.toLowerCase().includes(searchLower))
+  )
+  const endedSupervisees = relationships.filter(
+    (r) => r.status === 'discharged' && (!search || r.client_label.toLowerCase().includes(searchLower))
+  )
 
   // Tier-gated state: show upgrade prompt
   if (tierBlocked) {
@@ -131,6 +137,31 @@ export function SuperviseeList({
         </div>
       )}
 
+      {/* Search */}
+      {relationships.length > 3 && (
+        <div className="relative">
+          <label htmlFor="supervisee-search" className="sr-only">Search supervisees</label>
+          <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          <input
+            id="supervisee-search"
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search supervisees…"
+            className="w-full rounded-lg border border-primary-200 py-2 pl-9 pr-3 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none"
+          />
+        </div>
+      )}
+
+      {/* Screen reader announcement for search results */}
+      {search && (
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {activeSupervisees.length} active supervisee{activeSupervisees.length !== 1 ? 's' : ''} found
+        </div>
+      )}
+
       {/* Add supervisee */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-primary-900">
@@ -153,7 +184,7 @@ export function SuperviseeList({
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
           {error}
           {error.includes('Upgrade') && (
             <Link href="/pricing" className="ml-2 font-medium underline underline-offset-2">
@@ -244,7 +275,7 @@ export function SuperviseeList({
                     </span>
                   )}
                   {stats.completed > 0 && (
-                    <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                    <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300">
                       {stats.completed} completed
                     </span>
                   )}

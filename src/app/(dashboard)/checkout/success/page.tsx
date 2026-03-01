@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { stripe } from '@/lib/stripe/client'
+import { getCurrentUser } from '@/lib/supabase/auth'
 import { TIER_LABELS, TIER_FEATURES } from '@/lib/stripe/config'
 
 export const metadata = {
@@ -17,11 +18,15 @@ export default async function CheckoutSuccessPage({
 
   if (!sessionId) redirect('/dashboard')
 
-  // Verify the checkout session with Stripe
+  const { user } = await getCurrentUser()
+  if (!user) redirect('/login')
+
+  // Verify the checkout session with Stripe and confirm ownership
   let tier: string = 'starter'
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId)
     if (session.payment_status !== 'paid') redirect('/dashboard')
+    if (session.metadata?.supabase_user_id !== user.id) redirect('/dashboard')
     tier = (session.metadata?.tier as string) || 'starter'
   } catch {
     redirect('/dashboard')

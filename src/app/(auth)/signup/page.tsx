@@ -7,15 +7,19 @@ export const metadata: Metadata = {
   title: 'Create Account',
   description:
     'Sign up free for access to professional CBT worksheets and clinical tools.',
+  alternates: {
+    canonical: '/signup',
+  },
 }
 
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ref?: string }>
+  searchParams: Promise<{ ref?: string; redirect?: string }>
 }) {
   const params = await searchParams
   const referralCode = params.ref || null
+  const redirectTo = params.redirect || undefined
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -44,7 +48,7 @@ export default async function SignupPage({
         )}
 
         <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-primary-100">
-          <AuthForm mode="signup" referralCode={referralCode} />
+          <AuthForm mode="signup" referralCode={referralCode} redirectTo={redirectTo} />
         </div>
 
         <p className="mt-6 text-center text-sm text-primary-500">

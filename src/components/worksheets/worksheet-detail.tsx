@@ -8,6 +8,7 @@ import type { ResourceType } from '@/lib/utils/resource-type'
 import { WorksheetRenderer } from './worksheet-renderer'
 import { WorksheetExport } from './worksheet-export'
 import { AssignFromLibraryModal } from './assign-from-library-modal'
+import { ClientExperienceDemo } from '@/components/marketing/client-experience-demo'
 import { buttonVariants } from '@/components/ui/button'
 import { trackAccess } from '@/app/(dashboard)/worksheets/actions'
 
@@ -167,6 +168,19 @@ export function WorksheetDetail({ worksheet, accessState, usesRemaining, resourc
         }}
         resourceType={resourceType}
       />
+
+      {/* "See the client experience" demo section */}
+      {accessState === 'subscribed' && (
+        <div className="mt-10 border-t border-primary-100 pt-8">
+          <h3 className="mb-1 text-sm font-semibold text-primary-900">
+            See the client experience
+          </h3>
+          <p className="mb-4 text-xs text-primary-500">
+            Try the exact same interface your clients use when they receive a homework link.
+          </p>
+          <ClientExperienceDemo currentSlug={worksheet.slug} compact />
+        </div>
+      )}
     </div>
   )
 }

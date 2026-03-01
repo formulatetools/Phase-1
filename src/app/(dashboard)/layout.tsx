@@ -21,6 +21,13 @@ export default async function DashboardLayout({
   return (
     <KeyboardShortcutsProvider>
       <div className="min-h-screen bg-primary-50/50">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:bg-primary-800 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white focus:outline-2 focus:outline-offset-2 focus:outline-brand"
+        >
+          Skip to main content
+        </a>
+
         <SidebarNav
           userEmail={profile.email}
           userName={profile.full_name}
@@ -30,7 +37,7 @@ export default async function DashboardLayout({
 
         {/* Main content area — offset by sidebar width on desktop */}
         <div className="md:pl-64">
-          <main className="min-h-screen pb-20 md:pb-0 animate-fade-in">
+          <main id="main-content" className="min-h-screen pb-20 md:pb-0 animate-fade-in">
             {children}
           </main>
         </div>

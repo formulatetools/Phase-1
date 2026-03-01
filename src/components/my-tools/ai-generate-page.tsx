@@ -68,9 +68,17 @@ export function AIGeneratePage({ tier, atLimit }: AIGeneratePageProps) {
     return () => clearInterval(interval)
   }, [state])
 
-  // Auto-focus input on mount
+  // Check localStorage for a prompt from the landing page teaser
+  const autoTriggered = useRef(false)
   useEffect(() => {
-    inputRef.current?.focus()
+    const landingPrompt = localStorage.getItem('formulate_landing_prompt')
+    if (landingPrompt) {
+      localStorage.removeItem('formulate_landing_prompt')
+      autoTriggered.current = true
+      setDescription(landingPrompt)
+    } else {
+      inputRef.current?.focus()
+    }
   }, [])
 
   const handleGenerate = useCallback(async () => {
@@ -111,6 +119,14 @@ export function AIGeneratePage({ tier, atLimit }: AIGeneratePageProps) {
       setState('input')
     }
   }, [description, toast])
+
+  // Auto-trigger generation when pre-filled from landing page
+  useEffect(() => {
+    if (autoTriggered.current && description && state === 'input') {
+      autoTriggered.current = false
+      handleGenerate()
+    }
+  }, [description, state, handleGenerate])
 
   const handleSave = useCallback(async () => {
     if (!result) return
@@ -159,31 +175,7 @@ export function AIGeneratePage({ tier, atLimit }: AIGeneratePageProps) {
     setTimeout(() => inputRef.current?.focus(), 100)
   }, [])
 
-  // ── Free tier or at limit ──────────────────────────────────────────
-  if (tier === 'free') {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <div className="mb-4 flex justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10">
-            <svg className="h-7 w-7 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
-            </svg>
-          </div>
-        </div>
-        <h1 className="text-2xl font-bold text-primary-900">AI Worksheet Generator</h1>
-        <p className="mt-2 text-sm text-primary-500">
-          Upgrade to Starter or above to generate worksheets from text descriptions.
-        </p>
-        <Link
-          href="/pricing"
-          className="mt-6 inline-flex rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90"
-        >
-          View plans
-        </Link>
-      </div>
-    )
-  }
-
+  // ── At custom worksheet limit ─────────────────────────────────────
   if (atLimit) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
@@ -241,19 +233,30 @@ export function AIGeneratePage({ tier, atLimit }: AIGeneratePageProps) {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50"
-              >
-                {saving ? 'Saving...' : 'Save to My Tools'}
-              </button>
-              <button
-                onClick={handleEditInBuilder}
-                className="rounded-lg border border-primary-200 px-3 py-1.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50"
-              >
-                Edit in Builder
-              </button>
+              {tier === 'free' ? (
+                <Link
+                  href="/pricing"
+                  className="rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90"
+                >
+                  Upgrade to Save
+                </Link>
+              ) : (
+                <>
+                  <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50"
+                  >
+                    {saving ? 'Saving...' : 'Save to My Tools'}
+                  </button>
+                  <button
+                    onClick={handleEditInBuilder}
+                    className="rounded-lg border border-primary-200 px-3 py-1.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50"
+                  >
+                    Edit in Builder
+                  </button>
+                </>
+              )}
               <button
                 onClick={handleGenerateAnother}
                 className="rounded-lg border border-primary-200 px-3 py-1.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50"
@@ -403,7 +406,7 @@ export function AIGeneratePage({ tier, atLimit }: AIGeneratePageProps) {
               <button
                 key={example}
                 onClick={() => setDescription(example)}
-                className="rounded-full border border-primary-100 bg-surface px-3 py-1.5 text-xs text-primary-500 transition-colors hover:border-brand/30 hover:bg-brand/5 hover:text-brand dark:border-primary-700 dark:bg-primary-800 dark:text-primary-400 dark:hover:border-brand/40 dark:hover:text-brand"
+                className="rounded-full border border-primary-100 bg-surface px-3.5 py-2.5 text-xs text-primary-500 transition-colors hover:border-brand/30 hover:bg-brand/5 hover:text-brand dark:border-primary-700 dark:bg-primary-800 dark:text-primary-400 dark:hover:border-brand/40 dark:hover:text-brand"
               >
                 {example}
               </button>

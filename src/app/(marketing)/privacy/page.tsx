@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { LogoIcon } from '@/components/ui/logo'
 
 export const metadata = {
   title: 'Privacy Policy — Formulate',
@@ -9,13 +8,6 @@ export const metadata = {
 export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="mb-8 flex items-center gap-3">
-        <Link href="/" className="flex items-center gap-2">
-          <LogoIcon size={24} />
-          <span className="text-lg font-semibold text-primary-800">formulate</span>
-        </Link>
-      </div>
-
       <h1 className="text-3xl font-bold text-primary-900">Privacy Policy</h1>
       <p className="mt-2 text-sm text-primary-400">Draft — last updated February 2026. This policy requires legal review before formal publication.</p>
 
@@ -104,8 +96,8 @@ export default function PrivacyPage() {
       </div>
 
       <div className="mt-12 border-t border-primary-100 pt-6">
-        <Link href="/" className="text-sm text-primary-400 hover:text-primary-600 transition-colors">
-          &larr; Back to Formulate
+        <Link href="/terms" className="text-sm text-primary-400 hover:text-primary-600 transition-colors">
+          Terms of Service &rarr;
         </Link>
       </div>
     </main>

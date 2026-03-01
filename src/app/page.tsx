@@ -1,9 +1,14 @@
 import Link from 'next/link'
+import { createClient as createDirectClient } from '@supabase/supabase-js'
 import { LogoIcon } from '@/components/ui/logo'
 import { LandingNav } from '@/components/marketing/landing-nav'
+import { MarketingFooter } from '@/components/marketing/marketing-footer'
 import { WorksheetPreview } from '@/components/marketing/worksheet-preview'
+import { AIGenerateTeaser } from '@/components/marketing/ai-generate-teaser'
 import { PricingTable } from '@/components/marketing/pricing-table'
 import { buttonVariants } from '@/components/ui/button-variants'
+import { DEMO_WORKSHEETS } from '@/lib/demo-data'
+import type { Worksheet } from '@/types/database'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -22,9 +27,31 @@ export const metadata: Metadata = {
     description:
       'Generate custom CBT worksheets with AI. Interactive formulation diagrams, homework links, and a curated clinical library — all in one platform.',
   },
+  alternates: {
+    canonical: '/',
+  },
 }
 
-export default function Home() {
+export default async function Home() {
+  // Fetch real worksheet schemas for the interactive preview
+  const supabase = createDirectClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  const demoSlugs = DEMO_WORKSHEETS.map((w) => w.slug)
+  const { data: worksheetRows } = await supabase
+    .from('worksheets')
+    .select('slug, title, description, instructions, schema')
+    .in('slug', demoSlugs)
+    .eq('is_published', true)
+    .is('deleted_at', null)
+
+  // Preserve DEMO_WORKSHEETS ordering
+  const demoWorksheets = demoSlugs
+    .map((slug) => worksheetRows?.find((r) => r.slug === slug))
+    .filter(Boolean) as Pick<Worksheet, 'slug' | 'title' | 'description' | 'instructions' | 'schema'>[]
+
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
@@ -75,17 +102,19 @@ export default function Home() {
             evidence-based exercises — right in their browser.
           </p>
           <div className="mt-12">
-            <WorksheetPreview />
+            {demoWorksheets.length > 0 && (
+              <WorksheetPreview worksheets={demoWorksheets} />
+            )}
           </div>
         </div>
       </section>
 
-      {/* AI Showcase */}
+      {/* AI Showcase — Interactive Teaser */}
       <section id="ai" className="py-20">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-brand">
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
               </svg>
               AI-Powered
@@ -96,62 +125,56 @@ export default function Home() {
             <p className="mx-auto mt-4 max-w-2xl text-primary-500">
               Type a description like &ldquo;health anxiety maintenance formulation&rdquo;
               or &ldquo;thought record for social anxiety&rdquo; — and get a complete,
-              clinically accurate worksheet in seconds.
+              clinically accurate worksheet in seconds. Try it now.
             </p>
           </div>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-3">
-            <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          {/* Interactive AI generation demo */}
+          <AIGenerateTeaser />
+
+          {/* Feature highlights below the teaser */}
+          <div className="mt-14 grid gap-6 sm:grid-cols-3">
+            <div className="flex items-start gap-3 rounded-xl border border-primary-100 bg-surface p-4">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                 </svg>
               </div>
-              <h3 className="mt-4 text-base font-semibold text-primary-900">
-                Generate from a description
-              </h3>
-              <p className="mt-2 text-sm text-primary-500">
-                Describe any CBT worksheet or formulation model. AI generates
-                the full schema — fields, layout, and clinical structure.
-              </p>
+              <div>
+                <h3 className="text-sm font-semibold text-primary-900">Generate from text</h3>
+                <p className="mt-1 text-xs text-primary-500">
+                  Describe any CBT worksheet — AI generates fields, layout, and clinical structure.
+                </p>
+              </div>
             </div>
 
-            <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <div className="flex items-start gap-3 rounded-xl border border-primary-100 bg-surface p-4">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                 </svg>
               </div>
-              <h3 className="mt-4 text-base font-semibold text-primary-900">
-                Import existing worksheets
-              </h3>
-              <p className="mt-2 text-sm text-primary-500">
-                Upload a PDF or Word document of your paper worksheet. AI
-                converts it into an interactive digital version automatically.
-              </p>
+              <div>
+                <h3 className="text-sm font-semibold text-primary-900">Import from PDF</h3>
+                <p className="mt-1 text-xs text-primary-500">
+                  Upload existing paper worksheets and convert them to interactive digital versions.
+                </p>
+              </div>
             </div>
 
-            <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <div className="flex items-start gap-3 rounded-xl border border-primary-100 bg-surface p-4">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
                 </svg>
               </div>
-              <h3 className="mt-4 text-base font-semibold text-primary-900">
-                Interactive formulation diagrams
-              </h3>
-              <p className="mt-2 text-sm text-primary-500">
-                Five areas, vicious flowers, maintenance cycles, longitudinal
-                models, CFT three systems — all interactive with client input fields.
-              </p>
+              <div>
+                <h3 className="text-sm font-semibold text-primary-900">Formulation diagrams</h3>
+                <p className="mt-1 text-xs text-primary-500">
+                  Five areas, vicious flowers, maintenance cycles, CFT — all interactive.
+                </p>
+              </div>
             </div>
-          </div>
-
-          <div className="mt-10 text-center">
-            <p className="text-sm text-primary-400">
-              AI generation available on Starter plans and above.
-              All generated worksheets are fully editable in the builder.
-            </p>
           </div>
         </div>
       </section>
@@ -220,7 +243,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-20">
+      <section className="border-t border-primary-100 bg-primary-100/50 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-center text-3xl font-bold text-primary-900">
             Everything you need in one place
@@ -344,38 +367,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-primary-100 bg-surface py-8">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <div className="flex items-center gap-3">
-              <LogoIcon size={18} />
-              <p className="text-sm text-primary-400">
-                &copy; {new Date().getFullYear()} Formulate. All rights reserved.
-              </p>
-            </div>
-            <div className="flex flex-wrap justify-center gap-6 text-sm text-primary-400">
-              <Link href="/worksheets" className="hover:text-primary-600 transition-colors">
-                Resources
-              </Link>
-              <Link href="/blog" className="hover:text-primary-600 transition-colors">
-                Blog
-              </Link>
-              <Link href="/pricing" className="hover:text-primary-600 transition-colors">
-                Pricing
-              </Link>
-              <Link href="/feature-requests" className="hover:text-primary-600 transition-colors">
-                Feature Requests
-              </Link>
-              <Link href="/privacy" className="hover:text-primary-600 transition-colors">
-                Privacy
-              </Link>
-              <Link href="/terms" className="hover:text-primary-600 transition-colors">
-                Terms
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
   )
 }

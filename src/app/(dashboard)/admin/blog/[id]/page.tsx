@@ -1,4 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -87,9 +88,14 @@ export default async function AdminBlogDetailPage({
         {/* Content preview */}
         <div className="lg:col-span-2">
           {p.cover_image_url && (
-            <div className="mb-4 overflow-hidden rounded-xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.cover_image_url} alt="" className="w-full max-h-64 object-cover" />
+            <div className="relative mb-4 aspect-[3/1] overflow-hidden rounded-xl">
+              <Image
+                src={p.cover_image_url}
+                alt={`Cover for ${p.title}`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 66vw"
+              />
             </div>
           )}
 

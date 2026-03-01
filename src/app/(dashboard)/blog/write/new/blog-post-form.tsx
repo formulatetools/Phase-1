@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { BlogEditor } from '@/components/blog/editor/blog-editor'
 import { saveBlogDraft, updateBlogDraft, submitBlogPost } from '../actions'
@@ -166,9 +167,8 @@ export function BlogPostForm({
       <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
         <label className="mb-2 block text-sm font-medium text-primary-700">Cover Image</label>
         {coverImageUrl ? (
-          <div className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={coverImageUrl} alt="Cover" className="w-full max-h-48 object-cover rounded-xl" />
+          <div className="relative aspect-[3/1] overflow-hidden rounded-xl">
+            <Image src={coverImageUrl} alt="Cover preview" fill className="object-cover" sizes="(max-width: 768px) 100vw, 600px" />
             <button
               type="button"
               onClick={() => { setCoverImageUrl(null); markDirty() }}

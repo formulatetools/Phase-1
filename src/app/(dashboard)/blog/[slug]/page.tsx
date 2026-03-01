@@ -1,11 +1,27 @@
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
+import { createClient as createDirectClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getBlogPostBySlug } from '@/lib/supabase/queries'
 import { BlogPostContent } from '@/components/blog/blog-post-content'
 import { BLOG_CATEGORY_LABELS } from '@/lib/utils/blog'
 import type { BlogPost } from '@/types/database'
 import type { Metadata } from 'next'
+
+export async function generateStaticParams() {
+  const supabase = createDirectClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { data } = await supabase
+    .from('blog_posts')
+    .select('slug')
+    .eq('status', 'published')
+    .is('deleted_at', null)
+  return (data || []).map((p) => ({ slug: p.slug }))
+}
 
 export async function generateMetadata({
   params,
@@ -13,35 +29,32 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: post } = await supabase
-    .from('blog_posts')
-    .select('title, excerpt, tags, category, published_at, cover_image_url')
-    .eq('slug', slug)
-    .eq('status', 'published')
-    .is('deleted_at', null)
-    .single()
+  const post = await getBlogPostBySlug(slug)
 
   if (!post) return { title: 'Blog — Formulate' }
 
   const p = post as BlogPost
+  const description = p.excerpt || `${p.title} — a ${BLOG_CATEGORY_LABELS[p.category] || p.category} article on Formulate`
 
   return {
     title: p.title,
-    description: p.excerpt || `${p.title} — a ${BLOG_CATEGORY_LABELS[p.category] || p.category} article on Formulate`,
+    description,
     keywords: p.tags,
+    alternates: {
+      canonical: `/blog/${slug}`,
+    },
     openGraph: {
       title: p.title,
-      description: p.excerpt || '',
+      description,
       type: 'article',
       publishedTime: p.published_at || undefined,
-      images: p.cover_image_url ? [{ url: p.cover_image_url }] : undefined,
+      modifiedTime: p.updated_at || undefined,
+      images: p.cover_image_url ? [{ url: p.cover_image_url, alt: p.title }] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
       title: p.title,
-      description: p.excerpt || '',
+      description,
       images: p.cover_image_url ? [p.cover_image_url] : undefined,
     },
   }
@@ -53,19 +66,12 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: post } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('slug', slug)
-    .eq('status', 'published')
-    .is('deleted_at', null)
-    .single()
+  const post = await getBlogPostBySlug(slug)
 
   if (!post) notFound()
 
   const p = post as BlogPost
+  const supabase = await createClient()
 
   // Fetch author info (use admin client to bypass profiles RLS for anonymous visitors)
   const admin = createAdminClient()
@@ -94,6 +100,7 @@ export default async function BlogPostPage({
   }
 
   // JSON-LD structured data
+  const baseUrl = 'https://formulatetools.co.uk'
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -110,10 +117,21 @@ export default async function BlogPostPage({
     publisher: {
       '@type': 'Organization',
       name: 'Formulate',
-      url: 'https://formulatetools.co.uk',
+      url: baseUrl,
     },
-    mainEntityOfPage: `https://formulatetools.co.uk/blog/${p.slug}`,
+    mainEntityOfPage: `${baseUrl}/blog/${p.slug}`,
     ...(p.reading_time_minutes ? { timeRequired: `PT${p.reading_time_minutes}M` } : {}),
+  }
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${baseUrl}/blog` },
+      { '@type': 'ListItem', position: 3, name: BLOG_CATEGORY_LABELS[p.category] || p.category, item: `${baseUrl}/blog/category/${p.category}` },
+      { '@type': 'ListItem', position: 4, name: p.title },
+    ],
   }
 
   return (
@@ -121,6 +139,10 @@ export default async function BlogPostPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
       <article className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
@@ -173,9 +195,15 @@ export default async function BlogPostPage({
 
         {/* Cover image */}
         {p.cover_image_url && (
-          <div className="mt-6 overflow-hidden rounded-xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.cover_image_url} alt="" className="w-full object-cover" />
+          <div className="relative mt-6 aspect-[2/1] overflow-hidden rounded-xl">
+            <Image
+              src={p.cover_image_url}
+              alt={`Cover image for ${p.title}`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority
+            />
           </div>
         )}
 

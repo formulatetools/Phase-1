@@ -1,9 +1,14 @@
+import dynamic from 'next/dynamic'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import type { TherapeuticRelationship, SubscriptionTier } from '@/types/database'
-import { ClientList } from '@/components/clients/client-list'
+
+const ClientList = dynamic(
+  () => import('@/components/clients/client-list').then((m) => m.ClientList),
+  { ssr: false }
+)
 
 export const metadata = { title: 'Clients — Formulate' }
 
@@ -13,21 +18,22 @@ export default async function ClientsPage() {
 
   const supabase = await createClient()
 
-  // Fetch all non-deleted clinical relationships (excludes supervision)
-  const { data: relationships } = await supabase
-    .from('therapeutic_relationships')
-    .select('*')
-    .eq('therapist_id', user.id)
-    .eq('relationship_type', 'clinical')
-    .is('deleted_at', null)
-    .order('started_at', { ascending: false })
+  // Fetch relationships and assignments in parallel (independent queries)
+  const [{ data: relationships }, { data: assignments }] = await Promise.all([
+    supabase
+      .from('therapeutic_relationships')
+      .select('*')
+      .eq('therapist_id', user.id)
+      .eq('relationship_type', 'clinical')
+      .is('deleted_at', null)
+      .order('started_at', { ascending: false }),
 
-  // Count active assignments per relationship
-  const { data: assignments } = await supabase
-    .from('worksheet_assignments')
-    .select('id, relationship_id, status')
-    .eq('therapist_id', user.id)
-    .is('deleted_at', null)
+    supabase
+      .from('worksheet_assignments')
+      .select('id, relationship_id, status')
+      .eq('therapist_id', user.id)
+      .is('deleted_at', null),
+  ])
 
   const tier = profile.subscription_tier as SubscriptionTier
   const limits = TIER_LIMITS[tier]

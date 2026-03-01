@@ -5,6 +5,13 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
+    // CSRF protection: verify the request origin matches our app
+    const origin = request.headers.get('origin')
+    const expectedOrigin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    if (origin && !expectedOrigin.startsWith(origin)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const formData = await request.formData()
     const tier = formData.get('tier') as 'starter' | 'standard' | 'professional'
     const period = formData.get('period') as 'monthly' | 'annual'
@@ -23,9 +30,15 @@ export async function POST(request: NextRequest) {
     // Get or create Stripe customer
     const { data: profile } = await supabase
       .from('profiles')
-      .select('stripe_customer_id, email, full_name')
+      .select('stripe_customer_id, email, full_name, subscription_status')
       .eq('id', user.id)
       .single()
+
+    // Prevent double-subscriptions — redirect active subscribers to billing portal
+    if (profile?.subscription_status === 'active') {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      return NextResponse.redirect(new URL('/settings?notice=already_subscribed', appUrl), 303)
+    }
 
     let customerId = profile?.stripe_customer_id
 

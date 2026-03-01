@@ -1,6 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { notFound } from 'next/navigation'
-import type { WorksheetAssignment, Worksheet, WorksheetResponse, PrefillData } from '@/types/database'
+import type { WorksheetAssignment, Worksheet, PrefillData } from '@/types/database'
 import { HomeworkForm } from '@/components/homework/homework-form'
 import { ConsentGate } from '@/components/homework/consent-gate'
 import { LogoIcon } from '@/components/ui/logo'
@@ -25,28 +25,28 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
   // Detect preview mode via signed hash
   const isPreview = !!previewHash && isValidPreviewHash(token, previewHash)
 
-  // Look up assignment by token
+  // Look up assignment by token (select only needed fields)
   const { data: assignment } = await supabase
     .from('worksheet_assignments')
-    .select('*')
+    .select('id, worksheet_id, relationship_id, status, expires_at, locked_at, due_date, prefill_data')
     .eq('token', token)
     .is('deleted_at', null)
     .single()
 
   if (!assignment) notFound()
 
-  const typedAssignment = assignment as WorksheetAssignment
+  const typedAssignment = assignment as Pick<WorksheetAssignment, 'id' | 'worksheet_id' | 'relationship_id' | 'status' | 'expires_at' | 'locked_at' | 'due_date' | 'prefill_data'>
 
-  // Fetch the worksheet
+  // Fetch the worksheet (select only needed fields)
   const { data: worksheet } = await supabase
     .from('worksheets')
-    .select('*')
+    .select('title, description, instructions, schema, is_published')
     .eq('id', typedAssignment.worksheet_id)
     .single()
 
   if (!worksheet) notFound()
 
-  const typedWorksheet = worksheet as Worksheet
+  const typedWorksheet = worksheet as Pick<Worksheet, 'title' | 'description' | 'instructions' | 'schema' | 'is_published'>
 
   // Detect if this is a safety plan worksheet
   const isSafetyPlan = typedWorksheet.schema?.layout === 'safety_plan'
@@ -55,10 +55,10 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
   // Custom worksheets will have a therapist_id once the custom builder ships
   const isCurated = typedWorksheet.is_published
 
-  // Fetch existing response (if any)
+  // Fetch existing response (if any — only need response_data)
   const { data: existingResponse } = await supabase
     .from('worksheet_responses')
-    .select('*')
+    .select('response_data')
     .eq('assignment_id', typedAssignment.id)
     .is('deleted_at', null)
     .single()
@@ -134,8 +134,8 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
     )
   }
 
-  // Read-only view (completed + locked)
-  const readOnly = isLocked || (isCompleted && isLocked)
+  // Read-only if locked or already completed/reviewed
+  const readOnly = isLocked || isCompleted
 
   // Preview content — ConsentGate is skipped, form is disabled
   const mainContent = (
@@ -194,7 +194,7 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
       <HomeworkForm
         token={token}
         schema={typedWorksheet.schema}
-        existingResponse={!isPreview && existingResponse ? (existingResponse as WorksheetResponse).response_data as Record<string, unknown> : undefined}
+        existingResponse={!isPreview && existingResponse ? existingResponse.response_data as Record<string, unknown> : undefined}
         isCompleted={isPreview ? false : isCompleted}
         readOnly={isPreview ? false : readOnly}
         isPreview={isPreview}

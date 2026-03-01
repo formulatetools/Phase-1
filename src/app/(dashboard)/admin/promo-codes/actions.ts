@@ -21,10 +21,17 @@ export async function createPromoCode(formData: FormData): Promise<ActionResult>
 
   // Validation
   if (!code) return { success: false, error: 'Code is required' }
+  if (!/^[A-Z0-9_-]{2,30}$/.test(code)) {
+    return { success: false, error: 'Code must be 2-30 characters: letters, numbers, hyphens, underscores' }
+  }
   if (!['starter', 'standard', 'professional'].includes(tier)) return { success: false, error: 'Invalid tier' }
   if (!durationDays || durationDays <= 0) return { success: false, error: 'Duration must be positive' }
+  if (durationDays > 365) return { success: false, error: 'Duration cannot exceed 365 days' }
 
   const maxRedemptions = maxRedemptionsStr ? parseInt(maxRedemptionsStr, 10) : null
+  if (maxRedemptions !== null && (maxRedemptions <= 0 || !Number.isInteger(maxRedemptions))) {
+    return { success: false, error: 'Max redemptions must be a positive integer' }
+  }
   const expiresAt = expiresAtStr ? new Date(expiresAtStr).toISOString() : null
 
   const supabase = await createClient()

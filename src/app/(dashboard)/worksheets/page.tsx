@@ -8,6 +8,9 @@ import type { ResourceTypeFilter } from '@/lib/utils/resource-type'
 export const metadata = {
   title: 'Resource Library — Formulate',
   description: 'Browse professional CBT resources and clinical tools by category.',
+  alternates: {
+    canonical: '/worksheets',
+  },
 }
 
 export default async function WorksheetsPage({

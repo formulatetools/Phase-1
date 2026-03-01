@@ -1507,6 +1507,11 @@ function generateJs(schema: WorksheetSchema, storageKey: string): string {
   var RECORD_GROUPS = ${recordGroupsJson};
   var saveTimer = null;
 
+  function escHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
   // ── Save / Load ──
 
   function collectData() {
@@ -1768,33 +1773,33 @@ function generateJs(schema: WorksheetSchema, storageKey: string): string {
       rowGroups.forEach(function(group) {
         var col = document.createElement('div');
         col.className = 'record-group-col';
-        col.innerHTML = '<div class="record-group-header">' + group.header + '</div>';
+        col.innerHTML = '<div class="record-group-header">' + escHtml(group.header) + '</div>';
         group.fields.forEach(function(sf) {
           var elId = fid + '_r' + ri + '_' + group.id + '_' + sf.id;
           var html = '';
-          var labelHtml = sf.label ? '<div class="record-subfield-label">' + sf.label + '</div>' : '';
+          var labelHtml = sf.label ? '<div class="record-subfield-label">' + escHtml(sf.label) + '</div>' : '';
           switch (sf.type) {
             case 'textarea':
-              html = '<div class="record-subfield">' + labelHtml + '<textarea id="' + elId + '" name="' + elId + '" rows="3" placeholder="' + (sf.placeholder||'') + '"></textarea></div>';
+              html = '<div class="record-subfield">' + labelHtml + '<textarea id="' + elId + '" name="' + elId + '" rows="3" placeholder="' + escHtml(sf.placeholder||'') + '"></textarea></div>';
               break;
             case 'text':
-              html = '<div class="record-subfield">' + labelHtml + '<input type="text" id="' + elId + '" name="' + elId + '" placeholder="' + (sf.placeholder||'') + '" /></div>';
+              html = '<div class="record-subfield">' + labelHtml + '<input type="text" id="' + elId + '" name="' + elId + '" placeholder="' + escHtml(sf.placeholder||'') + '" /></div>';
               break;
             case 'number':
               html = '<div class="record-subfield">' + labelHtml + '<input type="number" id="' + elId + '" name="' + elId + '" /></div>';
               break;
             case 'likert':
-              var min = sf.min||0, max = sf.max||100, step = sf.step||1, suffix = sf.suffix||'%';
+              var min = sf.min||0, max = sf.max||100, step = sf.step||1, suffix = escHtml(sf.suffix||'%');
               html = '<div class="record-subfield">' + labelHtml + '<div class="record-slider-wrap"><input type="range" id="' + elId + '" name="' + elId + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + min + '" data-likert="1" oninput="document.getElementById(\\'' + elId + '-val\\').textContent=this.value+\\'' + suffix + '\\'" /><span class="record-slider-val" id="' + elId + '-val">' + min + suffix + '</span></div></div>';
               break;
             case 'select':
-              var optHtml = '<option value="">' + (sf.placeholder||'Select...') + '</option>';
-              (sf.options||[]).forEach(function(o){optHtml+='<option value="'+o.id+'">'+o.label+'</option>';});
+              var optHtml = '<option value="">' + escHtml(sf.placeholder||'Select...') + '</option>';
+              (sf.options||[]).forEach(function(o){optHtml+='<option value="'+escHtml(o.id)+'">'+escHtml(o.label)+'</option>';});
               html = '<div class="record-subfield">' + labelHtml + '<select id="' + elId + '" name="' + elId + '">' + optHtml + '</select></div>';
               break;
             case 'checklist':
               var cbHtml = '';
-              (sf.options||[]).forEach(function(o){cbHtml+='<label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" name="'+elId+'" value="'+o.id+'" /> '+o.label+'</label>';});
+              (sf.options||[]).forEach(function(o){cbHtml+='<label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" name="'+elId+'" value="'+escHtml(o.id)+'" /> '+escHtml(o.label)+'</label>';});
               html = '<div class="record-subfield">' + labelHtml + '<div>' + cbHtml + '</div></div>';
               break;
           }

@@ -541,7 +541,7 @@ function RecordPaginationBar({
           className="rounded-lg border border-primary-200 p-1.5 text-primary-500 transition-colors hover:bg-primary-50 disabled:opacity-30 disabled:hover:bg-transparent"
           aria-label="Previous record"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
           </svg>
         </button>
@@ -555,7 +555,7 @@ function RecordPaginationBar({
           className="rounded-lg border border-primary-200 p-1.5 text-primary-500 transition-colors hover:bg-primary-50 disabled:opacity-30 disabled:hover:bg-transparent"
           aria-label="Next record"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>
         </button>
@@ -570,7 +570,7 @@ function RecordPaginationBar({
               className="flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50"
               aria-label="Delete this record"
             >
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
               </svg>
               Delete
@@ -583,7 +583,7 @@ function RecordPaginationBar({
               className="flex items-center gap-1 rounded-lg border border-brand/30 px-2.5 py-1.5 text-xs font-medium text-brand-dark transition-colors hover:bg-brand/5"
               aria-label="Add record"
             >
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
               Add record
@@ -663,7 +663,7 @@ export function RecordFieldRenderer({ field, value, onChange, readOnly }: Props)
       <div className="flex items-baseline justify-between gap-2">
         <label className="block text-sm font-medium text-primary-700">
           {field.label}
-          {field.required && <span className="ml-1 text-red-500">*</span>}
+          {field.required && <span className="ml-1 text-red-500" aria-hidden="true">*</span>}
         </label>
       </div>
 

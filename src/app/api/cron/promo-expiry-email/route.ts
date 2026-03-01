@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/email'
 import { promoExpiryEmail } from '@/lib/email-templates'
+import { verifyCronSecret } from '@/lib/utils/verify-cron-secret'
 
 const TIER_LABELS: Record<string, string> = {
   free: 'Free',
@@ -11,9 +12,8 @@ const TIER_LABELS: Record<string, string> = {
 }
 
 export async function GET(request: NextRequest) {
-  // Verify cron secret (Vercel injects this for scheduled crons)
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Verify cron secret (timing-safe)
+  if (!verifyCronSecret(request.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

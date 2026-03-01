@@ -1,6 +1,21 @@
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
 const LOGO_URL = `${APP_URL}/logo-email.png`
 
+// ─── HTML escaping ──────────────────────────────────────────────
+
+const ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}
+
+/** Escape user-supplied strings before interpolation into HTML email templates. */
+export function esc(str: string): string {
+  return str.replace(/[&<>"']/g, (ch) => ESCAPE_MAP[ch])
+}
+
 // ─── Shared helpers ─────────────────────────────────────────────
 
 interface WrapOptions {
@@ -14,7 +29,7 @@ function wrap(body: string, options: WrapOptions = {}) {
   const {
     preheader,
     signature = true,
-    footerContext = `You received this email because you have a <a href="${APP_URL}" style="color:#999;">Formulate</a> account.`,
+    footerContext = `You received this email because you have a <a href="${APP_URL}" style="color:#767676;">Formulate</a> account.`,
     showPreferencesLink = false,
   } = options
 
@@ -27,7 +42,7 @@ function wrap(body: string, options: WrapOptions = {}) {
     : ''
 
   const prefsHtml = showPreferencesLink
-    ? `<p style="margin:8px 0 0;font-size:12px;color:#999;"><a href="${APP_URL}/settings" style="color:#999;">Manage email preferences</a></p>`
+    ? `<p style="margin:8px 0 0;font-size:12px;color:#767676;"><a href="${APP_URL}/settings" style="color:#767676;">Manage email preferences</a></p>`
     : ''
 
   return `<!DOCTYPE html>
@@ -39,21 +54,21 @@ function wrap(body: string, options: WrapOptions = {}) {
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
         <!-- Header -->
-        <tr><td style="padding:32px 32px 24px;">
+        <tr><td style="background:#ffffff;padding:32px 32px 24px;border-radius:12px 12px 0 0;">
           <img src="${LOGO_URL}" alt="Formulate" height="32" style="height:32px;border:0;" />
         </td></tr>
         <!-- Body -->
-        <tr><td style="background:#ffffff;padding:32px;border-radius:12px;">
+        <tr><td style="background:#ffffff;padding:32px;border-radius:0 0 12px 12px;">
           ${body}
           ${signatureHtml}
         </td></tr>
         <!-- Footer -->
         <tr><td style="padding:24px 32px;text-align:center;">
           <div style="width:24px;height:2px;background:#e4a930;border-radius:2px;margin:0 auto 12px;"></div>
-          <p style="margin:0 0 4px;font-size:12px;color:#999;">
+          <p style="margin:0 0 4px;font-size:12px;color:#767676;">
             Formulate &mdash; Professional CBT tools for clinicians
           </p>
-          <p style="margin:0;font-size:12px;color:#999;">
+          <p style="margin:0;font-size:12px;color:#767676;">
             ${footerContext}
           </p>
           ${prefsHtml}
@@ -84,7 +99,7 @@ function buttonSecondary(text: string, href: string) {
 // ─── Welcome Email ─────────────────────────────────────────────
 
 export function welcomeEmail(name: string | null): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
 
   return {
     subject: 'Welcome to Formulate — your toolkit is ready',
@@ -112,9 +127,9 @@ export function welcomeEmail(name: string | null): { subject: string; html: stri
         Want to explore first? Browse the full library &mdash; every tool is free to preview.
       </p>
       ${buttonSecondary('Browse Worksheets &rarr;', `${APP_URL}/worksheets`)}
-      <p style="margin:16px 0 0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:16px 0 0;font-size:13px;color:#666;line-height:1.5;">
         Need more than 5 tools a month?
-        <a href="${APP_URL}/pricing" style="color:#c48d1e;text-decoration:underline;">Upgrade anytime</a> from &pound;4.99/month.
+        <a href="${APP_URL}/pricing" style="color:#9a6e15;text-decoration:underline;">Upgrade anytime</a> from &pound;4.99/month.
       </p>
     `, {
       preheader: 'Your free toolkit is ready — 5 worksheet uses per month',
@@ -125,7 +140,7 @@ export function welcomeEmail(name: string | null): { subject: string; html: stri
 // ─── Engagement Nudge Email ────────────────────────────────────
 
 export function engagementEmail(name: string | null): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
 
   return {
     subject: 'Your CBT toolkit is ready',
@@ -147,7 +162,7 @@ export function engagementEmail(name: string | null): { subject: string; html: s
         Each worksheet can be completed on-screen and exported as a clean PDF.
       </p>
       ${button('Try Your First Worksheet', `${APP_URL}/worksheets`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:0;font-size:13px;color:#666;line-height:1.5;">
         Your free plan includes 5 worksheet uses per month &mdash; no credit card required.
       </p>
     `, {
@@ -166,7 +181,7 @@ export function homeworkCompletedEmail(
   worksheetTitle: string,
   clientDetailUrl: string
 ): { subject: string; html: string } {
-  const greeting = therapistName ? `Hi ${therapistName},` : 'Hi there,'
+  const greeting = therapistName ? `Hi ${esc(therapistName)},` : 'Hi there,'
 
   return {
     subject: `${clientLabel} completed their worksheet`,
@@ -176,11 +191,11 @@ export function homeworkCompletedEmail(
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;">
-        <strong>${clientLabel}</strong> has completed <strong>${worksheetTitle}</strong>. You can review their responses now.
+        <strong>${esc(clientLabel)}</strong> has completed <strong>${esc(worksheetTitle)}</strong>. You can review their responses now.
       </p>
       ${button('Review responses', clientDetailUrl)}
     `, {
-      preheader: `${clientLabel} completed ${worksheetTitle}`,
+      preheader: `${esc(clientLabel)} completed ${esc(worksheetTitle)}`,
       signature: false,
       footerContext: 'You received this because your client completed a worksheet you assigned on Formulate.',
     }),
@@ -196,7 +211,7 @@ export function homeworkNudgeEmail(
   clientDetailUrl: string,
   assignedDaysAgo: number
 ): { subject: string; html: string } {
-  const greeting = therapistName ? `Hi ${therapistName},` : 'Hi there,'
+  const greeting = therapistName ? `Hi ${esc(therapistName)},` : 'Hi there,'
   const timeText = assignedDaysAgo === 1 ? '1 day' : `${assignedDaysAgo} days`
 
   return {
@@ -207,14 +222,14 @@ export function homeworkNudgeEmail(
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;">
-        <strong>${worksheetTitle}</strong> was assigned to <strong>${clientLabel}</strong> ${timeText} ago and hasn't been completed yet.
+        <strong>${esc(worksheetTitle)}</strong> was assigned to <strong>${esc(clientLabel)}</strong> ${timeText} ago and hasn't been completed yet.
       </p>
       <p style="margin:0 0 20px;font-size:14px;color:#666;">
         You may want to check in with your client or resend the homework link.
       </p>
       ${button('View client', clientDetailUrl)}
     `, {
-      preheader: `${clientLabel} hasn't completed ${worksheetTitle} yet`,
+      preheader: `${esc(clientLabel)} hasn't completed ${esc(worksheetTitle)} yet`,
       signature: false,
       footerContext: 'You received this because you have an outstanding homework assignment on Formulate.',
     }),
@@ -230,7 +245,7 @@ export function homeworkFollowUpEmail(
   clientDetailUrl: string,
   assignedDaysAgo: number
 ): { subject: string; html: string } {
-  const greeting = therapistName ? `Hi ${therapistName},` : 'Hi there,'
+  const greeting = therapistName ? `Hi ${esc(therapistName)},` : 'Hi there,'
 
   return {
     subject: `Follow-up: ${clientLabel} still hasn't completed ${worksheetTitle}`,
@@ -240,14 +255,14 @@ export function homeworkFollowUpEmail(
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;">
-        <strong>${worksheetTitle}</strong> was assigned to <strong>${clientLabel}</strong> ${assignedDaysAgo} days ago and still hasn't been completed.
+        <strong>${esc(worksheetTitle)}</strong> was assigned to <strong>${esc(clientLabel)}</strong> ${assignedDaysAgo} days ago and still hasn't been completed.
       </p>
       <p style="margin:0 0 20px;font-size:14px;color:#666;">
         It may be worth discussing any barriers to completion in your next session, resending the link, or reassigning a different worksheet if the current one isn't a good fit.
       </p>
       ${button('View client', clientDetailUrl)}
     `, {
-      preheader: `${clientLabel} still hasn't completed ${worksheetTitle}`,
+      preheader: `${esc(clientLabel)} still hasn't completed ${esc(worksheetTitle)}`,
       signature: false,
       footerContext: 'You received this because you have a homework assignment outstanding for more than a week on Formulate.',
     }),
@@ -260,7 +275,7 @@ export function subscriptionCancelledEmail(
   name: string | null,
   tierLabel: string
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
 
   return {
     subject: 'Your Formulate subscription has been cancelled',
@@ -270,7 +285,7 @@ export function subscriptionCancelledEmail(
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        Your <strong>${tierLabel}</strong> subscription has ended and your account has been moved to the Free plan.
+        Your <strong>${esc(tierLabel)}</strong> subscription has ended and your account has been moved to the Free plan.
       </p>
       <p style="margin:0 0 8px;font-size:15px;color:#444;line-height:1.6;">
         You can still:
@@ -284,7 +299,7 @@ export function subscriptionCancelledEmail(
         If you&rsquo;d like to re-subscribe at any time:
       </p>
       ${button('View Plans', `${APP_URL}/pricing`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:0;font-size:13px;color:#666;line-height:1.5;">
         If this was a mistake or you need help, just reply to this email.
       </p>
     `, {
@@ -300,7 +315,7 @@ export function paymentFailedEmail(
   name: string | null,
   tierLabel: string
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
 
   return {
     subject: 'Payment failed for your Formulate subscription',
@@ -310,13 +325,13 @@ export function paymentFailedEmail(
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        We weren&rsquo;t able to process the latest payment for your <strong>${tierLabel}</strong> subscription.
+        We weren&rsquo;t able to process the latest payment for your <strong>${esc(tierLabel)}</strong> subscription.
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
         Your access remains active for now, but please update your payment method to avoid any interruption to your service.
       </p>
       ${button('Update Payment Method', `${APP_URL}/settings`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:0;font-size:13px;color:#666;line-height:1.5;">
         Stripe will retry the payment automatically. If you believe this is an error, just reply to this email.
       </p>
     `, {
@@ -332,7 +347,7 @@ export function abandonedCheckoutEmail(
   name: string | null,
   tierLabel: string
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
 
   return {
     subject: 'You left something behind',
@@ -342,14 +357,14 @@ export function abandonedCheckoutEmail(
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        You were checking out the <strong>${tierLabel}</strong> plan on Formulate but didn&rsquo;t finish.
+        You were checking out the <strong>${esc(tierLabel)}</strong> plan on Formulate but didn&rsquo;t finish.
         No worries &mdash; your toolkit is still ready when you are.
       </p>
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
         Pick up where you left off and unlock unlimited access to professional CBT worksheets:
       </p>
       ${button('Complete Your Upgrade', `${APP_URL}/pricing`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:0;font-size:13px;color:#666;line-height:1.5;">
         If you ran into any issues during checkout, just reply to this email and we&rsquo;ll help.
       </p>
     `, {
@@ -367,7 +382,7 @@ export function promoExpiryEmail(
   tierLabel: string,
   expiryDate: string
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
   const formatted = new Date(expiryDate).toLocaleDateString('en-GB', {
     weekday: 'long',
     day: 'numeric',
@@ -383,18 +398,18 @@ export function promoExpiryEmail(
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        Your <strong>${tierLabel}</strong> promo access expires on <strong>${formatted}</strong>.
+        Your <strong>${esc(tierLabel)}</strong> promo access expires on <strong>${esc(formatted)}</strong>.
         After that, your account will revert to the Free plan (5 worksheet uses per month).
       </p>
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
-        To keep unlimited access and all ${tierLabel} features, upgrade before your promo ends:
+        To keep unlimited access and all ${esc(tierLabel)} features, upgrade before your promo ends:
       </p>
       ${button('Upgrade Your Plan', `${APP_URL}/pricing`)}
-      <p style="margin:0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:0;font-size:13px;color:#666;line-height:1.5;">
         If you have any questions, just reply to this email.
       </p>
     `, {
-      preheader: `Your ${tierLabel} promo access ends in 3 days`,
+      preheader: `Your ${esc(tierLabel)} promo access ends in 3 days`,
       signature: false,
     }),
   }
@@ -408,7 +423,7 @@ export function withdrawalNotificationEmail(
   worksheetTitle?: string,
   deletedCount?: number
 ): { subject: string; html: string } {
-  const greeting = therapistName ? `Hi ${therapistName},` : 'Hi there,'
+  const greeting = therapistName ? `Hi ${esc(therapistName)},` : 'Hi there,'
   const footerContext = 'You received this because your client exercised their data rights on Formulate.'
 
   if (worksheetTitle) {
@@ -421,14 +436,14 @@ export function withdrawalNotificationEmail(
           ${greeting}
         </p>
         <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-          <strong>${clientLabel}</strong> has withdrawn their response to <strong>${worksheetTitle}</strong>. The response data has been permanently deleted.
+          <strong>${esc(clientLabel)}</strong> has withdrawn their response to <strong>${esc(worksheetTitle)}</strong>. The response data has been permanently deleted.
         </p>
         <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
           The assignment record remains in your dashboard but the client&rsquo;s response content is no longer available. This action cannot be undone &mdash; it is the client&rsquo;s right under GDPR Article 17.
         </p>
         ${button('View Client Dashboard', `${APP_URL}/clients`)}
       `, {
-        preheader: `${clientLabel} withdrew their response to ${worksheetTitle}`,
+        preheader: `${esc(clientLabel)} withdrew their response to ${esc(worksheetTitle)}`,
         signature: false,
         footerContext,
       }),
@@ -437,21 +452,21 @@ export function withdrawalNotificationEmail(
 
   // Full data withdrawal
   return {
-    subject: `${clientLabel} has withdrawn consent and deleted all their data`,
+    subject: `${clientLabel} has withdrawn consent and deleted all data`,
     html: wrap(`
       <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Client withdrew all data</h2>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        <strong>${clientLabel}</strong> has withdrawn consent and permanently deleted all their homework data${deletedCount ? ` (${deletedCount} response${deletedCount === 1 ? '' : 's'})` : ''}.
+        <strong>${esc(clientLabel)}</strong> has withdrawn consent and permanently deleted all their homework data${deletedCount ? ` (${deletedCount} response${deletedCount === 1 ? '' : 's'})` : ''}.
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
         All existing homework links for this client have been expired. Future assignments will require the client to re-consent. The client relationship record itself remains intact for your clinical records.
       </p>
       ${button('View Client Dashboard', `${APP_URL}/clients`)}
     `, {
-      preheader: `${clientLabel} has withdrawn consent and deleted all their data`,
+      preheader: `${esc(clientLabel)} has withdrawn consent and deleted all their data`,
       signature: false,
       footerContext,
     }),
@@ -479,13 +494,13 @@ export function roleGrantedEmail(
   name: string | null,
   roles: string[]
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
 
   const roleList = roles
     .map((role) => {
       const displayName = ROLE_DISPLAY_NAMES[role] || role
       const description = ROLE_DESCRIPTIONS[role] || ''
-      return `<li><strong>${displayName}</strong> &mdash; ${description}</li>`
+      return `<li><strong>${esc(displayName)}</strong> &mdash; ${esc(description)}</li>`
     })
     .join('')
 
@@ -523,7 +538,7 @@ export function reviewAssignedEmail(
   worksheetTitle: string,
   reviewUrl: string
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
 
   return {
     subject: 'New worksheet ready for your review',
@@ -533,7 +548,7 @@ export function reviewAssignedEmail(
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        A new worksheet <strong>&ldquo;${worksheetTitle}&rdquo;</strong> has been submitted to the Formulate library and we&rsquo;d value your clinical review.
+        A new worksheet <strong>&ldquo;${esc(worksheetTitle)}&rdquo;</strong> has been submitted to the Formulate library and we&rsquo;d value your clinical review.
       </p>
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
         Reviews typically take 5&ndash;10 minutes. You&rsquo;ll evaluate the clinical accuracy, completeness, and usability of the worksheet.
@@ -552,7 +567,7 @@ export function contentApprovedEmail(
   worksheetTitle: string,
   worksheetUrl: string
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
 
   return {
     subject: 'Your clinical context is now live',
@@ -562,7 +577,7 @@ export function contentApprovedEmail(
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        The clinical context you wrote for <strong>&ldquo;${worksheetTitle}&rdquo;</strong> has been approved and is now live on the worksheet page. Your name appears as the clinical context author.
+        The clinical context you wrote for <strong>&ldquo;${esc(worksheetTitle)}&rdquo;</strong> has been approved and is now live on the worksheet page. Your name appears as the clinical context author.
       </p>
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
         Thank you for helping therapists understand when and how to use this tool.
@@ -581,7 +596,7 @@ export function contentFeedbackEmail(
   worksheetTitle: string,
   feedback: string
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
 
   return {
     subject: 'Feedback on your clinical context',
@@ -591,11 +606,11 @@ export function contentFeedbackEmail(
         ${greeting}
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        We&rsquo;ve reviewed the clinical context you submitted for <strong>&ldquo;${worksheetTitle}&rdquo;</strong> and have some feedback before it can be approved.
+        We&rsquo;ve reviewed the clinical context you submitted for <strong>&ldquo;${esc(worksheetTitle)}&rdquo;</strong> and have some feedback before it can be approved.
       </p>
       <div style="margin:0 0 16px;padding:12px 16px;background:#fff7ed;border-left:3px solid #f97316;border-radius:4px;">
         <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#c2410c;text-transform:uppercase;">Feedback</p>
-        <p style="margin:0;font-size:14px;color:#9a3412;line-height:1.5;">${feedback}</p>
+        <p style="margin:0;font-size:14px;color:#9a3412;line-height:1.5;">${esc(feedback)}</p>
       </div>
       <p style="margin:0 0 4px;font-size:15px;color:#444;line-height:1.6;">
         Please revise and resubmit when ready. You can find the worksheet in your dashboard.
@@ -612,7 +627,7 @@ export function contentFeedbackEmail(
 export function freeResetEmail(
   name: string | null
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
 
   return {
     subject: 'Your 5 free worksheet uses have reset',
@@ -633,9 +648,9 @@ export function freeResetEmail(
         <li>Up to 3 clients with homework links</li>
       </ul>
       ${button('Open Your Dashboard', `${APP_URL}/dashboard`)}
-      <p style="margin:16px 0 0;font-size:13px;color:#888;line-height:1.5;">
+      <p style="margin:16px 0 0;font-size:13px;color:#666;line-height:1.5;">
         Need unlimited access?
-        <a href="${APP_URL}/pricing" style="color:#c48d1e;text-decoration:underline;">Upgrade from &pound;4.99/month</a>.
+        <a href="${APP_URL}/pricing" style="color:#9a6e15;text-decoration:underline;">Upgrade from &pound;4.99/month</a>.
       </p>
     `, {
       preheader: 'Your 5 free worksheet uses are ready',
@@ -654,7 +669,9 @@ export function submissionStatusEmail(
   feedback?: string,
   worksheetUrl?: string
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
+  const safeTitle = esc(worksheetTitle)
+  const safeFeedback = feedback ? esc(feedback) : ''
 
   const subjects: Record<string, string> = {
     approved: 'Your worksheet has been approved',
@@ -673,7 +690,7 @@ export function submissionStatusEmail(
   const bodies: Record<string, string> = {
     approved: `
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        Great news! Your worksheet <strong>&ldquo;${worksheetTitle}&rdquo;</strong> has been approved. It will be published to the Formulate library shortly.
+        Great news! Your worksheet <strong>&ldquo;${safeTitle}&rdquo;</strong> has been approved. It will be published to the Formulate library shortly.
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
         We&rsquo;ll send you another email once it&rsquo;s live, including a link to the published worksheet with your attribution.
@@ -681,12 +698,12 @@ export function submissionStatusEmail(
     `,
     changes_requested: `
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        We&rsquo;ve reviewed your worksheet <strong>&ldquo;${worksheetTitle}&rdquo;</strong> and have some feedback before it can be approved.
+        We&rsquo;ve reviewed your worksheet <strong>&ldquo;${safeTitle}&rdquo;</strong> and have some feedback before it can be approved.
       </p>
-      ${feedback ? `
+      ${safeFeedback ? `
         <div style="margin:0 0 16px;padding:12px 16px;background:#fff7ed;border-left:3px solid #f97316;border-radius:4px;">
           <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#c2410c;text-transform:uppercase;">Feedback</p>
-          <p style="margin:0;font-size:14px;color:#9a3412;line-height:1.5;">${feedback}</p>
+          <p style="margin:0;font-size:14px;color:#9a3412;line-height:1.5;">${safeFeedback}</p>
         </div>
       ` : ''}
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
@@ -695,7 +712,7 @@ export function submissionStatusEmail(
     `,
     published: `
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        Your worksheet <strong>&ldquo;${worksheetTitle}&rdquo;</strong> is now live in the Formulate library! Therapists around the world can now access and use your contribution.
+        Your worksheet <strong>&ldquo;${safeTitle}&rdquo;</strong> is now live in the Formulate library! Therapists around the world can now access and use your contribution.
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
         Your name and professional title are displayed as the contributor on the worksheet page.
@@ -704,12 +721,12 @@ export function submissionStatusEmail(
     `,
     rejected: `
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        Thank you for submitting <strong>&ldquo;${worksheetTitle}&rdquo;</strong> to the Formulate library. After careful review, we&rsquo;re unable to include it in the library at this time.
+        Thank you for submitting <strong>&ldquo;${safeTitle}&rdquo;</strong> to the Formulate library. After careful review, we&rsquo;re unable to include it in the library at this time.
       </p>
-      ${feedback ? `
+      ${safeFeedback ? `
         <div style="margin:0 0 16px;padding:12px 16px;background:#fef2f2;border-left:3px solid #ef4444;border-radius:4px;">
           <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#991b1b;text-transform:uppercase;">Feedback</p>
-          <p style="margin:0;font-size:14px;color:#991b1b;line-height:1.5;">${feedback}</p>
+          <p style="margin:0;font-size:14px;color:#991b1b;line-height:1.5;">${safeFeedback}</p>
         </div>
       ` : ''}
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
@@ -752,20 +769,20 @@ export function blogDigestEmail(
     reading_time_minutes: number | null
   }>
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
 
   const postList = posts
     .map(
       (p) => `
     <tr><td style="padding:12px 0;border-bottom:1px solid #f1f0ee;">
-      <span style="display:inline-block;background:#fdf6e3;color:#c48d1e;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;text-transform:uppercase;margin-bottom:4px;">
-        ${BLOG_CATEGORY_LABELS[p.category] || p.category}
+      <span style="display:inline-block;background:#fdf6e3;color:#9a6e15;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;text-transform:uppercase;margin-bottom:4px;">
+        ${esc(BLOG_CATEGORY_LABELS[p.category] || p.category)}
       </span>
       <p style="margin:4px 0 0;font-size:16px;font-weight:600;color:#2d2d2d;">
-        <a href="${APP_URL}/blog/${p.slug}" style="color:#2d2d2d;text-decoration:none;">${p.title}</a>
+        <a href="${APP_URL}/blog/${esc(p.slug)}" style="color:#2d2d2d;text-decoration:none;">${esc(p.title)}</a>
       </p>
-      ${p.excerpt ? `<p style="margin:4px 0 0;font-size:14px;color:#666;line-height:1.5;">${p.excerpt}</p>` : ''}
-      ${p.reading_time_minutes ? `<p style="margin:4px 0 0;font-size:12px;color:#999;">${p.reading_time_minutes} min read</p>` : ''}
+      ${p.excerpt ? `<p style="margin:4px 0 0;font-size:14px;color:#666;line-height:1.5;">${esc(p.excerpt)}</p>` : ''}
+      ${p.reading_time_minutes ? `<p style="margin:4px 0 0;font-size:12px;color:#767676;">${p.reading_time_minutes} min read</p>` : ''}
     </td></tr>`
     )
     .join('')
@@ -784,7 +801,7 @@ export function blogDigestEmail(
       preheader: `${posts.length} new article${posts.length !== 1 ? 's' : ''} this week on the Formulate blog`,
       signature: false,
       showPreferencesLink: true,
-      footerContext: `You&rsquo;re receiving this because you opted in to the blog digest. <a href="${APP_URL}/settings" style="color:#999;">Unsubscribe</a>`,
+      footerContext: `You&rsquo;re receiving this because you opted in to the blog digest. <a href="${APP_URL}/settings" style="color:#767676;">Unsubscribe</a>`,
     }),
   }
 }
@@ -798,7 +815,9 @@ export function blogPostStatusEmail(
   feedback?: string,
   postUrl?: string
 ): { subject: string; html: string } {
-  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const greeting = name ? `Hi ${esc(name)},` : 'Hi there,'
+  const safePostTitle = esc(postTitle)
+  const safeFb = feedback ? esc(feedback) : ''
 
   const subjects: Record<string, string> = {
     approved: 'Your blog post has been approved',
@@ -817,7 +836,7 @@ export function blogPostStatusEmail(
   const bodies: Record<string, string> = {
     approved: `
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        Great news! Your blog post <strong>&ldquo;${postTitle}&rdquo;</strong> has been approved. It will be published to the Formulate blog shortly.
+        Great news! Your blog post <strong>&ldquo;${safePostTitle}&rdquo;</strong> has been approved. It will be published to the Formulate blog shortly.
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
         We&rsquo;ll send you another email once it&rsquo;s live with a link to the published article.
@@ -825,12 +844,12 @@ export function blogPostStatusEmail(
     `,
     changes_requested: `
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        We&rsquo;ve reviewed your blog post <strong>&ldquo;${postTitle}&rdquo;</strong> and have some feedback before it can be published.
+        We&rsquo;ve reviewed your blog post <strong>&ldquo;${safePostTitle}&rdquo;</strong> and have some feedback before it can be published.
       </p>
-      ${feedback ? `
+      ${safeFb ? `
         <div style="margin:0 0 16px;padding:12px 16px;background:#fff7ed;border-left:3px solid #f97316;border-radius:4px;">
           <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#c2410c;text-transform:uppercase;">Feedback</p>
-          <p style="margin:0;font-size:14px;color:#9a3412;line-height:1.5;">${feedback}</p>
+          <p style="margin:0;font-size:14px;color:#9a3412;line-height:1.5;">${safeFb}</p>
         </div>
       ` : ''}
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
@@ -839,7 +858,7 @@ export function blogPostStatusEmail(
     `,
     published: `
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        Your blog post <strong>&ldquo;${postTitle}&rdquo;</strong> is now live on the Formulate blog! Therapists can now read and share your article.
+        Your blog post <strong>&ldquo;${safePostTitle}&rdquo;</strong> is now live on the Formulate blog! Therapists can now read and share your article.
       </p>
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
         Your name and professional title are displayed as the author on the post.
@@ -848,12 +867,12 @@ export function blogPostStatusEmail(
     `,
     rejected: `
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">
-        Thank you for submitting <strong>&ldquo;${postTitle}&rdquo;</strong> to the Formulate blog. After careful review, we&rsquo;re unable to publish it at this time.
+        Thank you for submitting <strong>&ldquo;${safePostTitle}&rdquo;</strong> to the Formulate blog. After careful review, we&rsquo;re unable to publish it at this time.
       </p>
-      ${feedback ? `
+      ${safeFb ? `
         <div style="margin:0 0 16px;padding:12px 16px;background:#fef2f2;border-left:3px solid #ef4444;border-radius:4px;">
           <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#991b1b;text-transform:uppercase;">Feedback</p>
-          <p style="margin:0;font-size:14px;color:#991b1b;line-height:1.5;">${feedback}</p>
+          <p style="margin:0;font-size:14px;color:#991b1b;line-height:1.5;">${safeFb}</p>
         </div>
       ` : ''}
       <p style="margin:0 0 12px;font-size:15px;color:#444;line-height:1.6;">

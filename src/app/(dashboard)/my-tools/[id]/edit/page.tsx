@@ -1,9 +1,14 @@
+import dynamic from 'next/dynamic'
 import { notFound, redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import type { WorksheetSchema } from '@/types/worksheet'
 import type { ContributorRoles } from '@/types/database'
-import { CustomWorksheetBuilder } from '@/components/my-tools/custom-worksheet-builder'
+
+const CustomWorksheetBuilder = dynamic(
+  () => import('@/components/my-tools/custom-worksheet-builder').then((m) => m.CustomWorksheetBuilder),
+  { ssr: false }
+)
 
 export const metadata = { title: 'Edit Tool — Formulate' }
 

@@ -1,4 +1,4 @@
-import { createHmac } from 'crypto'
+import { createHmac, timingSafeEqual } from 'crypto'
 
 // HMAC-based preview tokens for "Preview as Client" feature.
 // The hash is derived from the assignment token + a server-side secret.
@@ -14,5 +14,11 @@ export function generatePreviewHash(token: string): string {
 }
 
 export function isValidPreviewHash(token: string, hash: string): boolean {
-  return generatePreviewHash(token) === hash
+  const expected = generatePreviewHash(token)
+  if (expected.length !== hash.length) return false
+  try {
+    return timingSafeEqual(Buffer.from(expected), Buffer.from(hash))
+  } catch {
+    return false
+  }
 }

@@ -14,20 +14,18 @@ export default async function AIGenerateRoute() {
   const tier = profile.subscription_tier as SubscriptionTier
   const limit = TIER_LIMITS[tier].maxCustomWorksheets
 
-  // Free tier cannot create custom worksheets
-  if (limit === 0) redirect('/my-tools')
-
-  const supabase = await createClient()
-
-  // Check if at worksheet limit
-  const { count } = await supabase
-    .from('worksheets')
-    .select('*', { count: 'exact', head: true })
-    .eq('created_by', user.id)
-    .eq('is_curated', false)
-    .is('deleted_at', null)
-
-  const atLimit = count !== null && count >= limit
+  // Only check worksheet count for tiers that can save custom worksheets
+  let atLimit = false
+  if (limit > 0 && limit !== Infinity) {
+    const supabase = await createClient()
+    const { count } = await supabase
+      .from('worksheets')
+      .select('*', { count: 'exact', head: true })
+      .eq('created_by', user.id)
+      .eq('is_curated', false)
+      .is('deleted_at', null)
+    atLimit = count !== null && count >= limit
+  }
 
   return <AIGeneratePage tier={tier} atLimit={atLimit} />
 }

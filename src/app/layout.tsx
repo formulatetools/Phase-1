@@ -59,6 +59,11 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  alternates: {
+    types: {
+      "application/rss+xml": "/blog/feed.xml",
+    },
+  },
 };
 
 export default function RootLayout({
@@ -85,9 +90,29 @@ export default function RootLayout({
               "@type": "Organization",
               name: "Formulate",
               url: "https://formulatetools.co.uk",
-              logo: "https://formulatetools.co.uk/og-image.png",
+              logo: "https://formulatetools.co.uk/apple-icon.png",
               description:
                 "Professional CBT worksheets and clinical tools for therapists.",
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Formulate",
+              url: "https://formulatetools.co.uk",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate:
+                    "https://formulatetools.co.uk/worksheets?q={search_term_string}",
+                },
+                "query-input": "required name=search_term_string",
+              },
             }),
           }}
         />
