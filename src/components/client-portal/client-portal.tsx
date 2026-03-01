@@ -157,8 +157,8 @@ export function ClientPortal({
     try {
       const handle = blankPdfRefs.current.get(worksheetId)
       if (handle) await handle.generatePdf()
-    } catch (err) {
-      console.error('PDF generation failed:', err)
+    } catch {
+      setError('PDF generation failed. Please try again.')
     } finally {
       setGeneratingPdfFor(null)
     }
@@ -169,8 +169,8 @@ export function ClientPortal({
     try {
       const handle = responsePdfRefs.current.get(assignmentId)
       if (handle) await handle.generatePdf()
-    } catch (err) {
-      console.error('PDF generation failed:', err)
+    } catch {
+      setError('PDF generation failed. Please try again.')
     } finally {
       setGeneratingPdfFor(null)
     }
@@ -288,12 +288,12 @@ export function ClientPortal({
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 ml-4 shrink-0">
+                  <div className="flex flex-wrap items-center justify-end gap-1.5 ml-3 shrink-0 sm:ml-4 sm:gap-2">
                     {/* Complete Now — for assigned, non-expired */}
                     {a.status === 'assigned' && !expired && !isWithdrawn && (
                       <a
                         href={`${appUrl}/hw/${a.token}`}
-                        className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors"
+                        className="rounded-lg bg-primary-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors"
                       >
                         Complete Now
                       </a>
@@ -303,7 +303,7 @@ export function ClientPortal({
                     {a.status === 'in_progress' && !expired && !isWithdrawn && (
                       <a
                         href={`${appUrl}/hw/${a.token}`}
-                        className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors"
+                        className="rounded-lg bg-primary-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors"
                       >
                         Continue
                       </a>
@@ -313,7 +313,7 @@ export function ClientPortal({
                     {!isWithdrawn && response && (a.status === 'completed' || a.status === 'reviewed' || a.status === 'in_progress') && (
                       <button
                         onClick={() => setViewingResponse(isViewing ? null : a.id)}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
+                        className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
                           isViewing
                             ? 'bg-primary-800 text-white dark:bg-primary-800 dark:text-primary-50'
                             : 'border border-primary-200 text-primary-600 hover:bg-primary-50'
@@ -332,7 +332,7 @@ export function ClientPortal({
                       <button
                         onClick={() => handleResponsePdf(a.id)}
                         disabled={generatingPdfFor === a.id}
-                        className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 flex items-center gap-1"
+                        className="rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 flex items-center gap-1"
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -346,12 +346,13 @@ export function ClientPortal({
                       <button
                         onClick={() => handleBlankPdf(a.worksheet_id)}
                         disabled={generatingPdfFor === a.worksheet_id}
-                        className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 flex items-center gap-1"
+                        className="rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 flex items-center gap-1"
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                         </svg>
-                        {generatingPdfFor === a.worksheet_id ? 'Generating…' : 'Blank PDF'}
+                        <span className="hidden sm:inline">{generatingPdfFor === a.worksheet_id ? 'Generating…' : 'Blank PDF'}</span>
+                        <span className="sm:hidden">{generatingPdfFor === a.worksheet_id ? '…' : 'PDF'}</span>
                       </button>
                     )}
 
@@ -364,7 +365,7 @@ export function ClientPortal({
                           }
                         }}
                         disabled={deletingId === a.id}
-                        className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                        className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                       >
                         {deletingId === a.id ? 'Deleting…' : 'Delete'}
                       </button>

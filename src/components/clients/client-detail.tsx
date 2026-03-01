@@ -118,8 +118,20 @@ export function ClientDetail({
 
   const handleSaveLabel = async () => {
     if (!label.trim()) return
-    await updateClientLabel(relationship.id, label)
-    setEditingLabel(false)
+    setActionLoading('label')
+    try {
+      const result = await updateClientLabel(relationship.id, label)
+      if (result.error) {
+        toast({ type: 'error', message: result.error })
+      } else {
+        toast({ type: 'success', message: 'Label updated' })
+        setEditingLabel(false)
+      }
+    } catch {
+      toast({ type: 'error', message: 'Failed to update label' })
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   const handleDischarge = async () => {
@@ -227,9 +239,10 @@ export function ClientDetail({
                 />
                 <button
                   onClick={handleSaveLabel}
-                  className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900"
+                  disabled={actionLoading === 'label'}
+                  className="rounded-lg bg-primary-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 disabled:opacity-50"
                 >
-                  Save
+                  {actionLoading === 'label' ? 'Saving…' : 'Save'}
                 </button>
                 <button
                   onClick={() => { setEditingLabel(false); setLabel(relationship.client_label) }}
@@ -418,7 +431,7 @@ export function ClientDetail({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* Due date */}
             <div>
               <label htmlFor="assign-due-date" className="block text-sm font-medium text-primary-700 mb-1">
@@ -585,7 +598,7 @@ export function ClientDetail({
                           </span>
                         )}
                       </div>
-                      <div className="mt-1 flex items-center gap-3 text-xs text-primary-400">
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-primary-400">
                         <span>Assigned {new Date(a.assigned_at).toLocaleDateString('en-GB')}</span>
                         {a.due_date && <span>Due {new Date(a.due_date).toLocaleDateString('en-GB')}</span>}
                         <span>Expires {new Date(a.expires_at).toLocaleDateString('en-GB')}</span>
@@ -597,18 +610,18 @@ export function ClientDetail({
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
+                    <div className="flex flex-wrap items-center justify-end gap-1.5 ml-3 shrink-0 sm:ml-4 sm:gap-2">
                       {/* Share link */}
                       {!expired && (a.status === 'assigned' || a.status === 'in_progress') && (
                         <button
                           onClick={() => handleShareLink(a.token, a.worksheet_id, a.due_date)}
-                          className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors flex items-center gap-1"
+                          className="rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors flex items-center gap-1"
                           title="Share homework link"
                         >
                           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
                           </svg>
-                          Share
+                          <span className="hidden sm:inline">Share</span>
                         </button>
                       )}
 
@@ -631,14 +644,14 @@ export function ClientDetail({
                             }
                           }}
                           disabled={actionLoading === `preview-${a.id}`}
-                          className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors flex items-center gap-1 disabled:opacity-50"
+                          className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors flex items-center gap-1 disabled:opacity-50"
                           title="Preview as your client sees it"
                         >
                           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
-                          {actionLoading === `preview-${a.id}` ? 'Opening…' : 'Preview'}
+                          <span className="hidden sm:inline">{actionLoading === `preview-${a.id}` ? 'Opening…' : 'Preview'}</span>
                         </button>
                       )}
 
@@ -646,7 +659,7 @@ export function ClientDetail({
                       {(a.status === 'completed' || a.status === 'reviewed' || a.status === 'in_progress') && response && (
                         <button
                           onClick={() => setViewingResponse(isViewing ? null : a.id)}
-                          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
+                          className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
                             isViewing
                               ? 'bg-primary-800 text-white dark:bg-primary-800 dark:text-primary-50'
                               : 'border border-primary-200 text-primary-600 hover:bg-primary-50'
@@ -656,7 +669,7 @@ export function ClientDetail({
                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
-                          {isViewing ? 'Hide' : 'View response'}
+                          <span className="hidden sm:inline">{isViewing ? 'Hide' : 'View response'}</span>
                         </button>
                       )}
 
@@ -665,7 +678,7 @@ export function ClientDetail({
                         <button
                           onClick={() => handleAction(`review-${a.id}`, () => markAsReviewed(a.id), 'Marked as reviewed')}
                           disabled={actionLoading === `review-${a.id}`}
-                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors disabled:opacity-50"
+                          className="rounded-lg bg-primary-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors disabled:opacity-50"
                         >
                           {actionLoading === `review-${a.id}` ? 'Saving…' : 'Mark reviewed'}
                         </button>
@@ -676,7 +689,7 @@ export function ClientDetail({
                         <button
                           onClick={() => handleAction(`lock-${a.id}`, () => lockAssignment(a.id), 'Assignment locked')}
                           disabled={actionLoading === `lock-${a.id}`}
-                          className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-primary-50 transition-colors disabled:opacity-50"
+                          className="rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-500 hover:bg-primary-50 transition-colors disabled:opacity-50"
                           aria-label="Lock assignment"
                           title="Lock to prevent further edits"
                         >
@@ -689,7 +702,7 @@ export function ClientDetail({
                         <button
                           onClick={() => handleAction(`paper-${a.id}`, () => markAsPaperCompleted(a.id), 'Marked as completed (paper)')}
                           disabled={actionLoading === `paper-${a.id}`}
-                          className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors disabled:opacity-50"
+                          className="rounded-lg bg-primary-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors disabled:opacity-50"
                         >
                           {actionLoading === `paper-${a.id}` ? 'Saving…' : 'Mark completed (paper)'}
                         </button>
