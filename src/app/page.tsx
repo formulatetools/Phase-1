@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { createClient as createDirectClient } from '@supabase/supabase-js'
 import { LogoIcon } from '@/components/ui/logo'
 import { LandingNav } from '@/components/marketing/landing-nav'
 import { MarketingFooter } from '@/components/marketing/marketing-footer'
@@ -7,6 +8,8 @@ import { AIGenerateTeaser } from '@/components/marketing/ai-generate-teaser'
 import { PricingTable } from '@/components/marketing/pricing-table'
 import { ClientExperienceDemo } from '@/components/marketing/client-experience-demo'
 import { buttonVariants } from '@/components/ui/button-variants'
+import { DEMO_WORKSHEETS } from '@/lib/demo-data'
+import type { Worksheet } from '@/types/database'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -30,7 +33,26 @@ export const metadata: Metadata = {
   },
 }
 
-export default function Home() {
+export default async function Home() {
+  // Fetch real worksheet schemas for the interactive preview
+  const supabase = createDirectClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  const demoSlugs = DEMO_WORKSHEETS.map((w) => w.slug)
+  const { data: worksheetRows } = await supabase
+    .from('worksheets')
+    .select('slug, title, description, instructions, schema')
+    .in('slug', demoSlugs)
+    .eq('is_published', true)
+    .is('deleted_at', null)
+
+  // Preserve DEMO_WORKSHEETS ordering
+  const demoWorksheets = demoSlugs
+    .map((slug) => worksheetRows?.find((r) => r.slug === slug))
+    .filter(Boolean) as Pick<Worksheet, 'slug' | 'title' | 'description' | 'instructions' | 'schema'>[]
+
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
@@ -81,7 +103,9 @@ export default function Home() {
             evidence-based exercises — right in their browser.
           </p>
           <div className="mt-12">
-            <WorksheetPreview />
+            {demoWorksheets.length > 0 && (
+              <WorksheetPreview worksheets={demoWorksheets} />
+            )}
           </div>
         </div>
       </section>

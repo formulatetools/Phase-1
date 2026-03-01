@@ -10,6 +10,8 @@ interface ConsentGateProps {
   initialHasConsent: boolean
   worksheetTitle: string
   worksheetSchema: WorksheetSchema
+  /** Demo mode — skips API calls, just flips local state + generates PDF */
+  isDemo?: boolean
   children: React.ReactNode
 }
 
@@ -18,6 +20,7 @@ export function ConsentGate({
   initialHasConsent,
   worksheetTitle,
   worksheetSchema,
+  isDemo = false,
   children,
 }: ConsentGateProps) {
   const [consented, setConsented] = useState(initialHasConsent)
@@ -37,15 +40,17 @@ export function ConsentGate({
     setError(null)
 
     try {
-      const res = await fetch('/api/homework/consent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, action: 'accept' }),
-      })
+      if (!isDemo) {
+        const res = await fetch('/api/homework/consent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, action: 'accept' }),
+        })
 
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Failed to record consent')
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error || 'Failed to record consent')
+        }
       }
 
       setConsented(true)
@@ -61,16 +66,18 @@ export function ConsentGate({
     setError(null)
 
     try {
-      // Record the decline (updates assignment status to pdf_downloaded)
-      const res = await fetch('/api/homework/consent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, action: 'decline' }),
-      })
+      if (!isDemo) {
+        // Record the decline (updates assignment status to pdf_downloaded)
+        const res = await fetch('/api/homework/consent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, action: 'decline' }),
+        })
 
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Failed to process')
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error || 'Failed to process')
+        }
       }
 
       // Generate the blank PDF
