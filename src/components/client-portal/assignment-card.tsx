@@ -50,7 +50,7 @@ export function AssignmentCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {/* Title */}
-          <p className="font-medium text-primary-800 truncate">{title}</p>
+          <p className="font-medium text-primary-800">{title}</p>
 
           {/* Date line */}
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-primary-400 dark:text-primary-600">

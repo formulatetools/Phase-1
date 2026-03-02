@@ -12,6 +12,7 @@ import { LogoIcon } from '@/components/ui/logo'
 import { DataManagement } from '@/components/client-portal/data-management'
 import { isSessionValid } from '@/lib/utils/portal-session'
 import { PinEntry } from '@/components/client-portal/pin-entry'
+import { ThemeToggleCompact } from '@/components/ui/theme-toggle'
 import { getBrandingConfig, resolveBranding } from '@/lib/branding'
 
 interface PageProps {
@@ -55,12 +56,13 @@ export default async function DataManagementPage({ params }: PageProps) {
       const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
       return (
         <div className="min-h-screen bg-background">
-          <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface">
+          <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface" data-portal-nav>
             <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2">
                 <LogoIcon size={20} />
                 <span className="text-sm font-semibold text-primary-800">Formulate</span>
               </div>
+              <ThemeToggleCompact />
             </div>
           </header>
           <main className="mx-auto max-w-2xl px-4 py-8">
@@ -132,7 +134,7 @@ export default async function DataManagementPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface">
+      <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface" data-portal-nav>
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <LogoIcon size={20} />
@@ -140,6 +142,7 @@ export default async function DataManagementPage({ params }: PageProps) {
               Formulate
             </span>
           </div>
+          <ThemeToggleCompact />
         </div>
       </header>
 

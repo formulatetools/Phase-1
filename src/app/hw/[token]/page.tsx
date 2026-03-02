@@ -6,6 +6,7 @@ import { ConsentGate } from '@/components/homework/consent-gate'
 import { LogoIcon } from '@/components/ui/logo'
 import { generatePortalToken } from '@/lib/tokens'
 import { isValidPreviewHash } from '@/lib/preview'
+import { ThemeToggleCompact } from '@/components/ui/theme-toggle'
 import { getBrandingConfig, resolveBranding } from '@/lib/branding'
 
 export const metadata = {
@@ -247,17 +248,32 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
       )}
 
       {/* Minimal header */}
-      <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface">
+      <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface" data-portal-nav>
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <LogoIcon size={20} />
             <span className="text-sm font-semibold text-primary-800">Formulate</span>
           </div>
-          {typedAssignment.due_date && (
-            <span className="text-xs text-primary-400">
-              Due {new Date(typedAssignment.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-            </span>
-          )}
+          <div className="flex items-center gap-1">
+            {typedAssignment.due_date && (
+              <span className="text-xs text-primary-400">
+                Due {new Date(typedAssignment.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+              </span>
+            )}
+            <ThemeToggleCompact />
+            {portalUrl && !isPreview && (
+              <a
+                href={portalUrl}
+                className="flex items-center justify-center rounded-lg p-2 text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
+                title="Back to workspace"
+                aria-label="Back to workspace"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                </svg>
+              </a>
+            )}
+          </div>
         </div>
       </header>
 

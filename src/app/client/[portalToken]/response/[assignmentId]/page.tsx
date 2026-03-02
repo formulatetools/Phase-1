@@ -9,6 +9,7 @@ import type {
 import Link from 'next/link'
 import { LogoIcon } from '@/components/ui/logo'
 import { ResponseViewer } from '@/components/client-portal/response-viewer'
+import { ThemeToggleCompact } from '@/components/ui/theme-toggle'
 import { getBrandingConfig, resolveBranding } from '@/lib/branding'
 
 interface PageProps {
@@ -107,7 +108,7 @@ export default async function ResponseViewerPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface">
+      <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface" data-portal-nav>
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <LogoIcon size={20} />
@@ -115,6 +116,7 @@ export default async function ResponseViewerPage({ params }: PageProps) {
               Formulate
             </span>
           </div>
+          <ThemeToggleCompact />
         </div>
       </header>
 

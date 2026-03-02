@@ -15,7 +15,7 @@ export function FloatingThemeToggle() {
   useEffect(() => {
     // Check if sidebar-nav is in the DOM (authenticated pages)
     const check = () => {
-      setHasSidebar(!!document.querySelector('[data-sidebar-nav]'))
+      setHasSidebar(!!document.querySelector('[data-sidebar-nav]') || !!document.querySelector('[data-portal-nav]'))
     }
     check()
     // Re-check on route changes (MutationObserver on body)
