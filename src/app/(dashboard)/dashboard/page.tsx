@@ -5,10 +5,12 @@ import { createClient } from '@/lib/supabase/server'
 import { TIER_LIMITS, TIER_LABELS } from '@/lib/stripe/config'
 import { ManageSubscriptionButton } from '@/components/ui/manage-subscription-button'
 import { AnnualUpgradeBanner } from '@/components/ui/annual-upgrade-banner'
-import { activityLabel, activityIcon, timeAgo, type ActivityItem } from '@/lib/utils/activity'
+import { activityLabel, activityIcon, activityLink, timeAgo, type ActivityItem } from '@/lib/utils/activity'
 import { DashboardTour } from '@/components/onboarding/dashboard-tour'
 import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist'
 import { PromoAutoRedeem } from '@/components/ui/promo-auto-redeem'
+import { ExpiredTrialBanner } from '@/components/ui/expired-trial-banner'
+import { ActionsCard } from '@/components/ui/actions-card'
 import { buttonVariants } from '@/components/ui/button-variants'
 
 export const metadata = {
@@ -242,33 +244,10 @@ export default async function DashboardPage() {
       )}
 
       {/* Expired trial banner */}
-      {(() => {
-        if (!isFreeTier || !latestRedemption) return null
-        const redemption = latestRedemption as { access_expires_at: string; promo_codes: { tier: string } | { tier: string }[] | null }
-        if (new Date(redemption.access_expires_at) >= new Date()) return null
-        const promoTier = Array.isArray(redemption.promo_codes) ? redemption.promo_codes[0]?.tier : redemption.promo_codes?.tier
-        return (
-          <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-primary-900">Your free trial has ended</p>
-              <p className="text-sm text-primary-600">
-                Upgrade from &pound;4.99/mo to keep your {promoTier ? tierLabels[promoTier] : 'premium'} features.
-              </p>
-            </div>
-            <Link
-              href="/pricing"
-              className={buttonVariants.accent()}
-            >
-              View plans
-            </Link>
-          </div>
-        )
-      })()}
+      <ExpiredTrialBanner
+        latestRedemption={latestRedemption as { access_expires_at: string; promo_codes: { tier: string } | { tier: string }[] | null } | null}
+        isFreeTier={isFreeTier}
+      />
 
       {/* Onboarding checklist for new users */}
       <OnboardingChecklist status={checklistStatus} />
@@ -286,7 +265,7 @@ export default async function DashboardPage() {
       {/* ── Analytics stat cards ─────────────────────────────────────────── */}
       <div className="mb-8 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         {/* Active Clients */}
-        <Link href="/clients" className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
+        <Link href="/clients" aria-label={`${activeClientCount ?? 0} active clients`} className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
           <div className="flex items-center justify-between">
             <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-brand/10">
               <svg className="h-5 w-5 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -307,7 +286,7 @@ export default async function DashboardPage() {
         </Link>
 
         {/* Active Assignments */}
-        <Link href="/clients" className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
+        <Link href="/clients" aria-label={`${activeAssignmentCount ?? 0} active assignments`} className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
           <div className="flex items-center justify-between">
             <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-blue-50">
               <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -322,7 +301,7 @@ export default async function DashboardPage() {
         </Link>
 
         {/* Pending Review */}
-        <Link href="/clients" className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
+        <Link href="/clients" aria-label={`${pendingReviewCount ?? 0} pending reviews`} className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
           <div className="flex items-center justify-between">
             <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${(pendingReviewCount ?? 0) > 0 ? 'bg-amber-50' : 'bg-green-50'}`}>
               {(pendingReviewCount ?? 0) > 0 ? (
@@ -343,7 +322,7 @@ export default async function DashboardPage() {
         </Link>
 
         {/* Completion Rate */}
-        <Link href="/clients" className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
+        <Link href="/clients" aria-label={`${completionRate}% completion rate`} className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
           <div className="flex items-center justify-between">
             <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-green-50">
               <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -382,7 +361,14 @@ export default async function DashboardPage() {
                   {usesRemaining}<span className="text-lg font-normal text-primary-300">/{TIER_LIMITS.free.monthlyUses}</span>
                 </p>
                 <p className="mt-1 text-sm text-primary-400">tools remaining this month</p>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-primary-100">
+                <div
+                  className="mt-3 h-1.5 overflow-hidden rounded-full bg-primary-100"
+                  role="progressbar"
+                  aria-valuenow={usesUsed}
+                  aria-valuemin={0}
+                  aria-valuemax={TIER_LIMITS.free.monthlyUses}
+                  aria-label="Monthly tool usage"
+                >
                   <div
                     className="h-full rounded-full bg-brand transition-all"
                     style={{ width: `${(usesUsed / TIER_LIMITS.free.monthlyUses) * 100}%` }}
@@ -410,60 +396,40 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick Actions card */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Quick Actions</p>
-          <div className="mt-4 space-y-1">
-            <Link
-              href="/worksheets"
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10">
-                <svg className="h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-                </svg>
-              </div>
-              Browse library
-            </Link>
-            <Link
-              href="/clients"
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
-                <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                </svg>
-              </div>
-              Manage clients
-            </Link>
-            <Link
-              href="/settings"
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-100">
-                <svg className="h-4 w-4 text-primary-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-              </div>
-              Profile settings
-            </Link>
-          </div>
-        </div>
+        {/* Actions card */}
+        <ActionsCard />
 
         {/* Recent Activity Feed */}
         <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm col-span-2 lg:col-span-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Recent Activity</p>
           {(recentActivity && recentActivity.length > 0) ? (
-            <div className="mt-4 space-y-3">
-              {(recentActivity as ActivityItem[]).slice(0, 5).map((item, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  {activityIcon(item.action)}
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm text-primary-700">{activityLabel(item)}</p>
-                    <p className="text-xs text-primary-400">{timeAgo(item.created_at)}</p>
+            <div className="mt-4 space-y-3" role="list">
+              {(recentActivity as ActivityItem[]).slice(0, 5).map((item, i) => {
+                const href = activityLink(item)
+                const content = (
+                  <>
+                    {activityIcon(item.action)}
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-sm text-primary-700 dark:text-primary-300">{activityLabel(item)}</p>
+                      <p className="text-xs text-primary-400">{timeAgo(item.created_at)}</p>
+                    </div>
+                    {href && (
+                      <svg className="h-4 w-4 shrink-0 text-primary-300 dark:text-primary-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      </svg>
+                    )}
+                  </>
+                )
+                return href ? (
+                  <Link key={i} href={href} className="flex items-center gap-3 rounded-lg px-1 -mx-1 py-0.5 transition-colors hover:bg-primary-50 dark:hover:bg-primary-800" role="listitem">
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={i} className="flex items-center gap-3 px-1 -mx-1 py-0.5" role="listitem">
+                    {content}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className="mt-4 flex flex-col items-center justify-center py-6 text-center">

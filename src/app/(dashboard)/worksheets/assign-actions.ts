@@ -27,3 +27,33 @@ export async function getAssignableRelationships(
   if (error) return { error: error.message, data: [] }
   return { data: data || [] }
 }
+
+/**
+ * Fetch worksheets the current therapist can assign as homework.
+ * Returns two groups: custom tools (user-created) and curated library.
+ * Used by the unified "Assign Worksheet" modal.
+ */
+export async function getAssignableWorksheets() {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated', data: { custom: [], library: [] } }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('worksheets')
+    .select('id, title, tags, is_curated')
+    .or(
+      `and(is_published.eq.true,is_curated.eq.true),and(created_by.eq.${user.id},is_curated.eq.false)`
+    )
+    .is('deleted_at', null)
+    .order('title')
+
+  if (error) return { error: error.message, data: { custom: [], library: [] } }
+
+  const all = data || []
+  return {
+    data: {
+      custom: all.filter((w) => !w.is_curated),
+      library: all.filter((w) => w.is_curated),
+    },
+  }
+}

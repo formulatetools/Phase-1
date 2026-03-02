@@ -24,6 +24,7 @@ const shortcuts = [
     scope: 'Actions',
     items: [
       { keys: [modKey, 'K'], description: 'Command palette' },
+      { keys: ['A', 'W'], description: 'Assign worksheet' },
       { keys: ['?'], description: 'Open this reference' },
       { keys: ['Esc'], description: 'Close modal' },
     ],

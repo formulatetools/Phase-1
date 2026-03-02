@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { SidebarNav } from '@/components/ui/sidebar-nav'
+import { AssignProvider } from '@/components/providers/assign-provider'
 import { KeyboardShortcutsProvider } from '@/components/providers/keyboard-shortcuts-provider'
 
 export default async function DashboardLayout({
@@ -39,6 +40,7 @@ export default async function DashboardLayout({
     ])
 
   return (
+    <AssignProvider>
     <KeyboardShortcutsProvider>
       <div className="min-h-screen bg-primary-50/50">
         <a
@@ -65,5 +67,6 @@ export default async function DashboardLayout({
         </div>
       </div>
     </KeyboardShortcutsProvider>
+    </AssignProvider>
   )
 }

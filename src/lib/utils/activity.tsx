@@ -99,6 +99,26 @@ export function activityIcon(action: string) {
   }
 }
 
+/** Link destination for an activity item (null = not clickable) */
+export function activityLink(item: ActivityItem): string | null {
+  const meta = item.metadata || {}
+  switch (item.action) {
+    case 'create':
+      if (item.entity_type === 'therapeutic_relationship') return '/clients'
+      return null
+    case 'assign':
+      return '/clients'
+    case 'read':
+      if (meta.action === 'marked_as_reviewed') return '/clients'
+      return null
+    case 'export':
+      if (meta.worksheet_slug) return `/worksheets/${meta.worksheet_slug}`
+      return null
+    default:
+      return null
+  }
+}
+
 /** Relative time label (e.g. "5m ago", "2h ago", "3d ago") */
 export function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()

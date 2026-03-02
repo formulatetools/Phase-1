@@ -5,12 +5,13 @@ import { useRouter, usePathname } from 'next/navigation'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
-interface CommandItem {
+export interface CommandItem {
   id: string
   label: string
   description?: string
   icon?: ReactNode
-  href: string
+  href?: string
+  action?: () => void
   category: 'navigation' | 'action'
   keywords?: string[]
 }
@@ -18,6 +19,7 @@ interface CommandItem {
 interface CommandPaletteProps {
   open: boolean
   onClose: () => void
+  extraCommands?: CommandItem[]
 }
 
 // ─── Icons (h-4 w-4 for palette) ──────────────────────────────────────────
@@ -125,7 +127,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 // ─── Component ─────────────────────────────────────────────────────────────
 
-export function CommandPalette({ open, onClose }: CommandPaletteProps) {
+export function CommandPalette({ open, onClose, extraCommands = [] }: CommandPaletteProps) {
   const router = useRouter()
   const pathname = usePathname()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -149,17 +151,20 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
     }
   }, [open])
 
+  // Merge built-in + extra commands
+  const allCommands = useMemo(() => [...COMMANDS, ...extraCommands], [extraCommands])
+
   // Filter commands
   const filteredCommands = useMemo(() => {
-    if (!query.trim()) return COMMANDS
+    if (!query.trim()) return allCommands
     const q = query.toLowerCase()
-    return COMMANDS.filter((item) => {
+    return allCommands.filter((item) => {
       if (item.label.toLowerCase().includes(q)) return true
       if (item.description?.toLowerCase().includes(q)) return true
       if (item.keywords?.some((kw) => kw.includes(q))) return true
       return false
     })
-  }, [query])
+  }, [query, allCommands])
 
   // Group by category
   const groupedCommands = useMemo(() => {
@@ -188,7 +193,11 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   // Execute selected command
   const executeItem = useCallback(
     (item: CommandItem) => {
-      router.push(item.href)
+      if (item.action) {
+        item.action()
+      } else if (item.href) {
+        router.push(item.href)
+      }
       onClose()
     },
     [router, onClose],
