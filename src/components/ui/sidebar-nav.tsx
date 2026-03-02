@@ -207,7 +207,7 @@ export function SidebarNav({
       label: 'Create',
       items: [
         { label: 'My Tools', href: '/my-tools', icon: icons.myTools },
-        { label: 'Templates', href: '/templates', icon: icons.templates },
+        { label: 'Homework Plans', href: '/homework-plans', icon: icons.templates },
       ],
     },
     {

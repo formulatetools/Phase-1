@@ -476,6 +476,7 @@ export interface WorkspaceTemplate {
   default_expires_in_days: number
   times_applied: number
   last_applied_at: string | null
+  is_example: boolean
   deleted_at: string | null
   created_at: string
   updated_at: string

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { deleteTemplate } from '@/app/(dashboard)/templates/actions'
+import { deleteTemplate } from '@/app/(dashboard)/homework-plans/actions'
 import { TemplateForm } from '@/components/templates/template-form'
 import { useToast } from '@/hooks/use-toast'
 import type { Worksheet, WorkspaceTemplate } from '@/types/database'
@@ -33,7 +33,7 @@ export function TemplateList({ templates, worksheets, limit, count }: TemplateLi
     if (result.error) {
       toast({ type: 'error', message: result.error })
     } else {
-      toast({ type: 'success', message: 'Template deleted' })
+      toast({ type: 'success', message: 'Homework plan deleted' })
       router.refresh()
     }
   }
@@ -82,8 +82,8 @@ export function TemplateList({ templates, worksheets, limit, count }: TemplateLi
 
   return (
     <div className="space-y-4">
-      {/* Create button (inline) */}
-      {!atLimit && (
+      {/* Create button (inline) — only shown when limit > 0 and not at limit */}
+      {limit > 0 && !atLimit && (
         <button
           onClick={() => setShowCreate(true)}
           className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-primary-200 py-6 text-sm font-medium text-primary-500 hover:border-brand hover:text-brand transition-colors"
@@ -91,7 +91,7 @@ export function TemplateList({ templates, worksheets, limit, count }: TemplateLi
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          Create a template
+          Create a homework plan
         </button>
       )}
 
@@ -103,7 +103,14 @@ export function TemplateList({ templates, worksheets, limit, count }: TemplateLi
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-primary-800">{t.name}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-primary-800">{t.name}</h3>
+                {t.is_example && (
+                  <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-semibold text-brand">
+                    Example
+                  </span>
+                )}
+              </div>
               {t.description && (
                 <p className="mt-1 text-sm text-primary-500 line-clamp-2">{t.description}</p>
               )}
@@ -147,12 +154,15 @@ export function TemplateList({ templates, worksheets, limit, count }: TemplateLi
 
             {/* Actions */}
             <div className="flex shrink-0 items-center gap-1">
-              <button
-                onClick={() => setEditingId(t.id)}
-                className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors"
-              >
-                Edit
-              </button>
+              {/* Edit button — hidden for example plans */}
+              {!t.is_example && (
+                <button
+                  onClick={() => setEditingId(t.id)}
+                  className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+                >
+                  Edit
+                </button>
+              )}
               {deleteConfirmId === t.id ? (
                 <div className="flex items-center gap-1">
                   <button
@@ -188,9 +198,9 @@ export function TemplateList({ templates, worksheets, limit, count }: TemplateLi
           <svg className="mx-auto h-10 w-10 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM2.25 16.875c0-.621.504-1.125 1.125-1.125h6c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-2.25z" />
           </svg>
-          <p className="mt-3 text-sm font-medium text-primary-600">No templates yet</p>
+          <p className="mt-3 text-sm font-medium text-primary-600">No homework plans yet</p>
           <p className="mt-1 text-xs text-primary-400">
-            Create your first template to streamline client onboarding.
+            Create your own homework plan to bundle worksheets and resources for faster client onboarding.
           </p>
         </div>
       )}

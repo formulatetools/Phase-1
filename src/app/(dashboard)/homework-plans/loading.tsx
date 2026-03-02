@@ -1,6 +1,6 @@
 import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
 
-export default function TemplatesLoading() {
+export default function HomeworkPlansLoading() {
   return (
     <div className="px-4 py-8 sm:px-8 lg:px-12">
       <div className="mb-6 flex items-center justify-between">

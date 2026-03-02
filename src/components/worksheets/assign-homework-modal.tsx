@@ -6,9 +6,8 @@ import {
   getAssignableRelationships,
   getAssignableWorksheets,
 } from '@/app/(dashboard)/worksheets/assign-actions'
-import { getTemplates } from '@/app/(dashboard)/templates/actions'
+import { getTemplates, applyTemplate } from '@/app/(dashboard)/homework-plans/actions'
 import { createAssignment, shareResource } from '@/app/(dashboard)/clients/actions'
-import { applyTemplate } from '@/app/(dashboard)/templates/actions'
 import { ShareModal } from '@/components/ui/share-modal'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
@@ -416,7 +415,7 @@ export function AssignHomeworkModal({
                   : 'text-primary-500 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300'
               }`}
             >
-              {tab === 'worksheet' ? 'Worksheet' : tab === 'resource' ? 'Resource' : 'Template'}
+              {tab === 'worksheet' ? 'Worksheet' : tab === 'resource' ? 'Resource' : 'Plan'}
             </button>
           ))}
         </div>
@@ -683,14 +682,17 @@ export function AssignHomeworkModal({
             {/* ============================================================= */}
             {activeTab === 'template' && templateStep === 'select' && (
               <>
+                <p className="text-xs text-primary-400 dark:text-primary-500 mb-3">
+                  Choose a pre-built plan to assign multiple worksheets and resources at once.
+                </p>
                 {templates.length === 0 ? (
                   <div className="rounded-xl border-2 border-dashed border-primary-200 py-6 text-center dark:border-primary-700">
-                    <p className="text-sm text-primary-500 dark:text-primary-400">No templates created yet.</p>
+                    <p className="text-sm text-primary-500 dark:text-primary-400">No homework plans yet.</p>
                     <Link
-                      href="/templates"
+                      href="/homework-plans"
                       className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors"
                     >
-                      Create your first template
+                      Create your first homework plan
                       <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
@@ -882,7 +884,7 @@ export function AssignHomeworkModal({
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
-                      Apply Template
+                      Apply Plan
                     </>
                   )}
                 </Button>
@@ -912,7 +914,7 @@ export function AssignHomeworkModal({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-primary-900 dark:text-primary-100">Template applied</h3>
+              <h3 className="mt-4 text-lg font-semibold text-primary-900 dark:text-primary-100">Homework plan applied</h3>
               <p className="mt-2 text-sm text-primary-500">
                 {templateResult.assignments > 0 && (
                   <span>Created {templateResult.assignments} assignment{templateResult.assignments !== 1 ? 's' : ''}</span>

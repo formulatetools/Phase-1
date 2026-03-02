@@ -106,7 +106,7 @@ const COMMANDS: CommandItem[] = [
   { id: 'nav-clients', label: 'Clients', href: '/clients', icon: icons.clients, category: 'navigation', keywords: ['manage', 'caseload', 'patients'] },
   { id: 'nav-library', label: 'Library', href: '/worksheets', icon: icons.resources, category: 'navigation', keywords: ['resources', 'worksheets', 'browse', 'search'] },
   { id: 'nav-my-tools', label: 'My Tools', href: '/my-tools', icon: icons.myTools, category: 'navigation', keywords: ['custom', 'worksheets', 'builder'] },
-  { id: 'nav-templates', label: 'Templates', href: '/templates', icon: icons.templates, category: 'navigation', keywords: ['onboarding', 'starter pack'] },
+  { id: 'nav-templates', label: 'Homework Plans', href: '/homework-plans', icon: icons.templates, category: 'navigation', keywords: ['onboarding', 'starter pack', 'homework plan', 'bundle'] },
   { id: 'nav-supervision', label: 'Supervision', href: '/supervision', icon: icons.supervision, category: 'navigation', keywords: ['supervisee', 'training'] },
   { id: 'nav-blog', label: 'Blog', href: '/blog', icon: icons.blog, category: 'navigation', keywords: ['articles', 'read', 'clinical'] },
   { id: 'nav-feature-requests', label: 'Feature Requests', href: '/feature-requests', icon: icons.featureRequests, category: 'navigation', keywords: ['suggest', 'vote', 'ideas'] },

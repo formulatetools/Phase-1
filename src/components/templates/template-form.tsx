@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createTemplate, updateTemplate } from '@/app/(dashboard)/templates/actions'
+import { createTemplate, updateTemplate } from '@/app/(dashboard)/homework-plans/actions'
 import { useToast } from '@/hooks/use-toast'
 import type {
   Worksheet,
@@ -116,7 +116,7 @@ export function TemplateForm({
       } else {
         toast({
           type: 'success',
-          message: isEditing ? 'Template updated' : 'Template created',
+          message: isEditing ? 'Homework plan updated' : 'Homework plan created',
         })
         onSaved()
       }
@@ -136,10 +136,10 @@ export function TemplateForm({
       className="rounded-2xl border border-primary-200 bg-surface p-6 shadow-sm space-y-5"
     >
       <h3 className="text-lg font-semibold text-primary-900">
-        {isEditing ? 'Edit template' : 'Create a template'}
+        {isEditing ? 'Edit homework plan' : 'Create a homework plan'}
       </h3>
       <p className="text-xs text-primary-500">
-        Bundle worksheets and resources into a reusable starter pack you can apply to any client.
+        Bundle worksheets and resources into a reusable homework plan you can apply to any client.
       </p>
 
       {error && (
@@ -151,7 +151,7 @@ export function TemplateForm({
       {/* Name */}
       <div>
         <label htmlFor="template-name" className="block text-sm font-medium text-primary-700 mb-1">
-          Template name
+          Plan name
         </label>
         <input
           id="template-name"
@@ -281,10 +281,10 @@ export function TemplateForm({
         )}
       </div>
 
-      {/* Resources to share */}
+      {/* Resources to assign */}
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <h4 className="text-sm font-medium text-primary-700">Resources to share</h4>
+          <h4 className="text-sm font-medium text-primary-700">Resources to assign</h4>
           {resourceSpecs.length > 0 && (
             <span className="rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-semibold text-primary-600">
               {resourceSpecs.length}
@@ -386,7 +386,7 @@ export function TemplateForm({
           disabled={loading}
           className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors disabled:opacity-50"
         >
-          {loading ? 'Saving…' : isEditing ? 'Update template' : 'Create template'}
+          {loading ? 'Saving…' : isEditing ? 'Update plan' : 'Create plan'}
         </button>
         <button
           type="button"

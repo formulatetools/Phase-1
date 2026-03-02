@@ -47,27 +47,28 @@ export async function createTemplate(data: {
   const supabase = await createClient()
   const tier = profile.subscription_tier as SubscriptionTier
 
-  // Tier limit check
+  // Tier limit check (exclude example plans)
   const { count } = await supabase
     .from('workspace_templates')
     .select('*', { count: 'exact', head: true })
     .eq('therapist_id', user.id)
+    .eq('is_example', false)
     .is('deleted_at', null)
 
   const limit = TIER_LIMITS[tier].maxWorkspaceTemplates
   if (count !== null && count >= limit) {
     return {
       error: limit === 0
-        ? 'Workspace templates require a paid plan. Upgrade to get started.'
-        : `Your plan allows up to ${limit} template${limit !== 1 ? 's' : ''}. Upgrade for more.`,
+        ? 'Homework plans require a paid plan. Upgrade to get started.'
+        : `Your plan allows up to ${limit} homework plan${limit !== 1 ? 's' : ''}. Upgrade for more.`,
       limitReached: true,
     }
   }
 
   // Validate name
   const name = data.name.trim()
-  if (!name) return { error: 'Template name is required' }
-  if (name.length > 100) return { error: 'Template name must be 100 characters or less' }
+  if (!name) return { error: 'Plan name is required' }
+  if (name.length > 100) return { error: 'Plan name must be 100 characters or less' }
 
   // Validate resource URLs
   for (const spec of data.resourceSpecs) {
@@ -107,7 +108,7 @@ export async function createTemplate(data: {
     },
   })
 
-  revalidatePath('/templates')
+  revalidatePath('/homework-plans')
   return { data: template as WorkspaceTemplate }
 }
 
@@ -135,13 +136,13 @@ export async function updateTemplate(
     .is('deleted_at', null)
     .single()
 
-  if (!existing) return { error: 'Template not found' }
+  if (!existing) return { error: 'Homework plan not found' }
 
   // Validate name if provided
   if (data.name !== undefined) {
     const name = data.name.trim()
-    if (!name) return { error: 'Template name is required' }
-    if (name.length > 100) return { error: 'Template name must be 100 characters or less' }
+    if (!name) return { error: 'Plan name is required' }
+    if (name.length > 100) return { error: 'Plan name must be 100 characters or less' }
   }
 
   // Validate resource URLs if provided
@@ -182,7 +183,7 @@ export async function updateTemplate(
     metadata: { fields_updated: Object.keys(updateData).filter((k) => k !== 'updated_at') },
   })
 
-  revalidatePath('/templates')
+  revalidatePath('/homework-plans')
   return { success: true }
 }
 
@@ -208,7 +209,7 @@ export async function deleteTemplate(id: string) {
     entity_id: id,
   })
 
-  revalidatePath('/templates')
+  revalidatePath('/homework-plans')
   return { success: true }
 }
 
@@ -232,7 +233,7 @@ export async function applyTemplate(templateId: string, relationshipId: string) 
     .is('deleted_at', null)
     .single()
 
-  if (!template) return { error: 'Template not found' }
+  if (!template) return { error: 'Homework plan not found' }
   const typedTemplate = template as WorkspaceTemplate
 
   // Fetch relationship
@@ -246,14 +247,14 @@ export async function applyTemplate(templateId: string, relationshipId: string) 
 
   if (!rel) return { error: 'Client not found' }
   if (rel.relationship_type !== 'clinical') {
-    return { error: 'Cannot apply templates to supervision relationships.' }
+    return { error: 'Cannot apply homework plans to supervision relationships.' }
   }
 
   const assignmentSpecs = typedTemplate.assignment_specs as WorkspaceTemplateAssignmentSpec[]
   const resourceSpecs = typedTemplate.resource_specs as WorkspaceTemplateResourceSpec[]
 
   if (assignmentSpecs.length === 0 && resourceSpecs.length === 0) {
-    return { error: 'This template has no worksheets or resources to apply.' }
+    return { error: 'This homework plan has no worksheets or resources to apply.' }
   }
 
   // Validate worksheets still exist — filter to available ones
@@ -408,7 +409,7 @@ export async function applyTemplate(templateId: string, relationshipId: string) 
   })
 
   revalidatePath(`/clients/${relationshipId}`)
-  revalidatePath('/templates')
+  revalidatePath('/homework-plans')
   return {
     success: true,
     created: {
@@ -435,27 +436,28 @@ export async function saveAsTemplate(
   const supabase = await createClient()
   const tier = profile.subscription_tier as SubscriptionTier
 
-  // Tier limit check
+  // Tier limit check (exclude example plans)
   const { count } = await supabase
     .from('workspace_templates')
     .select('*', { count: 'exact', head: true })
     .eq('therapist_id', user.id)
+    .eq('is_example', false)
     .is('deleted_at', null)
 
   const limit = TIER_LIMITS[tier].maxWorkspaceTemplates
   if (count !== null && count >= limit) {
     return {
       error: limit === 0
-        ? 'Workspace templates require a paid plan.'
-        : `Your plan allows up to ${limit} template${limit !== 1 ? 's' : ''}. Upgrade for more.`,
+        ? 'Homework plans require a paid plan.'
+        : `Your plan allows up to ${limit} homework plan${limit !== 1 ? 's' : ''}. Upgrade for more.`,
       limitReached: true,
     }
   }
 
   // Validate name
   const trimmedName = name.trim()
-  if (!trimmedName) return { error: 'Template name is required' }
-  if (trimmedName.length > 100) return { error: 'Template name must be 100 characters or less' }
+  if (!trimmedName) return { error: 'Plan name is required' }
+  if (trimmedName.length > 100) return { error: 'Plan name must be 100 characters or less' }
 
   // Fetch active assignments for this relationship
   const { data: assignments } = await supabase
@@ -515,6 +517,6 @@ export async function saveAsTemplate(
     },
   })
 
-  revalidatePath('/templates')
+  revalidatePath('/homework-plans')
   return { data: template as WorkspaceTemplate }
 }

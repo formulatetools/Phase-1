@@ -36,6 +36,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/templates",
+        destination: "/homework-plans",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { applyTemplate } from '@/app/(dashboard)/templates/actions'
+import { applyTemplate } from '@/app/(dashboard)/homework-plans/actions'
 import { useToast } from '@/hooks/use-toast'
 import type { Worksheet, WorkspaceTemplate } from '@/types/database'
 
@@ -167,7 +167,7 @@ export function ApplyTemplateModal({
         ref={modalRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Apply template"
+        aria-label="Apply homework plan"
         className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl"
       >
         {/* Close button */}
@@ -184,19 +184,19 @@ export function ApplyTemplateModal({
         {/* Step 1: Select */}
         {step === 'select' && (
           <div>
-            <h2 className="text-lg font-semibold text-primary-900 pr-8">Apply template</h2>
+            <h2 className="text-lg font-semibold text-primary-900 pr-8">Apply homework plan</h2>
             <p className="mt-1 text-sm text-primary-500">
-              Choose a template to apply to <span className="font-medium text-primary-700">{clientLabel}</span>.
+              Choose a plan to apply to <span className="font-medium text-primary-700">{clientLabel}</span>.
             </p>
 
             {templates.length === 0 ? (
               <div className="mt-6 rounded-xl border-2 border-dashed border-primary-200 py-8 text-center">
-                <p className="text-sm text-primary-500">No templates created yet.</p>
+                <p className="text-sm text-primary-500">No homework plans yet.</p>
                 <Link
-                  href="/templates"
+                  href="/homework-plans"
                   className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors"
                 >
-                  Create your first template
+                  Create your first homework plan
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                   </svg>
@@ -264,7 +264,7 @@ export function ApplyTemplateModal({
         {/* Step 2: Confirm */}
         {step === 'confirm' && selectedTemplate && (
           <div>
-            <h2 className="text-lg font-semibold text-primary-900 pr-8">Confirm application</h2>
+            <h2 className="text-lg font-semibold text-primary-900 pr-8">Confirm</h2>
             <p className="mt-1 text-sm text-primary-500">
               The following will be created for <span className="font-medium text-primary-700">{clientLabel}</span>:
             </p>
@@ -343,7 +343,7 @@ export function ApplyTemplateModal({
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
-                    Apply template
+                    Apply plan
                   </>
                 )}
               </button>
@@ -370,7 +370,7 @@ export function ApplyTemplateModal({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
               </div>
-              <h2 className="mt-4 text-lg font-semibold text-primary-900">Template applied</h2>
+              <h2 className="mt-4 text-lg font-semibold text-primary-900">Homework plan applied</h2>
               <p className="mt-2 text-sm text-primary-500">
                 {result.assignments > 0 && (
                   <span>Created {result.assignments} assignment{result.assignments !== 1 ? 's' : ''}</span>

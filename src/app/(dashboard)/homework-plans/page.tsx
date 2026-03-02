@@ -7,10 +7,10 @@ import type { SubscriptionTier, Worksheet, WorkspaceTemplate } from '@/types/dat
 import { TemplateList } from '@/components/templates/template-list'
 
 export const metadata = {
-  title: 'Templates — Formulate',
+  title: 'Homework Plans — Formulate',
 }
 
-export default async function TemplatesPage() {
+export default async function HomeworkPlansPage() {
   const { user, profile } = await getCurrentUser()
   if (!user || !profile) redirect('/login')
 
@@ -37,37 +37,46 @@ export default async function TemplatesPage() {
 
   const typedTemplates = (templates || []) as WorkspaceTemplate[]
   const typedWorksheets = (worksheets || []) as Worksheet[]
-  const count = typedTemplates.length
+  // Don't count example plans toward the user's limit
+  const customCount = typedTemplates.filter((t) => !t.is_example).length
 
   return (
     <div className="px-4 py-8 sm:px-8 lg:px-12">
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-primary-900 sm:text-3xl">Templates</h1>
+          <h1 className="text-2xl font-bold text-primary-900 sm:text-3xl">Homework Plans</h1>
           <p className="mt-1 text-primary-400">
             {limit === 0
-              ? 'Reusable starter packs for client onboarding'
+              ? 'Pre-built bundles of worksheets and resources you can assign in one click'
               : limit === Infinity
-                ? `${count} template${count !== 1 ? 's' : ''}`
-                : `${count} of ${limit} template${count !== 1 ? 's' : ''} used`
+                ? `${customCount} plan${customCount !== 1 ? 's' : ''}`
+                : `${customCount} of ${limit} plan${customCount !== 1 ? 's' : ''} used`
             }
           </p>
         </div>
       </div>
 
-      {/* Free tier upgrade prompt */}
+      {/* Always show the plan list (free users can see their example plan) */}
+      <TemplateList
+        templates={typedTemplates}
+        worksheets={typedWorksheets}
+        limit={limit}
+        count={customCount}
+      />
+
+      {/* Free tier upgrade prompt — shown below the list */}
       {limit === 0 && (
-        <div className="mb-8 rounded-2xl border border-brand/20 bg-gradient-to-br from-brand-light to-white dark:to-surface p-8 text-center">
+        <div className="mt-6 rounded-2xl border border-brand/20 bg-gradient-to-br from-brand-light to-white dark:to-surface p-8 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10">
             <svg className="h-7 w-7 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM2.25 16.875c0-.621.504-1.125 1.125-1.125h6c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-2.25z" />
             </svg>
           </div>
-          <h2 className="mt-4 text-lg font-bold text-primary-900">Workspace Templates</h2>
+          <h2 className="mt-4 text-lg font-bold text-primary-900">Create Your Own Homework Plans</h2>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-primary-500">
-            Create reusable starter packs that bundle worksheets and resources.
-            Apply them to any client in one click to streamline onboarding.
+            Build custom bundles of worksheets and resources tailored to your clients.
+            Upgrade to create your own plans alongside the example above.
           </p>
           <Link
             href="/pricing"
@@ -79,16 +88,6 @@ export default async function TemplatesPage() {
             </svg>
           </Link>
         </div>
-      )}
-
-      {/* Template list */}
-      {limit > 0 && (
-        <TemplateList
-          templates={typedTemplates}
-          worksheets={typedWorksheets}
-          limit={limit}
-          count={count}
-        />
       )}
     </div>
   )
