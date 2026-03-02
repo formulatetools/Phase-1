@@ -454,6 +454,33 @@ export interface SharedResource {
   updated_at: string
 }
 
+// Workspace Templates — pre-configured sets of assignments + resources
+export interface WorkspaceTemplateAssignmentSpec {
+  worksheet_id: string
+  expires_in_days?: number
+}
+
+export interface WorkspaceTemplateResourceSpec {
+  title: string
+  url: string
+  note?: string
+}
+
+export interface WorkspaceTemplate {
+  id: string
+  therapist_id: string
+  name: string
+  description: string | null
+  assignment_specs: WorkspaceTemplateAssignmentSpec[]
+  resource_specs: WorkspaceTemplateResourceSpec[]
+  default_expires_in_days: number
+  times_applied: number
+  last_applied_at: string | null
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
 // Note: We use untyped Supabase clients and cast query results to our
 // row types explicitly. This avoids fighting Supabase's complex internal
 // generics which require Views, Functions, Enums, and Relationships fields.

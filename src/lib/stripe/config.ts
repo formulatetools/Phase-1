@@ -21,6 +21,7 @@ export const TIER_LIMITS = {
     maxCustomWorksheets: 0,
     maxSupervisees: 0,
     maxSharedResourcesPerClient: 5,
+    maxWorkspaceTemplates: 0,
   },
   starter: {
     monthlyUses: Infinity,
@@ -29,6 +30,7 @@ export const TIER_LIMITS = {
     maxCustomWorksheets: 3,
     maxSupervisees: 0,
     maxSharedResourcesPerClient: Infinity,
+    maxWorkspaceTemplates: 1,
   },
   standard: {
     monthlyUses: Infinity,
@@ -37,6 +39,7 @@ export const TIER_LIMITS = {
     maxCustomWorksheets: 15,
     maxSupervisees: 4,
     maxSharedResourcesPerClient: Infinity,
+    maxWorkspaceTemplates: 3,
   },
   professional: {
     monthlyUses: Infinity,
@@ -45,6 +48,7 @@ export const TIER_LIMITS = {
     maxCustomWorksheets: Infinity,
     maxSupervisees: Infinity,
     maxSharedResourcesPerClient: Infinity,
+    maxWorkspaceTemplates: Infinity,
   },
 } as const
 

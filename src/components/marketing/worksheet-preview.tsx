@@ -4,15 +4,18 @@ import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { ConsentGate } from '@/components/homework/consent-gate'
+import { DemoPortalPreview } from '@/components/marketing/demo-portal-preview'
 import { buttonVariants } from '@/components/ui/button-variants'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { DEMO_DATA, DEMO_WORKSHEETS } from '@/lib/demo-data'
 
+const WORKSPACE_TAB_ID = 'workspace'
+
 // Icon map — matches the icon slugs in DEMO_WORKSHEETS
 const ICONS: Record<string, React.ReactNode> = {
-  'thought-record': (
+  workspace: (
     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
     </svg>
   ),
   hierarchy: (
@@ -40,10 +43,11 @@ interface WorksheetPreviewProps {
 }
 
 export function WorksheetPreview({ worksheets }: WorksheetPreviewProps) {
-  const [activeSlug, setActiveSlug] = useState(worksheets[0]?.slug ?? '')
+  const [activeSlug, setActiveSlug] = useState(WORKSPACE_TAB_ID)
   // Track consent state per tab so switching tabs resets the journey
   const [consentKeys, setConsentKeys] = useState<Record<string, number>>({})
 
+  const isWorkspaceActive = activeSlug === WORKSPACE_TAB_ID
   const activeWorksheet = worksheets.find((w) => w.slug === activeSlug)
   const demoValues = DEMO_DATA[activeSlug]
 
@@ -53,13 +57,31 @@ export function WorksheetPreview({ worksheets }: WorksheetPreviewProps) {
     setConsentKeys((prev) => ({ ...prev, [slug]: (prev[slug] ?? 0) + 1 }))
   }, [])
 
-  if (!activeWorksheet) return null
+  if (!isWorkspaceActive && !activeWorksheet) return null
 
   return (
     <div className="mx-auto max-w-3xl">
       {/* Tabs */}
       <div className="mb-4 flex justify-center">
         <div role="tablist" aria-label="Demo worksheets" className="inline-flex rounded-xl border border-primary-200 bg-primary-50/50 p-1 gap-1">
+          {/* Workspace tab */}
+          <button
+            role="tab"
+            aria-selected={isWorkspaceActive}
+            aria-controls="worksheet-preview-panel"
+            onClick={() => handleTabChange(WORKSPACE_TAB_ID)}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+              isWorkspaceActive
+                ? 'bg-surface text-brand shadow-sm'
+                : 'text-primary-500 hover:text-primary-700 hover:bg-surface/50'
+            }`}
+          >
+            {ICONS.workspace}
+            <span className="hidden sm:inline">Therapy Workspace</span>
+            <span className="sm:hidden">Workspace</span>
+          </button>
+
+          {/* Worksheet tabs */}
           {worksheets.map((ws) => {
             const meta = DEMO_WORKSHEETS.find((m) => m.slug === ws.slug)
             const isActive = ws.slug === activeSlug
@@ -95,7 +117,7 @@ export function WorksheetPreview({ worksheets }: WorksheetPreviewProps) {
             <span className="h-2.5 w-2.5 rounded-full bg-primary-200" />
           </div>
           <p className="text-xs font-medium text-primary-500">
-            {activeWorksheet.title}
+            {isWorkspaceActive ? 'Client Portal — Therapy Workspace' : activeWorksheet!.title}
           </p>
           <span className="ml-auto rounded-full bg-brand/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">
             Interactive
@@ -104,62 +126,70 @@ export function WorksheetPreview({ worksheets }: WorksheetPreviewProps) {
 
         {/* Content area */}
         <div className="max-h-[600px] overflow-y-auto">
-          <ConsentGate
-            key={`${activeSlug}-${consentKeys[activeSlug] ?? 0}`}
-            token="demo"
-            initialHasConsent={false}
-            worksheetTitle={activeWorksheet.title}
-            worksheetSchema={activeWorksheet.schema}
-            isDemo
-          >
-            {/* Post-consent: the worksheet form with demo data */}
-            <div className="p-4 sm:p-6">
-              {activeWorksheet.description && (
-                <p className="mb-2 text-sm text-primary-500">{activeWorksheet.description}</p>
-              )}
-              {activeWorksheet.instructions && (
-                <div className="mb-6 rounded-xl border border-brand/20 bg-brand-light p-4 text-sm text-primary-700">
-                  {activeWorksheet.instructions}
-                </div>
-              )}
-              <WorksheetRenderer
-                key={activeSlug}
-                schema={activeWorksheet.schema}
-                readOnly={false}
-                initialValues={demoValues}
-              />
+          {isWorkspaceActive ? (
+            <DemoPortalPreview />
+          ) : (
+            <ConsentGate
+              key={`${activeSlug}-${consentKeys[activeSlug] ?? 0}`}
+              token="demo"
+              initialHasConsent={false}
+              worksheetTitle={activeWorksheet!.title}
+              worksheetSchema={activeWorksheet!.schema}
+              isDemo
+            >
+              {/* Post-consent: the worksheet form with demo data */}
+              <div className="p-4 sm:p-6">
+                {activeWorksheet!.description && (
+                  <p className="mb-2 text-sm text-primary-500">{activeWorksheet!.description}</p>
+                )}
+                {activeWorksheet!.instructions && (
+                  <div className="mb-6 rounded-xl border border-brand/20 bg-brand-light p-4 text-sm text-primary-700">
+                    {activeWorksheet!.instructions}
+                  </div>
+                )}
+                <WorksheetRenderer
+                  key={activeSlug}
+                  schema={activeWorksheet!.schema}
+                  readOnly={false}
+                  initialValues={demoValues}
+                />
 
-              {/* Signup CTA — appears at the bottom of the interactive form */}
-              <div className="mt-10 border-t border-primary-100 pt-6 text-center">
-                <p className="text-sm font-medium text-primary-700">
-                  Like what you see? Send this to a client in under a minute.
-                </p>
-                <Link
-                  href="/signup"
-                  className={`mt-3 inline-flex ${buttonVariants.accent('md')}`}
-                >
-                  Get Started Free
-                </Link>
+                {/* Signup CTA — appears at the bottom of the interactive form */}
+                <div className="mt-10 border-t border-primary-100 pt-6 text-center">
+                  <p className="text-sm font-medium text-primary-700">
+                    Like what you see? Send this to a client in under a minute.
+                  </p>
+                  <Link
+                    href="/signup"
+                    className={`mt-3 inline-flex ${buttonVariants.accent('md')}`}
+                  >
+                    Get Started Free
+                  </Link>
+                </div>
               </div>
-            </div>
-          </ConsentGate>
+            </ConsentGate>
+          )}
         </div>
       </div>
 
       {/* Caption + link */}
       <div className="mt-4 flex flex-col items-center gap-1.5">
         <p className="text-center text-sm text-primary-400">
-          This is the exact journey your clients go through — from consent to completion.
+          {isWorkspaceActive
+            ? 'See the complete therapy workspace your clients use — homework, resources, and progress.'
+            : 'This is the exact journey your clients go through — from consent to completion.'}
         </p>
-        <Link
-          href={`/hw/demo/${activeSlug}`}
-          className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors"
-        >
-          Try the full experience
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-          </svg>
-        </Link>
+        {!isWorkspaceActive && (
+          <Link
+            href={`/hw/demo/${activeSlug}`}
+            className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors"
+          >
+            Try the full experience
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </Link>
+        )}
       </div>
     </div>
   )

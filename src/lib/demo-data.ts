@@ -8,12 +8,6 @@
 
 export const DEMO_WORKSHEETS = [
   {
-    slug: '7-column-thought-record',
-    title: '7-Column Thought Record',
-    description: 'The classic CBT thought record — identify hot thoughts, weigh the evidence, and build a balanced perspective.',
-    icon: 'thought-record',
-  },
-  {
     slug: 'graded-exposure-hierarchy',
     title: 'Graded Exposure Hierarchy',
     description: 'Build a fear ladder ranked by anxiety level and work your way up with graded exposure.',
