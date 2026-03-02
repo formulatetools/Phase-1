@@ -67,17 +67,19 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
     }
   }
 
-  const handleEnterComplete = () => {
-    if (pin.every((d) => d)) {
+  const handleEnterComplete = (completedDigits?: string[]) => {
+    const pinDigits = completedDigits || pin
+    if (pinDigits.every((d) => d)) {
+      if (completedDigits) setPin(completedDigits)
       setStep('confirm')
       setConfirmPin(['', '', '', ''])
       setTimeout(() => confirmRefs.current[0]?.focus(), 100)
     }
   }
 
-  const handleConfirmComplete = async () => {
+  const handleConfirmComplete = async (completedDigits?: string[]) => {
     const pinValue = pin.join('')
-    const confirmValue = confirmPin.join('')
+    const confirmValue = (completedDigits || confirmPin).join('')
 
     if (pinValue !== confirmValue) {
       setError('PINs don\'t match. Try again.')
@@ -117,7 +119,7 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
     digits: string[],
     setDigits: (d: string[]) => void,
     refs: React.MutableRefObject<(HTMLInputElement | null)[]>,
-    onComplete?: () => void
+    onComplete?: (completedDigits: string[]) => void
   ) => (
     <div className="flex justify-center gap-2">
       {digits.map((digit, i) => (
@@ -136,7 +138,7 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
               const newDigits = [...digits]
               newDigits[i] = newDigit
               if (newDigits.every((d) => d) && onComplete) {
-                setTimeout(onComplete, 50)
+                setTimeout(() => onComplete(newDigits), 50)
               }
             }
           }}
@@ -212,7 +214,7 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
           <div className="flex justify-center gap-2">
             {step === 'enter' ? (
               <button
-                onClick={handleEnterComplete}
+                onClick={() => handleEnterComplete()}
                 disabled={!pin.every((d) => d) || loading}
                 className="rounded-lg bg-primary-800 px-4 py-2 text-xs font-medium text-white hover:bg-primary-900 transition-colors disabled:opacity-50"
               >
@@ -232,7 +234,7 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
                   Back
                 </button>
                 <button
-                  onClick={handleConfirmComplete}
+                  onClick={() => handleConfirmComplete()}
                   disabled={!confirmPin.every((d) => d) || loading}
                   className="rounded-lg bg-primary-800 px-4 py-2 text-xs font-medium text-white hover:bg-primary-900 transition-colors disabled:opacity-50"
                 >

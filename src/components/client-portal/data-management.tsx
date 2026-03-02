@@ -245,9 +245,9 @@ export function DataManagement({
     setPinError(null)
   }
 
-  const handleSetPin = async () => {
+  const handleSetPin = async (completedDigits?: string[]) => {
     const pinValue = pinDigits.join('')
-    const confirmValue = pinConfirmDigits.join('')
+    const confirmValue = (completedDigits || pinConfirmDigits).join('')
     if (pinValue !== confirmValue) {
       setPinError('PINs don\'t match. Try again.')
       setPinConfirmDigits(['', '', '', ''])
@@ -279,10 +279,10 @@ export function DataManagement({
     }
   }
 
-  const handleChangePin = async () => {
+  const handleChangePin = async (completedDigits?: string[]) => {
     const currentValue = pinCurrentDigits.join('')
     const newValue = pinDigits.join('')
-    const confirmValue = pinConfirmDigits.join('')
+    const confirmValue = (completedDigits || pinConfirmDigits).join('')
     if (newValue !== confirmValue) {
       setPinError('New PINs don\'t match. Try again.')
       setPinConfirmDigits(['', '', '', ''])
@@ -324,8 +324,8 @@ export function DataManagement({
     }
   }
 
-  const handleRemovePin = async () => {
-    const currentValue = pinCurrentDigits.join('')
+  const handleRemovePin = async (completedDigits?: string[]) => {
+    const currentValue = (completedDigits || pinCurrentDigits).join('')
     setPinLoading(true)
     setPinError(null)
     try {
@@ -365,7 +365,7 @@ export function DataManagement({
     digits: string[],
     setDigits: (d: string[]) => void,
     refs: React.MutableRefObject<(HTMLInputElement | null)[]>,
-    onComplete?: () => void
+    onComplete?: (completedDigits: string[]) => void
   ) => (
     <div className="flex justify-center gap-2">
       {digits.map((digit, i) => (
@@ -383,7 +383,7 @@ export function DataManagement({
               const newDigits = [...digits]
               newDigits[i] = newDigit
               if (newDigits.every((d) => d) && onComplete) {
-                setTimeout(onComplete, 50)
+                setTimeout(() => onComplete(newDigits), 50)
               }
             }
           }}
@@ -789,7 +789,8 @@ export function DataManagement({
               {pinStep === 'enter' ? 'Choose a 4-digit PIN' : 'Confirm your PIN'}
             </p>
             {pinStep === 'enter'
-              ? renderPinInputs(pinDigits, setPinDigits, pinInputRefs, () => {
+              ? renderPinInputs(pinDigits, setPinDigits, pinInputRefs, (completed) => {
+                  setPinDigits(completed)
                   setPinStep('confirm')
                   setPinConfirmDigits(['', '', '', ''])
                   setTimeout(() => pinConfirmRefs.current[0]?.focus(), 100)
@@ -832,13 +833,15 @@ export function DataManagement({
                   : 'Confirm your new PIN'}
             </p>
             {pinStep === 'current'
-              ? renderPinInputs(pinCurrentDigits, setPinCurrentDigits, pinCurrentRefs, () => {
+              ? renderPinInputs(pinCurrentDigits, setPinCurrentDigits, pinCurrentRefs, (completed) => {
+                  setPinCurrentDigits(completed)
                   setPinStep('enter')
                   setPinDigits(['', '', '', ''])
                   setTimeout(() => pinInputRefs.current[0]?.focus(), 100)
                 })
               : pinStep === 'enter'
-                ? renderPinInputs(pinDigits, setPinDigits, pinInputRefs, () => {
+                ? renderPinInputs(pinDigits, setPinDigits, pinInputRefs, (completed) => {
+                    setPinDigits(completed)
                     setPinStep('confirm')
                     setPinConfirmDigits(['', '', '', ''])
                     setTimeout(() => pinConfirmRefs.current[0]?.focus(), 100)
