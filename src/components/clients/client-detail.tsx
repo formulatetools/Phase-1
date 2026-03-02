@@ -993,6 +993,8 @@ export function ClientDetail({
         clientLabel={relationship.client_label}
         templates={templates}
         worksheets={worksheets}
+        appUrl={appUrl}
+        portalUrl={relationship.client_portal_token ? `${appUrl}/client/${relationship.client_portal_token}` : undefined}
       />
     </div>
   )

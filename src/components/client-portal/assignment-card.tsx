@@ -1,6 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
+import type { WorksheetSchema } from '@/types/worksheet'
+import { downloadFillablePdf } from '@/lib/utils/fillable-pdf'
 
 interface PortalAssignment {
   id: string
@@ -24,6 +27,8 @@ interface AssignmentCardProps {
   portalToken: string
   appUrl: string
   variant: 'current' | 'completed'
+  schema?: WorksheetSchema
+  responseData?: Record<string, unknown> | null
 }
 
 function formatDate(dateStr: string) {
@@ -39,11 +44,30 @@ export function AssignmentCard({
   portalToken,
   appUrl,
   variant,
+  schema,
+  responseData,
 }: AssignmentCardProps) {
   const title = worksheet?.title || 'Worksheet'
+  const [downloading, setDownloading] = useState(false)
 
   const isExpired = new Date(assignment.expires_at) < new Date()
   const isCurrent = variant === 'current'
+
+  const handleDownloadPdf = async () => {
+    if (!schema) return
+    setDownloading(true)
+    try {
+      await downloadFillablePdf({
+        schema,
+        title,
+        values: responseData || undefined,
+      })
+    } catch {
+      // PDF generation failed silently — the user sees the button revert
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   return (
     <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm transition-colors hover:border-primary-200 sm:p-5">
@@ -99,8 +123,31 @@ export function AssignmentCard({
           </div>
         </div>
 
-        {/* Action button */}
-        <div className="shrink-0">
+        {/* Action buttons */}
+        <div className="shrink-0 flex items-center gap-2">
+          {/* PDF download */}
+          {schema && (
+            <button
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+              className="inline-flex items-center justify-center rounded-lg border border-primary-200 p-2 text-primary-500 transition-colors hover:bg-primary-50 hover:text-primary-700 dark:border-primary-300 dark:text-primary-600 dark:hover:bg-primary-100 min-h-[44px] min-w-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 disabled:opacity-50"
+              title={variant === 'completed' ? 'Download completed PDF' : 'Download blank PDF'}
+              aria-label={variant === 'completed' ? 'Download completed PDF' : 'Download blank PDF'}
+            >
+              {downloading ? (
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              ) : (
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+              )}
+            </button>
+          )}
+
+          {/* Primary action */}
           {isCurrent && assignment.status === 'assigned' && !isExpired && (
             <a
               href={`${appUrl}/hw/${assignment.token}`}

@@ -375,10 +375,12 @@ export async function applyTemplate(templateId: string, relationshipId: string) 
   }
 
   // Lazy-generate portal token if needed
-  if (!rel.client_portal_token) {
+  let portalToken = rel.client_portal_token as string | null
+  if (!portalToken) {
+    portalToken = generatePortalToken()
     await supabase
       .from('therapeutic_relationships')
-      .update({ client_portal_token: generatePortalToken() })
+      .update({ client_portal_token: portalToken })
       .eq('id', relationshipId)
   }
 
@@ -414,6 +416,7 @@ export async function applyTemplate(templateId: string, relationshipId: string) 
       resources: resourcesCreated,
     },
     skipped: skippedSpecs.map((s) => s.worksheet_id),
+    portalToken: portalToken!,
   }
 }
 

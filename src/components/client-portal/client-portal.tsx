@@ -178,6 +178,7 @@ export function ClientPortal({
                     portalToken={portalToken}
                     appUrl={appUrl}
                     variant="current"
+                    schema={worksheetMap.get(a.worksheet_id)?.schema}
                   />
                 ))}
               </div>
@@ -198,6 +199,8 @@ export function ClientPortal({
                     portalToken={portalToken}
                     appUrl={appUrl}
                     variant="completed"
+                    schema={worksheetMap.get(a.worksheet_id)?.schema}
+                    responseData={responseMap.get(a.id)?.response_data}
                   />
                 ))}
               </div>

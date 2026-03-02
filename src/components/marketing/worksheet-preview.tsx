@@ -127,7 +127,7 @@ export function WorksheetPreview({ worksheets }: WorksheetPreviewProps) {
         {/* Content area */}
         <div className="max-h-[600px] overflow-y-auto">
           {isWorkspaceActive ? (
-            <DemoPortalPreview />
+            <DemoPortalPreview worksheets={worksheets} />
           ) : (
             <ConsentGate
               key={`${activeSlug}-${consentKeys[activeSlug] ?? 0}`}
