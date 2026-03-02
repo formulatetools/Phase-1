@@ -10,7 +10,7 @@ export function ActionsCard() {
     <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm dark:border-primary-800">
       <p className="text-xs font-semibold uppercase tracking-wider text-primary-400 dark:text-primary-500">Actions</p>
       <div className="mt-4 space-y-1">
-        {/* Primary CTA — Assign worksheet */}
+        {/* Primary CTA — Assign homework */}
         <button
           onClick={() => openAssignModal()}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary-700 transition-colors hover:bg-brand/10 dark:text-primary-200 dark:hover:bg-brand/15"
@@ -20,7 +20,7 @@ export function ActionsCard() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
             </svg>
           </div>
-          <span className="flex-1 text-left">Assign worksheet</span>
+          <span className="flex-1 text-left">Assign homework</span>
           <svg className="h-4 w-4 text-primary-300 dark:text-primary-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>

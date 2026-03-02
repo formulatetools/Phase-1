@@ -35,8 +35,8 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
     () => [
       {
         id: 'act-assign',
-        label: 'Assign worksheet',
-        description: 'Assign homework to a client',
+        label: 'Assign homework',
+        description: 'Assign a worksheet, resource, or template to a client',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
@@ -108,9 +108,9 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
         scope: 'Actions',
       },
       {
-        keys: 'a w',
+        keys: 'a h',
         handler: () => openAssignModal(),
-        description: 'Assign worksheet',
+        description: 'Assign homework',
         scope: 'Actions',
       },
     ],

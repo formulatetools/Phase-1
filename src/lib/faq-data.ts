@@ -88,7 +88,7 @@ export const EXTENDED_FAQ: FaqCategory[] = [
     questions: [
       {
         q: 'How do I assign homework to a client?',
-        a: 'From any worksheet, click "Assign to client" and select the client from your list. You can set a due date, add a personal note, and optionally pre-fill certain fields. The system generates a unique link you can share via your usual communication channel.',
+        a: 'Click "Assign homework" from the dashboard, command palette, or client detail page. You can assign worksheets, resources, or apply workspace templates. Choose a client, pick the content, set a due date and link expiry, and share the generated link via your usual communication channel.',
       },
       {
         q: 'Can I pre-fill parts of a worksheet before assigning?',

@@ -50,11 +50,11 @@ export function ShareResourceForm({
       if (result.error) {
         setError(result.error)
       } else {
-        toast({ type: 'success', message: 'Resource shared with client' })
+        toast({ type: 'success', message: 'Resource assigned to client' })
         onShared()
       }
     } catch {
-      setError('Failed to share resource. Please try again.')
+      setError('Failed to assign resource. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -65,9 +65,9 @@ export function ShareResourceForm({
       onSubmit={handleSubmit}
       className="rounded-2xl border border-primary-200 bg-surface p-6 shadow-sm space-y-4"
     >
-      <h3 className="text-lg font-semibold text-primary-900">Share a resource</h3>
+      <h3 className="text-lg font-semibold text-primary-900">Assign a resource</h3>
       <p className="text-xs text-primary-500">
-        Share a helpful link with your client. It will appear in the Resources tab of their portal.
+        Assign a helpful link to your client. It will appear in the Resources tab of their portal.
       </p>
 
       {error && (
@@ -135,13 +135,13 @@ export function ShareResourceForm({
           className="flex items-center gap-2 rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900 transition-colors disabled:opacity-50"
         >
           {loading ? (
-            'Sharing…'
+            'Assigning\u2026'
           ) : (
             <>
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 6.364L6.002 13.5a4.5 4.5 0 006.364 6.364l4.5-4.5a4.5 4.5 0 001.242-7.244" />
               </svg>
-              Share resource
+              Assign resource
             </>
           )}
         </button>

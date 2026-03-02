@@ -57,7 +57,7 @@ export default async function ClientsPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-primary-900">Clients</h1>
         <p className="mt-1 text-sm text-primary-500">
-          Manage your clients and assign homework worksheets.
+          Manage your clients and assign homework.
           Clients are identified by non-identifiable labels only — no personal data is stored.
         </p>
       </div>

@@ -29,8 +29,7 @@ import {
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
 import { ShareModal } from '@/components/ui/share-modal'
-import { ShareResourceForm } from '@/components/clients/share-resource-form'
-import { ApplyTemplateModal } from '@/components/templates/apply-template-modal'
+import { useAssign } from '@/components/providers/assign-provider'
 import { useToast } from '@/hooks/use-toast'
 
 interface ClientDetailProps {
@@ -99,11 +98,9 @@ export function ClientDetail({
   const [showPrefill, setShowPrefill] = useState(false)
   const [prefillValues, setPrefillValues] = useState<Record<string, unknown>>({})
   const [prefillReadonly, setPrefillReadonly] = useState(true)
-  const [showShareResource, setShowShareResource] = useState(false)
-  const [showApplyTemplate, setShowApplyTemplate] = useState(false)
-
   const router = useRouter()
   const { toast } = useToast()
+  const { openAssignModal } = useAssign()
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   const handleAction = useCallback(async (
@@ -322,7 +319,7 @@ export function ClientDetail({
       )}
 
       {/* Action buttons */}
-      {relationship.status === 'active' && !showAssign && !showShareResource && (
+      {relationship.status === 'active' && !showAssign && (
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
@@ -337,20 +334,20 @@ export function ClientDetail({
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Assign worksheet
+            Assign homework
           </button>
           <button
-            onClick={() => setShowShareResource(true)}
+            onClick={() => openAssignModal({ clientId: relationship.id, tab: 'resource' })}
             className="flex items-center gap-2 rounded-lg border border-primary-200 px-4 py-2.5 text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 6.364L6.002 13.5a4.5 4.5 0 006.364 6.364l4.5-4.5a4.5 4.5 0 001.242-7.244" />
             </svg>
-            Share resource
+            Assign resource
           </button>
           {templates.length > 0 && (
             <button
-              onClick={() => setShowApplyTemplate(true)}
+              onClick={() => openAssignModal({ clientId: relationship.id, tab: 'template' })}
               className="flex items-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-4 py-2.5 text-sm font-medium text-brand-dark hover:bg-brand/10 transition-colors"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -527,18 +524,6 @@ export function ClientDetail({
             </button>
           </div>
         </div>
-      )}
-
-      {/* Share resource form */}
-      {showShareResource && (
-        <ShareResourceForm
-          relationshipId={relationship.id}
-          onShared={() => {
-            setShowShareResource(false)
-            router.refresh()
-          }}
-          onCancel={() => setShowShareResource(false)}
-        />
       )}
 
       {/* Client Portal */}
@@ -982,20 +967,6 @@ export function ClientDetail({
         portalUrl={relationship.client_portal_token ? `${appUrl}/client/${relationship.client_portal_token}` : undefined}
       />
 
-      {/* Apply template modal */}
-      <ApplyTemplateModal
-        open={showApplyTemplate}
-        onClose={() => {
-          setShowApplyTemplate(false)
-          router.refresh()
-        }}
-        relationshipId={relationship.id}
-        clientLabel={relationship.client_label}
-        templates={templates}
-        worksheets={worksheets}
-        appUrl={appUrl}
-        portalUrl={relationship.client_portal_token ? `${appUrl}/client/${relationship.client_portal_token}` : undefined}
-      />
     </div>
   )
 }
