@@ -15,7 +15,7 @@ const shortcuts = [
     scope: 'Navigation',
     items: [
       { keys: ['G', 'D'], description: 'Go to Dashboard' },
-      { keys: ['G', 'W'], description: 'Go to Resources' },
+      { keys: ['G', 'W'], description: 'Go to Library' },
       { keys: ['G', 'C'], description: 'Go to Clients' },
       { keys: ['G', 'S'], description: 'Go to Settings' },
     ],

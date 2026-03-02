@@ -13,13 +13,13 @@ const TOUR_STEPS: TourStep[] = [
   {
     target: 'sidebar-nav',
     title: 'Your Navigation',
-    description: 'Navigate between your resource library, clients, and settings from here.',
+    description: 'Navigate between the library, clients, and settings from here.',
     position: 'right',
   },
   {
     target: 'nav-worksheets',
-    title: 'Resource Library',
-    description: 'Browse evidence-based CBT resources organised by therapeutic domain. Search, filter, and preview.',
+    title: 'Worksheet Library',
+    description: 'Browse evidence-based CBT worksheets organised by therapeutic domain. Search, filter, and preview.',
     position: 'right',
   },
   {

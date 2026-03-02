@@ -198,9 +198,8 @@ export function SidebarNav({
       label: 'Workspace',
       items: [
         { label: 'Clients', href: '/clients', icon: icons.clients, tourId: 'nav-clients', badge: pendingReviewCount },
-        { label: 'Resources', href: '/worksheets', icon: icons.resources, tourId: 'nav-worksheets' },
+        { label: 'Library', href: '/worksheets', icon: icons.resources, tourId: 'nav-worksheets' },
         { label: 'Supervision', href: '/supervision', icon: icons.supervision },
-        { label: 'Templates', href: '/templates', icon: icons.templates },
       ],
     },
     {
@@ -208,6 +207,7 @@ export function SidebarNav({
       label: 'Create',
       items: [
         { label: 'My Tools', href: '/my-tools', icon: icons.myTools },
+        { label: 'Templates', href: '/templates', icon: icons.templates },
       ],
     },
     {
