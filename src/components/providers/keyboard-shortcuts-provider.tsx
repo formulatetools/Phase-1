@@ -4,13 +4,16 @@ import { createContext, useContext, useState, useCallback, useMemo } from 'react
 import { useRouter } from 'next/navigation'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { KeyboardShortcutsModal } from '@/components/ui/keyboard-shortcuts-modal'
+import { CommandPalette } from '@/components/ui/command-palette'
 
 interface KeyboardShortcutsContextValue {
   openShortcutsModal: () => void
+  openCommandPalette: () => void
 }
 
 const KeyboardShortcutsContext = createContext<KeyboardShortcutsContextValue>({
   openShortcutsModal: () => {},
+  openCommandPalette: () => {},
 })
 
 export const useShortcutsModal = () => useContext(KeyboardShortcutsContext)
@@ -18,9 +21,12 @@ export const useShortcutsModal = () => useContext(KeyboardShortcutsContext)
 export function KeyboardShortcutsProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [modalOpen, setModalOpen] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
 
   const openShortcutsModal = useCallback(() => setModalOpen(true), [])
   const closeShortcutsModal = useCallback(() => setModalOpen(false), [])
+  const openCommandPalette = useCallback(() => setPaletteOpen(true), [])
+  const closeCommandPalette = useCallback(() => setPaletteOpen(false), [])
 
   const shortcuts = useMemo(
     () => [
@@ -38,7 +44,14 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
       },
       {
         keys: 'Escape',
-        handler: () => setModalOpen(false),
+        handler: () => {
+          // Close whichever modal is open (palette takes priority)
+          if (paletteOpen) {
+            setPaletteOpen(false)
+          } else {
+            setModalOpen(false)
+          }
+        },
         description: 'Close modal',
         scope: 'Global',
       },
@@ -68,28 +81,21 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
       },
       {
         keys: 'mod+k',
-        handler: () => {
-          // Focus the search input on worksheets page
-          const searchInput = document.querySelector<HTMLInputElement>('[data-search-input]')
-          if (searchInput) {
-            searchInput.focus()
-          } else {
-            router.push('/worksheets')
-          }
-        },
-        description: 'Search resources',
+        handler: () => setPaletteOpen((o) => !o),
+        description: 'Command palette',
         scope: 'Actions',
       },
     ],
-    [router],
+    [router, paletteOpen],
   )
 
   useKeyboardShortcuts(shortcuts)
 
   return (
-    <KeyboardShortcutsContext.Provider value={{ openShortcutsModal }}>
+    <KeyboardShortcutsContext.Provider value={{ openShortcutsModal, openCommandPalette }}>
       {children}
       <KeyboardShortcutsModal open={modalOpen} onClose={closeShortcutsModal} />
+      <CommandPalette open={paletteOpen} onClose={closeCommandPalette} />
     </KeyboardShortcutsContext.Provider>
   )
 }

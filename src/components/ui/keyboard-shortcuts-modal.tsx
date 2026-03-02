@@ -23,7 +23,7 @@ const shortcuts = [
   {
     scope: 'Actions',
     items: [
-      { keys: [modKey, 'K'], description: 'Search resources' },
+      { keys: [modKey, 'K'], description: 'Command palette' },
       { keys: ['?'], description: 'Open this reference' },
       { keys: ['Esc'], description: 'Close modal' },
     ],

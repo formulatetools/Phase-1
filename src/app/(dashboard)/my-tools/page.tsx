@@ -74,6 +74,31 @@ export default async function MyToolsPage() {
         )}
       </div>
 
+      {/* AI Generate CTA — shown for paid tiers */}
+      {limit > 0 && (
+        <div className="mb-6">
+          <Link
+            href="/my-tools/ai"
+            className="group flex items-center gap-4 rounded-2xl border border-brand/20 bg-gradient-to-r from-brand-light/50 to-transparent p-5 transition-all hover:border-brand/40 hover:shadow-md dark:from-brand/5 dark:to-transparent"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand/10 transition-colors group-hover:bg-brand/20">
+              <svg className="h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-primary-900">Generate with AI</p>
+              <p className="mt-0.5 text-xs text-primary-500">
+                Describe a worksheet and let AI build it for you
+              </p>
+            </div>
+            <svg className="h-5 w-5 text-primary-300 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </Link>
+        </div>
+      )}
+
       {/* Free tier upgrade prompt */}
       {limit === 0 && (
         <div className="mb-8 rounded-2xl border border-brand/20 bg-gradient-to-br from-brand-light to-white dark:to-surface p-8 text-center">

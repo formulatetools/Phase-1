@@ -26,8 +26,8 @@ export function useKeyboardShortcuts(shortcuts: Shortcut[]) {
       const tag = (e.target as HTMLElement)?.tagName
       const editable = (e.target as HTMLElement)?.isContentEditable
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || editable) {
-        // Allow Escape even in inputs
-        if (e.key !== 'Escape') return
+        // Allow Escape and modifier combos (e.g. Cmd+K for command palette) in inputs
+        if (e.key !== 'Escape' && !(e.metaKey || e.ctrlKey)) return
       }
 
       const isMod = e.metaKey || e.ctrlKey
