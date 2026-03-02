@@ -12,6 +12,7 @@ import { LogoIcon } from '@/components/ui/logo'
 import { DataManagement } from '@/components/client-portal/data-management'
 import { isSessionValid } from '@/lib/utils/portal-session'
 import { PinEntry } from '@/components/client-portal/pin-entry'
+import { getBrandingConfig, resolveBranding } from '@/lib/branding'
 
 interface PageProps {
   params: Promise<{ portalToken: string }>
@@ -118,6 +119,16 @@ export default async function DataManagementPage({ params }: PageProps) {
     (therapistProfile as { full_name: string | null } | null)?.full_name ||
     'your therapist'
 
+  // Fetch therapist tier and resolve branding
+  const { data: tierProfile } = await supabase
+    .from('profiles')
+    .select('subscription_tier')
+    .eq('id', typedRelationship.therapist_id)
+    .single()
+  const therapistTier = (tierProfile as { subscription_tier: string } | null)?.subscription_tier ?? 'free'
+  const brandingConfig = await getBrandingConfig()
+  const branding = resolveBranding(therapistTier, brandingConfig)
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -197,6 +208,7 @@ export default async function DataManagementPage({ params }: PageProps) {
             description: w.description,
             schema: w.schema,
           }))}
+          branding={branding}
         />
       </main>
 

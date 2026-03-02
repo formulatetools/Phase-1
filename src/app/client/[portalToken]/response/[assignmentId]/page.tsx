@@ -9,6 +9,7 @@ import type {
 import Link from 'next/link'
 import { LogoIcon } from '@/components/ui/logo'
 import { ResponseViewer } from '@/components/client-portal/response-viewer'
+import { getBrandingConfig, resolveBranding } from '@/lib/branding'
 
 interface PageProps {
   params: Promise<{ portalToken: string; assignmentId: string }>
@@ -93,6 +94,16 @@ export default async function ResponseViewerPage({ params }: PageProps) {
     'id' | 'title' | 'description' | 'schema'
   >
 
+  // Fetch therapist tier and resolve branding
+  const { data: therapistProfile } = await supabase
+    .from('profiles')
+    .select('subscription_tier')
+    .eq('id', relationship.therapist_id)
+    .single()
+  const therapistTier = (therapistProfile as { subscription_tier: string } | null)?.subscription_tier ?? 'free'
+  const brandingConfig = await getBrandingConfig()
+  const branding = resolveBranding(therapistTier, brandingConfig)
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -159,6 +170,7 @@ export default async function ResponseViewerPage({ params }: PageProps) {
           portalToken={portalToken}
           assignmentId={assignmentId}
           worksheetTitle={typedWorksheet.title}
+          branding={branding}
         />
       </main>
 

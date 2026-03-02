@@ -6,6 +6,7 @@ import { ConsentGate } from '@/components/homework/consent-gate'
 import { LogoIcon } from '@/components/ui/logo'
 import { generatePortalToken } from '@/lib/tokens'
 import { isValidPreviewHash } from '@/lib/preview'
+import { getBrandingConfig, resolveBranding } from '@/lib/branding'
 
 export const metadata = {
   title: 'Homework — Formulate',
@@ -96,6 +97,26 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
   }
 
   const portalUrl = portalToken ? `/client/${portalToken}` : null
+
+  // Fetch therapist tier and resolve branding
+  const { data: therapistRel } = await supabase
+    .from('therapeutic_relationships')
+    .select('therapist_id')
+    .eq('id', typedAssignment.relationship_id)
+    .single()
+
+  let therapistTier = 'free'
+  if (therapistRel?.therapist_id) {
+    const { data: therapistProfile } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', therapistRel.therapist_id)
+      .single()
+    therapistTier = (therapistProfile as { subscription_tier: string } | null)?.subscription_tier ?? 'free'
+  }
+
+  const brandingConfig = await getBrandingConfig()
+  const branding = resolveBranding(therapistTier, brandingConfig)
 
   // Determine state
   // For preview: skip expiry check (spec: "No expiry check for previews")
@@ -203,6 +224,7 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
         worksheetInstructions={typedWorksheet.instructions}
         portalUrl={isPreview ? null : portalUrl}
         prefillData={typedAssignment.prefill_data as PrefillData | null}
+        branding={branding}
       />
     </>
   )
@@ -251,6 +273,7 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
             initialHasConsent={hasConsent}
             worksheetTitle={typedWorksheet.title}
             worksheetSchema={typedWorksheet.schema}
+            branding={branding}
           >
             {mainContent}
           </ConsentGate>

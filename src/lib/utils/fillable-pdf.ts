@@ -16,6 +16,7 @@ import {
   PDFFont,
   StandardFonts,
   rgb,
+  degrees,
   PDFTextField,
 } from 'pdf-lib'
 import type {
@@ -105,12 +106,25 @@ const WHITE = rgb(1, 1, 1)
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
+/** Resolved branding options — see src/lib/branding.ts */
+export interface PdfBrandingOptions {
+  style: 'none' | 'diagonal' | 'footer'
+  text: string
+  opacity: number       // 0-1
+  fontSize: number      // pt (for diagonal)
+  showLogo: boolean
+  logoOpacity: number   // 0-1
+}
+
 export interface FillablePdfOptions {
   schema: WorksheetSchema
   title: string
   description?: string
   instructions?: string
+  /** @deprecated Use `branding` instead. Kept for backward compatibility. */
   showBranding?: boolean
+  /** Fine-grained branding config. Takes precedence over showBranding. */
+  branding?: PdfBrandingOptions
   values?: Record<string, unknown>
 }
 
@@ -225,36 +239,101 @@ function drawHeader(
 
 function drawFooter(
   page: PDFPage,
-  showBranding: boolean,
+  branding: PdfBrandingOptions,
   fonts: { regular: PDFFont },
 ) {
-  if (!showBranding) return
+  if (branding.style === 'none') return
 
-  // Separator line
-  page.drawLine({
-    start: { x: ML, y: FOOTER_SEP_Y },
-    end: { x: PAGE_W - MR, y: FOOTER_SEP_Y },
-    thickness: 0.2,
-    color: GREY_LINE,
-  })
+  // For diagonal style, draw the watermark (the footer logo is optional)
+  if (branding.style === 'diagonal') {
+    drawDiagonalWatermark(page, branding, fonts)
+    // Still draw a small footer logo if enabled
+    if (branding.showLogo) {
+      const logoFooterSize = 3 * MM
+      const logoX = PAGE_W - MR - logoFooterSize
+      drawLogo(page, logoX, FOOTER_TEXT_Y - logoFooterSize * 0.3, logoFooterSize, branding.logoOpacity)
+    }
+    return
+  }
 
-  const dateStr = new Date().toLocaleDateString('en-GB')
-  const footerText = `Powered by Formulate  ·  formulatetools.co.uk  ·  ${dateStr}`
-  const textWidth = fonts.regular.widthOfTextAtSize(footerText, 7)
+  // Footer style: separator line + text + logo
+  const hasText = !!branding.text
 
-  // Draw small logo icon before footer text
-  const logoFooterSize = 3 * MM
-  const totalWidth = logoFooterSize + 3 + textWidth // logo + gap + text
-  const startX = (PAGE_W - totalWidth) / 2
+  if (hasText) {
+    // Separator line
+    page.drawLine({
+      start: { x: ML, y: FOOTER_SEP_Y },
+      end: { x: PAGE_W - MR, y: FOOTER_SEP_Y },
+      thickness: 0.2,
+      color: GREY_LINE,
+      opacity: branding.opacity,
+    })
 
-  drawLogo(page, startX, FOOTER_TEXT_Y - logoFooterSize * 0.3, logoFooterSize)
+    const dateStr = new Date().toLocaleDateString('en-GB')
+    const footerText = `${branding.text}  ·  formulatetools.co.uk  ·  ${dateStr}`
+    const textWidth = fonts.regular.widthOfTextAtSize(footerText, 7)
 
-  page.drawText(footerText, {
-    x: startX + logoFooterSize + 3,
-    y: FOOTER_TEXT_Y,
-    size: 7,
+    if (branding.showLogo) {
+      const logoFooterSize = 3 * MM
+      const totalWidth = logoFooterSize + 3 + textWidth
+      const startX = (PAGE_W - totalWidth) / 2
+
+      drawLogo(page, startX, FOOTER_TEXT_Y - logoFooterSize * 0.3, logoFooterSize, branding.logoOpacity)
+
+      page.drawText(footerText, {
+        x: startX + logoFooterSize + 3,
+        y: FOOTER_TEXT_Y,
+        size: 7,
+        font: fonts.regular,
+        color: AMBER,
+        opacity: branding.opacity,
+      })
+    } else {
+      page.drawText(footerText, {
+        x: (PAGE_W - textWidth) / 2,
+        y: FOOTER_TEXT_Y,
+        size: 7,
+        font: fonts.regular,
+        color: AMBER,
+        opacity: branding.opacity,
+      })
+    }
+  } else if (branding.showLogo) {
+    // Paid tier: logo only, no text, no separator
+    const logoFooterSize = 3 * MM
+    const logoX = PAGE_W - MR - logoFooterSize
+    drawLogo(page, logoX, FOOTER_TEXT_Y - logoFooterSize * 0.3, logoFooterSize, branding.logoOpacity)
+  }
+}
+
+/** Draw a diagonal watermark across the page (for free tier) */
+function drawDiagonalWatermark(
+  page: PDFPage,
+  branding: PdfBrandingOptions,
+  fonts: { regular: PDFFont },
+) {
+  const text = branding.text || 'Formulate'
+  const fontSize = branding.fontSize || 48
+  const opacity = branding.opacity
+
+  // Centre of the page
+  const cx = PAGE_W / 2
+  const cy = PAGE_H / 2
+
+  // Diagonal angle: ~-30 degrees
+  const angle = -30 * (Math.PI / 180)
+
+  // Use a light grey for the watermark text
+  const watermarkColor = rgb(180 / 255, 180 / 255, 180 / 255)
+
+  page.drawText(text, {
+    x: cx - (fonts.regular.widthOfTextAtSize(text, fontSize) / 2) * Math.cos(angle),
+    y: cy + (fonts.regular.widthOfTextAtSize(text, fontSize) / 2) * Math.sin(angle),
+    size: fontSize,
     font: fonts.regular,
-    color: AMBER,
+    color: watermarkColor,
+    opacity,
+    rotate: degrees(30),
   })
 }
 
@@ -262,13 +341,14 @@ function drawFooter(
  *  Renders as three arcs with chevron arrowheads, closely matching the LogoIcon SVG.
  *  The SVG has viewBox 0 0 44 44 with arcs at radius 14 from centre (22,22).
  *  We scale proportionally to the requested `size`. */
-function drawLogo(page: PDFPage, x: number, y: number, size?: number) {
+function drawLogo(page: PDFPage, x: number, y: number, size?: number, opacity?: number) {
   const s = size ?? LOGO_SIZE
   const scale = s / 44 // SVG viewBox is 44×44
   const cx = x + s / 2
   const cy = y + s / 2
   const arcR = 14 * scale
   const strokeW = Math.max(0.4, 2.5 * scale)
+  const opacityOpts = opacity !== undefined ? { opacity } : {}
 
   // Three rotation offsets (0°, 120°, 240°) — matching the SVG <g transform="rotate(...)">
   const offsets = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3]
@@ -290,6 +370,7 @@ function drawLogo(page: PDFPage, x: number, y: number, size?: number) {
         end: { x: cx + arcR * Math.cos(a2), y: cy + arcR * Math.sin(a2) },
         thickness: strokeW,
         color: AMBER,
+        ...opacityOpts,
       })
     }
 
@@ -304,12 +385,14 @@ function drawLogo(page: PDFPage, x: number, y: number, size?: number) {
       end: { x: tipX, y: tipY },
       thickness: Math.max(0.3, 2 * scale),
       color: AMBER,
+      ...opacityOpts,
     })
     page.drawLine({
       start: { x: tipX + chevLen * Math.cos(chevAngle2), y: tipY + chevLen * Math.sin(chevAngle2) },
       end: { x: tipX, y: tipY },
       thickness: Math.max(0.3, 2 * scale),
       color: AMBER,
+      ...opacityOpts,
     })
   }
 }
@@ -1646,8 +1729,15 @@ export async function generateFillablePdf(options: FillablePdfOptions): Promise<
     description,
     instructions,
     showBranding = true,
+    branding: brandingOpt,
     values,
   } = options
+
+  // Resolve branding: explicit branding object takes precedence over legacy boolean
+  const branding: PdfBrandingOptions = brandingOpt ?? (showBranding
+    ? { style: 'footer', text: 'Powered by Formulate', opacity: 1, fontSize: 48, showLogo: true, logoOpacity: 1 }
+    : { style: 'none', text: '', opacity: 0, fontSize: 0, showLogo: false, logoOpacity: 0 }
+  )
 
   // Reset field counter for each generation
   fieldCounter = 0
@@ -1668,7 +1758,7 @@ export async function generateFillablePdf(options: FillablePdfOptions): Promise<
   const firstPage = pdfDoc.addPage([PAGE_W, PAGE_H])
   const pages = [firstPage]
 
-  const cursor = new LayoutCursor(pdfDoc, pages, fonts, showBranding, title)
+  const cursor = new LayoutCursor(pdfDoc, pages, fonts, branding.style !== 'none', title)
 
   // Description text (below header)
   if (description) {
@@ -1763,7 +1853,7 @@ export async function generateFillablePdf(options: FillablePdfOptions): Promise<
   const totalPages = cursor.pages.length
   for (let i = 0; i < totalPages; i++) {
     drawHeader(cursor.pages[i], i + 1, totalPages, title, fonts)
-    drawFooter(cursor.pages[i], showBranding, fonts)
+    drawFooter(cursor.pages[i], branding, fonts)
   }
 
   // Flatten appearance streams for better compatibility

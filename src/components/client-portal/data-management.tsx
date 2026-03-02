@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
+import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
 import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
 import {
   BlankPdfGenerator,
@@ -48,6 +49,7 @@ interface DataManagementProps {
   assignments: DataAssignment[]
   responses: DataResponse[]
   worksheets: DataWorksheet[]
+  branding?: PdfBrandingOptions
 }
 
 // ─── Status helpers ──────────────────────────────────────────────
@@ -88,6 +90,7 @@ export function DataManagement({
   assignments,
   responses,
   worksheets,
+  branding,
 }: DataManagementProps) {
   const [viewingResponse, setViewingResponse] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -1042,6 +1045,7 @@ export function DataManagement({
           }}
           schema={w.schema}
           worksheetTitle={w.title}
+          branding={branding}
         />
       ))}
       {assignments.map((a) => {
@@ -1058,6 +1062,7 @@ export function DataManagement({
             schema={worksheet.schema}
             worksheetTitle={worksheet.title}
             responseData={response.response_data}
+            branding={branding}
           />
         )
       })}

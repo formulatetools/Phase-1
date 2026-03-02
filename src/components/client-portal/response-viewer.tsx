@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
+import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
 import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
 import { ResponseDeleteButton } from './response-delete-button'
 
@@ -11,6 +12,7 @@ interface ResponseViewerProps {
   portalToken: string
   assignmentId: string
   worksheetTitle: string
+  branding?: PdfBrandingOptions
 }
 
 export function ResponseViewer({
@@ -19,6 +21,7 @@ export function ResponseViewer({
   portalToken,
   assignmentId,
   worksheetTitle,
+  branding,
 }: ResponseViewerProps) {
   const [downloading, setDownloading] = useState(false)
 
@@ -29,7 +32,7 @@ export function ResponseViewer({
       await downloadFillablePdf({
         schema,
         title: worksheetTitle,
-        showBranding: true,
+        ...(branding ? { branding } : { showBranding: true }),
         values: responseData,
       })
     } catch (err) {

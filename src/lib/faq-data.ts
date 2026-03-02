@@ -35,11 +35,11 @@ export const KEY_FAQ: FaqItem[] = [
   },
   {
     q: 'Can I create my own worksheets?',
-    a: 'Yes — on Practice and Specialist plans, you can build custom worksheets using a visual editor with 16 field types including text, scales, tables, checklists, computed fields, and interactive formulation diagrams. You can also fork any worksheet from the library and adapt it to your needs.',
+    a: 'Yes — Starter plans include 3 custom worksheets, Practice includes 15, and Specialist is unlimited. You can build custom worksheets using a visual editor with 16 field types including text, scales, tables, checklists, computed fields, and interactive formulation diagrams. You can also fork any worksheet from the library and adapt it to your needs.',
   },
   {
     q: 'What is the AI worksheet generator?',
-    a: 'You can describe the worksheet you need in plain English and our AI builds the full schema for you — sections, fields, instructions, and scoring. There\'s a free demo on the homepage (one generation per month). Paid plans include 3 to unlimited AI generations per month depending on your tier.',
+    a: 'You can describe the worksheet you need in plain English and our AI builds the full schema for you — sections, fields, instructions, and scoring. Free accounts get 1 AI generation per month to try it out. Paid plans include 3 to unlimited AI generations per month depending on your tier.',
   },
   {
     q: 'What are formulation diagrams?',
@@ -51,7 +51,7 @@ export const KEY_FAQ: FaqItem[] = [
   },
   {
     q: 'How much does Formulate cost?',
-    a: 'There\'s a free tier with 5 worksheet uses per month and up to 3 clients. Starter is £4.99/month (unlimited use, 5 clients), Practice is £9.99/month (unlimited clients, custom worksheets, supervision), and Specialist is £19.99/month (up to 20 custom worksheets, 8 supervisees, unlimited AI). Annual billing saves roughly 20%. You can cancel at any time.',
+    a: 'There\'s a free tier with 5 worksheet uses per month, up to 3 clients, and 1 AI generation. Starter is £4.99/month (unlimited use, 8 clients, 3 custom worksheets). Practice is £9.99/month (unlimited clients, 15 custom worksheets, supervision for up to 4 supervisees). Specialist is £19.99/month (unlimited everything). Annual billing saves roughly 20%. You can cancel at any time.',
   },
   {
     q: 'What\'s on the roadmap?',
@@ -167,7 +167,7 @@ export const EXTENDED_FAQ: FaqCategory[] = [
       },
       {
         q: 'Does the PDF include branding?',
-        a: 'On the free tier, exported PDFs include a small Formulate watermark. On all paid tiers, PDFs are clean with no branding — ready for professional use.',
+        a: 'On the free tier, exported PDFs include a Formulate watermark. On paid tiers, PDFs have only a minimal Formulate logo mark — discreet and professional.',
       },
     ],
   },

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
 import type { WorksheetSchema } from '@/types/worksheet'
+import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
 import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from './blank-pdf-generator'
 
 interface ConsentGateProps {
@@ -14,6 +15,7 @@ interface ConsentGateProps {
   worksheetSchema: WorksheetSchema
   /** Demo mode — skips API calls, just flips local state + generates PDF */
   isDemo?: boolean
+  branding?: PdfBrandingOptions
   children: React.ReactNode
 }
 
@@ -23,6 +25,7 @@ export function ConsentGate({
   worksheetTitle,
   worksheetSchema,
   isDemo = false,
+  branding,
   children,
 }: ConsentGateProps) {
   const [consented, setConsented] = useState(initialHasConsent)
@@ -132,6 +135,7 @@ export function ConsentGate({
           ref={pdfRef}
           schema={worksheetSchema}
           worksheetTitle={worksheetTitle}
+          branding={branding}
         />
       </div>
     )
@@ -235,6 +239,7 @@ export function ConsentGate({
         ref={pdfRef}
         schema={worksheetSchema}
         worksheetTitle={worksheetTitle}
+        branding={branding}
       />
     </div>
   )

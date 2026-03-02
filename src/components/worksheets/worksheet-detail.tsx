@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { Worksheet } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
 import type { ResourceType } from '@/lib/utils/resource-type'
+import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
 import { WorksheetRenderer } from './worksheet-renderer'
 import { WorksheetExport } from './worksheet-export'
 import { AssignFromLibraryModal } from './assign-from-library-modal'
@@ -19,9 +20,10 @@ interface Props {
   accessState: AccessState
   usesRemaining: number
   resourceType?: ResourceType
+  branding?: PdfBrandingOptions
 }
 
-export function WorksheetDetail({ worksheet, accessState, usesRemaining, resourceType = 'worksheet' }: Props) {
+export function WorksheetDetail({ worksheet, accessState, usesRemaining, resourceType = 'worksheet', branding }: Props) {
   const trackedRef = useRef(false)
   const [showAssignModal, setShowAssignModal] = useState(false)
 
@@ -144,7 +146,7 @@ export function WorksheetDetail({ worksheet, accessState, usesRemaining, resourc
           <WorksheetExport
             worksheetTitle={worksheet.title}
             onExport={handleExport}
-            showBranding={accessState === 'free_available'}
+            branding={branding}
             schema={worksheet.schema as unknown as WorksheetSchema}
             worksheetDescription={worksheet.description}
             worksheetInstructions={worksheet.instructions}

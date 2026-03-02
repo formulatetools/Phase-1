@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { isMultiEntryResponse } from '@/types/worksheet'
 import type { PrefillData } from '@/types/database'
+import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from './blank-pdf-generator'
 import { downloadInteractiveHtml } from '@/lib/utils/html-worksheet-export'
@@ -27,6 +28,7 @@ interface HomeworkFormProps {
   worksheetInstructions?: string | null
   portalUrl?: string | null
   prefillData?: PrefillData | null
+  branding?: PdfBrandingOptions
 }
 
 // Exponential backoff config
@@ -47,6 +49,7 @@ export function HomeworkForm({
   worksheetInstructions,
   portalUrl,
   prefillData,
+  branding,
 }: HomeworkFormProps) {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(isCompleted)
@@ -601,6 +604,7 @@ export function HomeworkForm({
           ref={pdfRef}
           schema={schema}
           worksheetTitle={worksheetTitle}
+          branding={branding}
         />
       )}
     </div>

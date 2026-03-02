@@ -11,6 +11,7 @@ const tabs = [
   { label: 'Content', href: '/admin/content' },
   { label: 'Blog', href: '/admin/blog' },
   { label: 'Referrals', href: '/admin/referrals' },
+  { label: 'Tools', href: '/admin/tools' },
 ]
 
 export function AdminTabs() {
