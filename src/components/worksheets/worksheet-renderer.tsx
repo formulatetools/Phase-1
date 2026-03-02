@@ -299,50 +299,92 @@ export function WorksheetRenderer({
             )
           }
 
-          return (
-            <div key={field.id} className="space-y-2">
-              <p className="text-sm font-medium text-primary-700">
-                {field.label}
-              </p>
-              <div className="overflow-x-auto rounded-lg border border-primary-200">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-primary-200 bg-primary-50">
-                      {tableField.columns.map((col) => (
-                        <th
-                          key={col.id}
-                          className="px-3 py-2 text-left font-medium text-primary-600"
-                        >
-                          {col.header}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-primary-100">
+          {
+            const useCards = tableField.columns.length >= 5
+            const tableMinWidth = Math.max(600, tableField.columns.length * 160)
+
+            return (
+              <div key={field.id} className="space-y-2">
+                <p className="text-sm font-medium text-primary-700">
+                  {field.label}
+                </p>
+
+                {/* Mobile card layout for wide tables */}
+                {useCards && (
+                  <div className="space-y-3 md:hidden">
                     {filledRows.map((row, i) => (
-                      <tr key={i}>
+                      <div
+                        key={i}
+                        className="rounded-xl border border-primary-200 bg-surface p-4"
+                      >
+                        <span className="mb-3 inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-600">
+                          Row {i + 1}
+                        </span>
+                        <div className="mt-2 space-y-2.5">
+                          {tableField.columns.map((col) => (
+                            <div key={col.id}>
+                              <p className="text-xs font-medium text-primary-500">
+                                {col.header}
+                              </p>
+                              <p className="mt-0.5 text-sm text-primary-700">
+                                {row[col.id] !== '' &&
+                                row[col.id] !== undefined ? (
+                                  String(row[col.id])
+                                ) : (
+                                  <span className="italic text-primary-300">
+                                    {'\u2014'}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Desktop table (always shown ≥md; for narrow tables, all breakpoints) */}
+                <div className={`overflow-x-auto rounded-lg border border-primary-200 ${useCards ? 'hidden md:block' : ''}`}>
+                  <table className="w-full text-sm" style={{ minWidth: `${tableMinWidth}px` }}>
+                    <thead>
+                      <tr className="border-b border-primary-200 bg-primary-50">
                         {tableField.columns.map((col) => (
-                          <td
+                          <th
                             key={col.id}
-                            className="px-3 py-2 text-primary-700"
+                            className="px-3 py-2 text-left font-medium text-primary-600"
                           >
-                            {row[col.id] !== '' &&
-                            row[col.id] !== undefined ? (
-                              String(row[col.id])
-                            ) : (
-                              <span className="text-primary-300">
-                                {'\u2014'}
-                              </span>
-                            )}
-                          </td>
+                            {col.header}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-primary-100">
+                      {filledRows.map((row, i) => (
+                        <tr key={i}>
+                          {tableField.columns.map((col) => (
+                            <td
+                              key={col.id}
+                              className="px-3 py-2 text-primary-700"
+                            >
+                              {row[col.id] !== '' &&
+                              row[col.id] !== undefined ? (
+                                String(row[col.id])
+                              ) : (
+                                <span className="text-primary-300">
+                                  {'\u2014'}
+                                </span>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          )
+            )
+          }
         }
 
         case 'hierarchy': {
