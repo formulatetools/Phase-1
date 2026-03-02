@@ -75,6 +75,7 @@ export const TIER_FEATURES: Record<string, string[]> = {
     'Up to 8 clients with homework links',
     '3 custom worksheets',
     '3 AI worksheet generations per month',
+    '1 workspace template',
     'Bookmark & favourite tools',
   ],
   standard: [
@@ -83,12 +84,14 @@ export const TIER_FEATURES: Record<string, string[]> = {
     'Up to 15 custom worksheets',
     'Fork & customise any tool',
     '10 AI worksheet generations per month',
+    '3 workspace templates',
     'Supervision portal (up to 4 supervisees)',
   ],
   professional: [
     'Everything in Practice',
     'Unlimited custom worksheets',
     'Unlimited AI worksheet generations',
+    'Unlimited workspace templates',
     'Unlimited supervisees',
   ],
 }

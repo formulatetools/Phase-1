@@ -8,6 +8,7 @@ import type {
   WorksheetResponse,
   Worksheet,
   SharedResource,
+  WorkspaceTemplate,
   SubscriptionTier,
 } from '@/types/database'
 import { ClientDetail } from '@/components/clients/client-detail'
@@ -42,6 +43,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
     { data: worksheets },
     { count: totalActiveAssignments },
     { data: sharedResources },
+    { data: templates },
   ] = await Promise.all([
     supabase
       .from('worksheet_assignments')
@@ -72,6 +74,13 @@ export default async function ClientDetailPage({ params }: PageProps) {
       .eq('therapist_id', user.id)
       .is('deleted_at', null)
       .order('shared_at', { ascending: false }),
+
+    supabase
+      .from('workspace_templates')
+      .select('*')
+      .eq('therapist_id', user.id)
+      .is('deleted_at', null)
+      .order('name'),
   ])
 
   // Fetch responses (depends on assignments result)
@@ -100,6 +109,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
         responses={responses}
         worksheets={(worksheets || []) as Worksheet[]}
         sharedResources={(sharedResources || []) as SharedResource[]}
+        templates={(templates || []) as WorkspaceTemplate[]}
         totalActiveAssignments={totalActiveAssignments || 0}
         maxActiveAssignments={limits.maxActiveAssignments}
         tier={tier}

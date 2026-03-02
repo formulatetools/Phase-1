@@ -9,6 +9,7 @@ import type {
   WorksheetResponse,
   Worksheet,
   SharedResource,
+  WorkspaceTemplate,
   SubscriptionTier,
 } from '@/types/database'
 import {
@@ -29,6 +30,7 @@ import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
 import { ShareModal } from '@/components/ui/share-modal'
 import { ShareResourceForm } from '@/components/clients/share-resource-form'
+import { ApplyTemplateModal } from '@/components/templates/apply-template-modal'
 import { useToast } from '@/hooks/use-toast'
 
 interface ClientDetailProps {
@@ -37,6 +39,7 @@ interface ClientDetailProps {
   responses: WorksheetResponse[]
   worksheets: Worksheet[]
   sharedResources: SharedResource[]
+  templates: WorkspaceTemplate[]
   totalActiveAssignments: number
   maxActiveAssignments: number
   tier: SubscriptionTier
@@ -67,6 +70,7 @@ export function ClientDetail({
   responses,
   worksheets,
   sharedResources,
+  templates,
   totalActiveAssignments,
   maxActiveAssignments,
   tier,
@@ -96,6 +100,7 @@ export function ClientDetail({
   const [prefillValues, setPrefillValues] = useState<Record<string, unknown>>({})
   const [prefillReadonly, setPrefillReadonly] = useState(true)
   const [showShareResource, setShowShareResource] = useState(false)
+  const [showApplyTemplate, setShowApplyTemplate] = useState(false)
 
   const router = useRouter()
   const { toast } = useToast()
@@ -343,6 +348,17 @@ export function ClientDetail({
             </svg>
             Share resource
           </button>
+          {templates.length > 0 && (
+            <button
+              onClick={() => setShowApplyTemplate(true)}
+              className="flex items-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-4 py-2.5 text-sm font-medium text-brand-dark hover:bg-brand/10 transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM2.25 16.875c0-.621.504-1.125 1.125-1.125h6c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-2.25z" />
+              </svg>
+              Apply template
+            </button>
+          )}
         </div>
       )}
 
@@ -964,6 +980,19 @@ export function ClientDetail({
         clientLabel={relationship.client_label}
         dueDate={shareModal?.dueDate}
         portalUrl={relationship.client_portal_token ? `${appUrl}/client/${relationship.client_portal_token}` : undefined}
+      />
+
+      {/* Apply template modal */}
+      <ApplyTemplateModal
+        open={showApplyTemplate}
+        onClose={() => {
+          setShowApplyTemplate(false)
+          router.refresh()
+        }}
+        relationshipId={relationship.id}
+        clientLabel={relationship.client_label}
+        templates={templates}
+        worksheets={worksheets}
       />
     </div>
   )
