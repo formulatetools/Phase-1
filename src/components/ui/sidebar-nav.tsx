@@ -9,7 +9,6 @@ import { ThemeToggle, ThemeIcon } from '@/components/ui/theme-toggle'
 import { useTheme } from '@/components/providers/theme-provider'
 import { useShortcutsModal } from '@/components/providers/keyboard-shortcuts-provider'
 import { buttonVariants } from '@/components/ui/button'
-import { TIER_LIMITS } from '@/lib/stripe/config'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -189,21 +188,19 @@ export function SidebarNav({
     })
   }
 
-  // ── Conditional visibility ─────────────────────────────────────────────
-  const limits = TIER_LIMITS[tier as keyof typeof TIER_LIMITS] || TIER_LIMITS.free
-  const showSupervision = limits.maxSupervisees > 0 || hasSupervisees
-  const showTemplates = limits.maxWorkspaceTemplates > 0
+  // ── Dashboard — standalone above all sections ──────────────────────────
+  const dashboardItem: NavItem = { label: 'Dashboard', href: '/dashboard', icon: icons.dashboard }
 
   // ── Grouped nav sections (desktop sidebar) ─────────────────────────────
   const sections: NavSection[] = [
     {
-      id: 'practice',
-      label: 'Practice',
+      id: 'workspace',
+      label: 'Workspace',
       items: [
-        { label: 'Dashboard', href: '/dashboard', icon: icons.dashboard },
         { label: 'Clients', href: '/clients', icon: icons.clients, tourId: 'nav-clients', badge: pendingReviewCount },
         { label: 'Resources', href: '/worksheets', icon: icons.resources, tourId: 'nav-worksheets' },
-        ...(showSupervision ? [{ label: 'Supervision', href: '/supervision', icon: icons.supervision }] : []),
+        { label: 'Supervision', href: '/supervision', icon: icons.supervision },
+        { label: 'Templates', href: '/templates', icon: icons.templates },
       ],
     },
     {
@@ -211,7 +208,6 @@ export function SidebarNav({
       label: 'Create',
       items: [
         { label: 'My Tools', href: '/my-tools', icon: icons.myTools },
-        ...(showTemplates ? [{ label: 'Templates', href: '/templates', icon: icons.templates }] : []),
       ],
     },
     {
@@ -226,17 +222,18 @@ export function SidebarNav({
 
   // Standalone items (below sections)
   const standaloneItems: NavItem[] = [
+    { label: 'Refer a Colleague', href: '/referrals', icon: icons.referrals },
     { label: 'Settings', href: '/settings', icon: icons.settings, tourId: 'nav-settings' },
     ...(role === 'admin' ? [{ label: 'Admin', href: '/admin', icon: icons.admin }] : []),
   ]
 
   // ── Flat list for mobile "More" sheet ──────────────────────────────────
   const allFlatItems: NavItem[] = [
+    dashboardItem,
     ...sections.flatMap((s) => s.items),
-    // Include FAQ & Referrals in mobile More sheet (removed from desktop sections)
-    { label: 'FAQ', href: '/faq', icon: icons.faq },
-    { label: 'Referrals', href: '/referrals', icon: icons.referrals },
     ...standaloneItems,
+    // FAQ available in mobile More sheet
+    { label: 'FAQ', href: '/faq', icon: icons.faq },
   ]
   const mobileTabItems = allFlatItems.filter((i) => TAB_HREFS.has(i.href))
   const moreNavItems = allFlatItems.filter((i) => !TAB_HREFS.has(i.href))
@@ -326,8 +323,14 @@ export function SidebarNav({
         </div>
       )}
 
-      {/* Grouped navigation */}
+      {/* Navigation */}
       <nav aria-label="Main" className="flex-1 overflow-y-auto px-3 py-3" data-tour="sidebar-nav">
+        {/* Dashboard — standalone above all sections */}
+        <div className="mb-1 space-y-0.5">
+          {renderNavLink(dashboardItem, isActive(dashboardItem.href))}
+        </div>
+
+        {/* Grouped sections */}
         {sections.map((section) => {
           const collapsed = collapsedSections.has(section.id)
           return (
@@ -365,8 +368,11 @@ export function SidebarNav({
         </div>
       </nav>
 
-      {/* Legal links */}
+      {/* Legal links + FAQ */}
       <div className="px-3 pb-2 flex gap-3">
+        <Link href="/faq" className="text-xs text-primary-400 hover:text-primary-600 transition-colors">
+          FAQ
+        </Link>
         <Link href="/privacy" className="text-xs text-primary-400 hover:text-primary-600 transition-colors">
           Privacy
         </Link>
@@ -393,24 +399,6 @@ export function SidebarNav({
         </div>
         <div className="mt-3 flex items-center gap-1">
           <ThemeToggle />
-          <Link
-            href="/faq"
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
-            title="Help & FAQ"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-            </svg>
-          </Link>
-          <Link
-            href="/referrals"
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
-            title="Refer a colleague"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-            </svg>
-          </Link>
           <button
             onClick={openShortcutsModal}
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
