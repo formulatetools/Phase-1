@@ -41,11 +41,11 @@ export function PortalConsent({ portalToken, onConsented }: PortalConsentProps) 
     return (
       <div className="space-y-6">
         <div className="rounded-2xl border border-primary-100 bg-surface p-8 text-center shadow-sm">
-          <p className="text-sm text-primary-500">
+          <p className="text-sm text-primary-500 dark:text-primary-700">
             No worries. You can still complete individual homework via the links
             your therapist shares with you.
           </p>
-          <p className="mt-3 text-xs text-primary-400">
+          <p className="mt-3 text-xs text-primary-400 dark:text-primary-600">
             If you change your mind, visit this page again to access your
             workspace.
           </p>
@@ -101,7 +101,7 @@ export function PortalConsent({ portalToken, onConsented }: PortalConsentProps) 
           <p className="text-xs font-semibold text-primary-700">
             How your data is handled
           </p>
-          <ul className="mt-2 space-y-1.5 text-xs text-primary-500">
+          <ul className="mt-2 space-y-1.5 text-xs text-primary-500 dark:text-primary-600">
             <li className="flex items-start gap-2">
               <svg className="mt-0.5 h-3 w-3 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -136,7 +136,7 @@ export function PortalConsent({ portalToken, onConsented }: PortalConsentProps) 
         </div>
 
         {/* Legal text */}
-        <p className="mt-5 text-xs text-primary-400">
+        <p className="mt-5 text-xs text-primary-400 dark:text-primary-600">
           By continuing you agree to our{' '}
           <a href="/privacy" className="underline hover:text-primary-600">Privacy Policy</a>
           {' '}and{' '}
@@ -155,13 +155,13 @@ export function PortalConsent({ portalToken, onConsented }: PortalConsentProps) 
           <button
             onClick={handleAccept}
             disabled={loading}
-            className="rounded-lg bg-primary-800 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900 disabled:opacity-50 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
+            className="rounded-lg bg-primary-800 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-brand dark:text-primary-900 dark:hover:bg-brand/90 disabled:opacity-50 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
           >
             {loading ? 'Setting up…' : 'Continue to My Workspace'}
           </button>
           <button
             onClick={() => setDismissed(true)}
-            className="rounded-lg border border-primary-200 px-5 py-2.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
+            className="rounded-lg border border-primary-200 px-5 py-2.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50 dark:border-primary-300 dark:text-primary-700 dark:hover:bg-primary-100 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
           >
             No thanks
           </button>

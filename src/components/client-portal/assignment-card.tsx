@@ -53,7 +53,7 @@ export function AssignmentCard({
           <p className="font-medium text-primary-800 truncate">{title}</p>
 
           {/* Date line */}
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-primary-400">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-primary-400 dark:text-primary-600">
             <span>Assigned {formatDate(assignment.assigned_at)}</span>
             {assignment.due_date && (
               <span>Due {formatDate(assignment.due_date)}</span>
@@ -68,14 +68,14 @@ export function AssignmentCard({
           {/* Status badge */}
           <div className="mt-2">
             {assignment.status === 'assigned' && !isExpired && (
-              <span className="inline-flex items-center gap-1.5 text-xs text-primary-500">
-                <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-primary-300" aria-hidden="true" />
+              <span className="inline-flex items-center gap-1.5 text-xs text-primary-500 dark:text-primary-600">
+                <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-primary-300 dark:border-primary-500" aria-hidden="true" />
                 Not started
               </span>
             )}
             {assignment.status === 'assigned' && isExpired && (
-              <span className="inline-flex items-center gap-1.5 text-xs text-primary-400">
-                <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-primary-200" aria-hidden="true" />
+              <span className="inline-flex items-center gap-1.5 text-xs text-primary-400 dark:text-primary-600">
+                <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-primary-200 dark:border-primary-400" aria-hidden="true" />
                 Expired
               </span>
             )}
@@ -104,7 +104,7 @@ export function AssignmentCard({
           {isCurrent && assignment.status === 'assigned' && !isExpired && (
             <a
               href={`${appUrl}/hw/${assignment.token}`}
-              className="inline-flex items-center gap-1 rounded-lg bg-primary-800 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-primary-900 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-1 rounded-lg bg-primary-800 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-primary-900 dark:bg-brand dark:text-primary-900 dark:hover:bg-brand/90 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
             >
               Open
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
@@ -115,7 +115,7 @@ export function AssignmentCard({
           {isCurrent && assignment.status === 'in_progress' && !isExpired && (
             <a
               href={`${appUrl}/hw/${assignment.token}`}
-              className="inline-flex items-center gap-1 rounded-lg bg-primary-800 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-primary-900 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-1 rounded-lg bg-primary-800 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-primary-900 dark:bg-brand dark:text-primary-900 dark:hover:bg-brand/90 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
             >
               Continue
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
@@ -126,7 +126,7 @@ export function AssignmentCard({
           {variant === 'completed' && (
             <Link
               href={`/client/${portalToken}/response/${assignment.id}`}
-              className="inline-flex items-center gap-1 rounded-lg border border-primary-200 px-3 py-2 text-xs font-medium text-primary-600 transition-colors hover:bg-primary-50 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-1 rounded-lg border border-primary-200 px-3 py-2 text-xs font-medium text-primary-600 transition-colors hover:bg-primary-50 dark:border-primary-300 dark:text-primary-700 dark:hover:bg-primary-100 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
             >
               View my responses
             </Link>

@@ -178,7 +178,7 @@ export default async function ClientPortalPage({ params }: PageProps) {
           {hasConsented && (
             <Link
               href={`/client/${portalToken}/data`}
-              className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-primary-500 hover:bg-primary-50 hover:text-primary-700 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-primary-500 dark:text-primary-600 hover:bg-primary-50 hover:text-primary-700 transition-colors"
             >
               <svg
                 className="h-4 w-4"
@@ -254,7 +254,7 @@ export default async function ClientPortalPage({ params }: PageProps) {
 
       {/* Footer */}
       <footer className="border-t border-primary-100 py-6 text-center">
-        <div className="flex items-center justify-center gap-1.5 text-xs text-primary-400">
+        <div className="flex items-center justify-center gap-1.5 text-xs text-primary-400 dark:text-primary-600">
           <LogoIcon size={12} />
           <span>
             Powered by Formulate ·{' '}
@@ -268,7 +268,7 @@ export default async function ClientPortalPage({ params }: PageProps) {
             </a>
           </span>
         </div>
-        <p className="mt-2 text-xs text-primary-300">
+        <p className="mt-2 text-xs text-primary-300 dark:text-primary-500">
           <a href="/privacy" className="underline hover:text-primary-500">
             Privacy Policy
           </a>
@@ -277,7 +277,7 @@ export default async function ClientPortalPage({ params }: PageProps) {
             Terms of Use
           </a>
         </p>
-        <p className="mt-3 text-[10px] text-primary-300">
+        <p className="mt-3 text-[10px] text-primary-300 dark:text-primary-500">
           This link is private to you. Don&apos;t share it with anyone other
           than your therapist.
         </p>

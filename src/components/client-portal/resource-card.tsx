@@ -101,7 +101,7 @@ function LinkResourceCard({
               {/* Play overlay */}
               <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md">
-                  <svg className="h-4 w-4 text-primary-800 ml-0.5" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="h-4 w-4 text-primary-800 dark:text-primary-200 ml-0.5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M8 5v14l11-7z" />
                   </svg>
                 </div>
@@ -125,7 +125,7 @@ function LinkResourceCard({
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-semibold text-primary-900 line-clamp-2">{displayTitle}</h3>
           {displayDescription && (
-            <p className="mt-0.5 text-xs text-primary-500 line-clamp-2">{displayDescription}</p>
+            <p className="mt-0.5 text-xs text-primary-500 dark:text-primary-600 line-clamp-2">{displayDescription}</p>
           )}
           {resource.therapist_note && (
             <p className="mt-1.5 text-xs text-brand-dark italic">
@@ -134,7 +134,7 @@ function LinkResourceCard({
           )}
           <div className="mt-2 flex items-center gap-2">
             {domain && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary-50 px-2 py-0.5 text-[10px] font-medium text-primary-500">
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary-50 px-2 py-0.5 text-[10px] font-medium text-primary-500 dark:bg-primary-100 dark:text-primary-600">
                 {video ? (
                   <VideoIcon className="h-3 w-3" />
                 ) : (
@@ -143,7 +143,7 @@ function LinkResourceCard({
                 {resource.og_site_name || domain}
               </span>
             )}
-            <span className="text-[10px] text-primary-300">
+            <span className="text-[10px] text-primary-300 dark:text-primary-500">
               {new Date(resource.shared_at).toLocaleDateString('en-GB', {
                 day: 'numeric',
                 month: 'short',
@@ -159,7 +159,7 @@ function LinkResourceCard({
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleClick}
-            className="shrink-0 self-center rounded-lg border border-primary-200 px-3 py-2 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors flex items-center gap-1"
+            className="shrink-0 self-center rounded-lg border border-primary-200 px-3 py-2 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:border-primary-300 dark:text-primary-700 dark:hover:bg-primary-100 transition-colors flex items-center gap-1"
           >
             Open
             <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -210,7 +210,7 @@ function PsychoedResourceCard({
           )}
           <h3 className="text-sm font-semibold text-primary-900">{resource.title}</h3>
           {resource.article_summary && (
-            <p className="mt-0.5 text-xs text-primary-500 line-clamp-2">{resource.article_summary}</p>
+            <p className="mt-0.5 text-xs text-primary-500 dark:text-primary-600 line-clamp-2">{resource.article_summary}</p>
           )}
           {resource.therapist_note && (
             <p className="mt-1.5 text-xs text-brand-dark italic">
@@ -219,13 +219,13 @@ function PsychoedResourceCard({
           )}
           <div className="mt-2 flex items-center gap-2">
             {resource.article_reading_time && (
-              <span className="text-[10px] text-primary-400">
+              <span className="text-[10px] text-primary-400 dark:text-primary-600">
                 {resource.article_reading_time} min read
               </span>
             )}
             <a
               href={`/client/${portalToken}/article/${resource.article_id}`}
-              className="ml-auto rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+              className="ml-auto rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:border-primary-300 dark:text-primary-700 dark:hover:bg-primary-100 transition-colors"
             >
               Read →
             </a>

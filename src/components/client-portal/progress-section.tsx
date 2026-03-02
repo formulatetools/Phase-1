@@ -15,7 +15,7 @@ export function ProgressSection({ completedCount, weeksActive }: ProgressSection
       <div className="mt-4 space-y-3">
         <div>
           <p className="text-2xl font-bold text-primary-900">{completedCount}</p>
-          <p className="text-xs text-primary-500">
+          <p className="text-xs text-primary-500 dark:text-primary-600">
             assignment{completedCount !== 1 ? 's' : ''} completed
           </p>
         </div>
@@ -28,7 +28,7 @@ export function ProgressSection({ completedCount, weeksActive }: ProgressSection
           />
         </div>
 
-        <p className="text-xs text-primary-400">
+        <p className="text-xs text-primary-400 dark:text-primary-600">
           {weeksActive} week{weeksActive !== 1 ? 's' : ''} active
         </p>
       </div>

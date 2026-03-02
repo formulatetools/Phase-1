@@ -344,6 +344,37 @@ function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): 
   return lines.length > 0 ? lines : ['']
 }
 
+/**
+ * Estimate the height needed to display a pre-filled value without truncation.
+ * Splits by newlines, then wraps each line at contentWidth to count total lines.
+ * Returns the larger of defaultH or the calculated height (capped at one page).
+ */
+function estimateValueHeight(
+  text: string,
+  font: PDFFont,
+  fontSize: number,
+  contentWidth: number,
+  defaultH: number,
+): number {
+  if (!text) return defaultH
+  const lineH = fontSize * 1.4
+  const padding = 8
+  const paragraphs = text.split('\n')
+  let totalLines = 0
+  for (const para of paragraphs) {
+    if (!para.trim()) {
+      totalLines += 1
+      continue
+    }
+    const wrapped = wrapText(para, font, fontSize, contentWidth - 8) // 4pt padding each side
+    totalLines += wrapped.length
+  }
+  const needed = totalLines * lineH + padding
+  // Cap at available page content height to avoid blank overflow
+  const maxH = CONTENT_TOP - CONTENT_BOTTOM - FIELD_LABEL_HEIGHT
+  return Math.min(Math.max(defaultH, needed), maxH)
+}
+
 /** Draw a field input box (border + background) */
 function drawFieldBox(page: PDFPage, x: number, y: number, w: number, h: number) {
   // Background
@@ -417,17 +448,27 @@ function renderTextFieldPdf(
 ): void {
   renderFieldLabel(cursor, field.label, field.required)
   renderPlaceholder(cursor, field.placeholder)
-  cursor.ensureSpace(TEXT_FIELD_H)
 
-  const fieldY = cursor.y - TEXT_FIELD_H
-  drawFieldBox(cursor.page, ML, fieldY, CONTENT_W, TEXT_FIELD_H)
+  // Expand height when a pre-filled value is long
+  const val = values?.[field.id]
+  const valStr = val !== undefined && val !== null && val !== '' ? String(val) : ''
+  const fieldH = valStr
+    ? estimateValueHeight(valStr, cursor.fonts.regular, 10, CONTENT_W, TEXT_FIELD_H)
+    : TEXT_FIELD_H
+  const isMultiline = fieldH > TEXT_FIELD_H
+
+  cursor.ensureSpace(fieldH)
+
+  const fieldY = cursor.y - fieldH
+  drawFieldBox(cursor.page, ML, fieldY, CONTENT_W, fieldH)
 
   const textField = form.createTextField(uniqueFieldName(`${sectionId}.${field.id}`))
+  if (isMultiline) textField.enableMultiline()
   textField.addToPage(cursor.page, {
     x: ML + 2,
     y: fieldY + 2,
     width: CONTENT_W - 4,
-    height: TEXT_FIELD_H - 4,
+    height: fieldH - 4,
     borderWidth: 0,
   })
 
@@ -435,12 +476,11 @@ function renderTextFieldPdf(
   textField.setFontSize(10)
 
   // Pre-fill value
-  const val = values?.[field.id]
-  if (val !== undefined && val !== null && val !== '') {
-    textField.setText(String(val))
+  if (valStr) {
+    textField.setText(valStr)
   }
 
-  cursor.advance(TEXT_FIELD_H)
+  cursor.advance(fieldH)
 }
 
 function renderTextareaFieldPdf(
@@ -452,10 +492,18 @@ function renderTextareaFieldPdf(
 ): void {
   renderFieldLabel(cursor, field.label, field.required)
   renderPlaceholder(cursor, field.placeholder)
-  cursor.ensureSpace(TEXTAREA_H)
 
-  const fieldY = cursor.y - TEXTAREA_H
-  drawFieldBox(cursor.page, ML, fieldY, CONTENT_W, TEXTAREA_H)
+  // Expand height when a pre-filled value is long
+  const val = values?.[field.id]
+  const valStr = val !== undefined && val !== null && val !== '' ? String(val) : ''
+  const fieldH = valStr
+    ? estimateValueHeight(valStr, cursor.fonts.regular, 10, CONTENT_W, TEXTAREA_H)
+    : TEXTAREA_H
+
+  cursor.ensureSpace(fieldH)
+
+  const fieldY = cursor.y - fieldH
+  drawFieldBox(cursor.page, ML, fieldY, CONTENT_W, fieldH)
 
   const textField = form.createTextField(uniqueFieldName(`${sectionId}.${field.id}`))
   textField.enableMultiline()
@@ -463,17 +511,16 @@ function renderTextareaFieldPdf(
     x: ML + 2,
     y: fieldY + 2,
     width: CONTENT_W - 4,
-    height: TEXTAREA_H - 4,
+    height: fieldH - 4,
     borderWidth: 0,
   })
   textField.setFontSize(10)
 
-  const val = values?.[field.id]
-  if (val !== undefined && val !== null && val !== '') {
-    textField.setText(String(val))
+  if (valStr) {
+    textField.setText(valStr)
   }
 
-  cursor.advance(TEXTAREA_H)
+  cursor.advance(fieldH)
 }
 
 function renderChecklistFieldPdf(

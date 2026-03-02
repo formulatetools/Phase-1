@@ -41,7 +41,7 @@ export function BookmarkBanner() {
       </div>
       <button
         onClick={dismiss}
-        className="shrink-0 rounded-lg px-2 py-1 text-xs text-primary-500 hover:bg-brand/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+        className="shrink-0 rounded-lg px-2 py-1 text-xs text-primary-500 dark:text-primary-600 hover:bg-brand/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
         aria-label="Dismiss bookmark suggestion"
       >
         Got it

@@ -112,7 +112,7 @@ export default async function ResponseViewerPage({ params }: PageProps) {
         {/* Back link */}
         <Link
           href={`/client/${portalToken}`}
-          className="inline-flex items-center gap-1 text-sm text-primary-500 hover:text-primary-700 transition-colors mb-6"
+          className="inline-flex items-center gap-1 text-sm text-primary-500 dark:text-primary-600 hover:text-primary-700 transition-colors mb-6"
         >
           <svg
             className="h-4 w-4"
@@ -138,7 +138,7 @@ export default async function ResponseViewerPage({ params }: PageProps) {
           </h1>
           <div className="mt-1.5 h-0.5 w-12 bg-brand" />
           {typedResponse.completed_at && (
-            <p className="mt-2 text-xs text-primary-400">
+            <p className="mt-2 text-xs text-primary-400 dark:text-primary-600">
               Completed{' '}
               {new Date(typedResponse.completed_at).toLocaleDateString(
                 'en-GB',
@@ -164,7 +164,7 @@ export default async function ResponseViewerPage({ params }: PageProps) {
 
       {/* Footer */}
       <footer className="border-t border-primary-100 py-6 text-center">
-        <div className="flex items-center justify-center gap-1.5 text-xs text-primary-400">
+        <div className="flex items-center justify-center gap-1.5 text-xs text-primary-400 dark:text-primary-600">
           <LogoIcon size={12} />
           <span>
             Powered by Formulate &middot;{' '}

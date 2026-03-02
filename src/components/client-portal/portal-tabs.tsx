@@ -27,7 +27,7 @@ export function PortalTabs({ activeTab, onTabChange, resourceCount }: PortalTabs
               className={`relative flex-1 sm:flex-initial px-4 py-3 text-sm font-medium transition-colors ${
                 isActive
                   ? 'text-primary-900'
-                  : 'text-primary-400 hover:text-primary-600'
+                  : 'text-primary-400 hover:text-primary-600 dark:text-primary-600 dark:hover:text-primary-700'
               }`}
               aria-current={isActive ? 'page' : undefined}
             >
@@ -38,7 +38,7 @@ export function PortalTabs({ activeTab, onTabChange, resourceCount }: PortalTabs
                     className={`inline-flex min-w-[18px] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
                       isActive
                         ? 'bg-brand/15 text-brand-dark'
-                        : 'bg-primary-100 text-primary-400'
+                        : 'bg-primary-100 text-primary-400 dark:text-primary-600'
                     }`}
                   >
                     {tab.count}

@@ -127,16 +127,16 @@ export function ClientPortal({
       <div className="space-y-4">
         <BookmarkBanner />
         {!hasPinSet && <PinSetupBanner portalToken={portalToken} appUrl={appUrl} />}
-        <div className="rounded-2xl border border-dashed border-primary-200 p-8 text-center">
+        <div className="rounded-2xl border border-dashed border-primary-200 dark:border-primary-300 p-8 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
-            <svg className="h-6 w-6 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+            <svg className="h-6 w-6 text-primary-400 dark:text-primary-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
           </div>
           <p className="text-sm font-medium text-primary-600">
             Nothing here yet.
           </p>
-          <p className="mt-1 text-xs text-primary-400">
+          <p className="mt-1 text-xs text-primary-400 dark:text-primary-600">
             When your therapist assigns homework or shares resources, they will appear here.
           </p>
         </div>
@@ -206,9 +206,9 @@ export function ClientPortal({
 
           {/* No assignments empty state (but resources exist, so tabs are visible) */}
           {assignments.length === 0 && resources.length > 0 && (
-            <div className="rounded-2xl border border-dashed border-primary-200 p-6 text-center">
-              <p className="text-sm text-primary-500">No homework assigned yet.</p>
-              <p className="mt-1 text-xs text-primary-400">
+            <div className="rounded-2xl border border-dashed border-primary-200 dark:border-primary-300 p-6 text-center">
+              <p className="text-sm text-primary-500 dark:text-primary-600">No homework assigned yet.</p>
+              <p className="mt-1 text-xs text-primary-400 dark:text-primary-600">
                 When your therapist assigns a worksheet, it will appear here.
               </p>
             </div>
@@ -239,9 +239,9 @@ export function ClientPortal({
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-primary-200 p-6 text-center">
-              <p className="text-sm text-primary-500">No resources shared yet.</p>
-              <p className="mt-1 text-xs text-primary-400">
+            <div className="rounded-2xl border border-dashed border-primary-200 dark:border-primary-300 p-6 text-center">
+              <p className="text-sm text-primary-500 dark:text-primary-600">No resources shared yet.</p>
+              <p className="mt-1 text-xs text-primary-400 dark:text-primary-600">
                 Your therapist can share helpful links and articles here.
               </p>
             </div>

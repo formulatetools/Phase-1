@@ -144,7 +144,7 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
           }}
           onKeyDown={(e) => handleKeyDown(digits, setDigits, refs, i, e)}
           disabled={loading}
-          className="h-11 w-10 rounded-lg border-2 border-primary-200 text-center text-lg font-bold text-primary-900 focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none disabled:opacity-50"
+          className="h-11 w-10 rounded-lg border-2 border-primary-200 dark:border-primary-300 text-center text-lg font-bold text-primary-900 focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none disabled:opacity-50"
           aria-label={`PIN digit ${i + 1}`}
         />
       ))}
@@ -174,7 +174,7 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
             <p className="text-sm font-medium text-primary-800">
               Lock your workspace with a PIN
             </p>
-            <p className="mt-0.5 text-xs text-primary-500">
+            <p className="mt-0.5 text-xs text-primary-500 dark:text-primary-600">
               Add a 4-digit PIN so only you can access your therapy workspace.
             </p>
             <div className="mt-2.5 flex items-center gap-2">
@@ -183,13 +183,13 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
                   setShowForm(true)
                   setTimeout(() => pinRefs.current[0]?.focus(), 100)
                 }}
-                className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 transition-colors"
+                className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-brand dark:text-primary-900 dark:hover:bg-brand/90 transition-colors"
               >
                 Set up
               </button>
               <button
                 onClick={handleDismiss}
-                className="rounded-lg px-3 py-1.5 text-xs text-primary-500 hover:bg-primary-100 transition-colors"
+                className="rounded-lg px-3 py-1.5 text-xs text-primary-500 dark:text-primary-600 hover:bg-primary-100 transition-colors"
               >
                 Not now
               </button>
@@ -216,7 +216,7 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
               <button
                 onClick={() => handleEnterComplete()}
                 disabled={!pin.every((d) => d) || loading}
-                className="rounded-lg bg-primary-800 px-4 py-2 text-xs font-medium text-white hover:bg-primary-900 transition-colors disabled:opacity-50"
+                className="rounded-lg bg-primary-800 px-4 py-2 text-xs font-medium text-white hover:bg-primary-900 dark:bg-brand dark:text-primary-900 dark:hover:bg-brand/90 transition-colors disabled:opacity-50"
               >
                 Next
               </button>
@@ -229,14 +229,14 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
                     setError(null)
                     setTimeout(() => pinRefs.current[0]?.focus(), 100)
                   }}
-                  className="rounded-lg border border-primary-200 px-4 py-2 text-xs text-primary-600 hover:bg-primary-50 transition-colors"
+                  className="rounded-lg border border-primary-200 px-4 py-2 text-xs text-primary-600 hover:bg-primary-50 dark:border-primary-300 dark:text-primary-700 dark:hover:bg-primary-100 transition-colors"
                 >
                   Back
                 </button>
                 <button
                   onClick={() => handleConfirmComplete()}
                   disabled={!confirmPin.every((d) => d) || loading}
-                  className="rounded-lg bg-primary-800 px-4 py-2 text-xs font-medium text-white hover:bg-primary-900 transition-colors disabled:opacity-50"
+                  className="rounded-lg bg-primary-800 px-4 py-2 text-xs font-medium text-white hover:bg-primary-900 dark:bg-brand dark:text-primary-900 dark:hover:bg-brand/90 transition-colors disabled:opacity-50"
                 >
                   {loading ? 'Setting…' : 'Set PIN'}
                 </button>
@@ -250,7 +250,7 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
                 setConfirmPin(['', '', '', ''])
                 setError(null)
               }}
-              className="rounded-lg px-4 py-2 text-xs text-primary-400 hover:text-primary-600 transition-colors"
+              className="rounded-lg px-4 py-2 text-xs text-primary-400 hover:text-primary-600 dark:text-primary-600 dark:hover:text-primary-700 transition-colors"
             >
               Cancel
             </button>

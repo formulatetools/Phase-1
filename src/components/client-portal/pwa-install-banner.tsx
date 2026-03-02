@@ -97,13 +97,13 @@ export function PwaInstallBanner() {
           <div className="flex shrink-0 gap-2">
             <button
               onClick={handleInstall}
-              className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+              className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 dark:bg-brand dark:text-primary-900 dark:hover:bg-brand/90 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             >
               Add
             </button>
             <button
               onClick={dismiss}
-              className="rounded-lg px-2 py-1.5 text-xs text-primary-500 hover:bg-primary-50 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+              className="rounded-lg px-2 py-1.5 text-xs text-primary-500 dark:text-primary-600 hover:bg-primary-50 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             >
               Maybe later
             </button>
@@ -113,7 +113,7 @@ export function PwaInstallBanner() {
 
       {platform === 'ios_safari' && (
         <div className="flex items-start justify-between gap-3">
-          <div className="text-xs text-primary-600 space-y-1">
+          <div className="text-xs text-primary-600 dark:text-primary-700 space-y-1">
             <p className="font-medium">Add to your home screen</p>
             <p>
               Tap the share button{' '}
@@ -124,7 +124,7 @@ export function PwaInstallBanner() {
           </div>
           <button
             onClick={dismiss}
-            className="shrink-0 rounded-lg px-2 py-1.5 text-xs text-primary-500 hover:bg-primary-50 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+            className="shrink-0 rounded-lg px-2 py-1.5 text-xs text-primary-500 dark:text-primary-600 hover:bg-primary-50 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
           >
             Maybe later
           </button>
