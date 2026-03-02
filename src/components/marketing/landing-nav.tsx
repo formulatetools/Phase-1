@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Logo } from '@/components/ui/logo'
+import { ThemeToggleCompact } from '@/components/ui/theme-toggle'
 
 export function LandingNav() {
   const [open, setOpen] = useState(false)
 
   return (
-    <nav className="border-b border-primary-100 bg-surface/80 backdrop-blur-sm sticky top-0 z-50">
+    <nav className="border-b border-primary-100 bg-surface/80 backdrop-blur-sm sticky top-0 z-50" data-landing-nav>
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/">
           <Logo size="md" />
@@ -46,6 +47,7 @@ export function LandingNav() {
           >
             Sign In
           </Link>
+          <ThemeToggleCompact iconSize="md" />
           <Link
             href="/signup"
             className="rounded-lg bg-primary-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900"
@@ -54,13 +56,15 @@ export function LandingNav() {
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          type="button"
-          onClick={() => setOpen(!open)}
-          className="sm:hidden rounded-lg border border-primary-200 p-2 text-primary-500 hover:bg-primary-50 transition-colors"
-          aria-label="Toggle menu"
-        >
+        {/* Mobile: theme toggle + hamburger */}
+        <div className="flex items-center gap-1 sm:hidden">
+          <ThemeToggleCompact iconSize="md" />
+          <button
+            type="button"
+            onClick={() => setOpen(!open)}
+            className="rounded-lg border border-primary-200 p-2 text-primary-500 hover:bg-primary-50 transition-colors"
+            aria-label="Toggle menu"
+          >
           {open ? (
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -70,7 +74,8 @@ export function LandingNav() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
           )}
-        </button>
+          </button>
+        </div>
       </div>
 
       {/* Mobile dropdown */}

@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Logo } from '@/components/ui/logo'
-import { ThemeToggle, ThemeToggleCompact } from '@/components/ui/theme-toggle'
+import { ThemeToggle, ThemeToggleCompact, ThemeIcon } from '@/components/ui/theme-toggle'
+import { useTheme } from '@/components/providers/theme-provider'
 import { useShortcutsModal } from '@/components/providers/keyboard-shortcuts-provider'
 import { buttonVariants } from '@/components/ui/button'
 
@@ -142,6 +143,13 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
   const pathname = usePathname()
   const [moreOpen, setMoreOpen] = useState(false)
   const { openShortcutsModal } = useShortcutsModal()
+  const { theme, setTheme } = useTheme()
+
+  const cycleTheme = () => {
+    const next = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'
+    setTheme(next)
+  }
+  const themeLabel = theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'System'
 
   // Build nav items — conditionally add Admin for admin users
   const allNavItems = role === 'admin'
@@ -320,7 +328,6 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
           <Logo size="sm" />
         </Link>
         <div className="flex items-center gap-1">
-          <ThemeToggleCompact />
           {tier === 'free' && (
             <Link
               href="/pricing"
@@ -365,12 +372,20 @@ export function SidebarNav({ userEmail, userName, tier, role }: SidebarNavProps)
             )
           })}
 
-          {/* More tab */}
+          {/* Theme toggle + More — grouped at the end */}
+          <button
+            onClick={cycleTheme}
+            className="flex items-center justify-center px-3 pt-2 pb-1.5 text-primary-400 active:text-primary-600 transition-colors"
+            title={`Theme: ${themeLabel}`}
+            aria-label={`Switch theme (currently ${themeLabel})`}
+          >
+            <ThemeIcon theme={theme} size="md" />
+          </button>
           <button
             onClick={() => setMoreOpen(v => !v)}
             aria-expanded={moreOpen}
             aria-label="Additional navigation menu"
-            className={`flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1.5 text-[11px] font-medium transition-colors ${
+            className={`flex flex-col items-center gap-0.5 px-3 pt-2 pb-1.5 text-[11px] font-medium transition-colors ${
               moreOpen || isMoreActive
                 ? 'text-primary-800'
                 : 'text-primary-400 active:text-primary-600'

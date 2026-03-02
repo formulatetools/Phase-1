@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { LogoIcon } from '@/components/ui/logo'
+import { ThemeToggleCompact } from '@/components/ui/theme-toggle'
 import { HomeworkForm } from '@/components/homework/homework-form'
 import type { WorksheetSchema } from '@/types/worksheet'
 
@@ -78,15 +79,18 @@ export function DemoHomework({
       </div>
 
       {/* Client-facing header (matches /hw/[token]) */}
-      <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface">
+      <header className="border-t-[3px] border-t-brand border-b border-b-primary-100 bg-surface" data-portal-nav>
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <LogoIcon size={20} />
             <span className="text-sm font-semibold text-primary-800">Formulate</span>
           </div>
-          <span className="text-xs text-primary-400">
-            Due {new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-          </span>
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-primary-400">
+              Due {new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            </span>
+            <ThemeToggleCompact />
+          </div>
         </div>
       </header>
 
