@@ -258,7 +258,11 @@ export function SidebarNav({
   const themeLabel = theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'System'
 
   // ── Sign out ───────────────────────────────────────────────────────────
+  const [signingOut, setSigningOut] = useState(false)
+
   const handleSignOut = async () => {
+    if (!confirm('Are you sure you want to sign out?')) return
+    setSigningOut(true)
     const supabase = createClient()
     await supabase.auth.signOut()
     window.location.href = '/'
@@ -397,10 +401,11 @@ export function SidebarNav({
         </div>
         <button
           onClick={handleSignOut}
-          className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
+          disabled={signingOut}
+          className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600 disabled:opacity-50"
         >
           {icons.signOut}
-          Sign out
+          {signingOut ? 'Signing out…' : 'Sign out'}
         </button>
       </div>
     </>
@@ -571,10 +576,11 @@ export function SidebarNav({
           </div>
           <button
             onClick={handleSignOut}
-            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
+            disabled={signingOut}
+            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600 disabled:opacity-50"
           >
             {icons.signOut}
-            Sign out
+            {signingOut ? 'Signing out…' : 'Sign out'}
           </button>
         </div>
       </div>

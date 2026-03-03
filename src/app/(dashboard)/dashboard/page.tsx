@@ -444,7 +444,7 @@ export default async function DashboardPage() {
                 </svg>
               </div>
               <p className="mt-2 text-sm text-primary-400">No activity yet</p>
-              <p className="text-xs text-primary-300">Your actions will appear here</p>
+              <p className="text-xs text-primary-300">Actions like adding clients, assigning homework, and exporting worksheets will appear here.</p>
             </div>
           )}
         </div>
@@ -749,7 +749,13 @@ export default async function DashboardPage() {
                       </svg>
                     </div>
                     <span className="text-[11px] text-primary-300">
-                      {new Date(item.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                      {(() => {
+                        const date = new Date(item.created_at)
+                        const now = new Date()
+                        const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
+                        if (date.getFullYear() !== now.getFullYear()) opts.year = 'numeric'
+                        return date.toLocaleDateString('en-GB', opts)
+                      })()}
                     </span>
                   </div>
                   <p className="mt-3 text-sm font-semibold text-primary-800 group-hover:text-primary-900">

@@ -218,7 +218,7 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
                 disabled={!pin.every((d) => d) || loading}
                 className="rounded-lg bg-primary-800 px-4 py-2 text-xs font-medium text-white hover:bg-primary-900 dark:bg-brand dark:text-primary-900 dark:hover:bg-brand/90 transition-colors disabled:opacity-50"
               >
-                Next
+                Next: Confirm PIN
               </button>
             ) : (
               <>

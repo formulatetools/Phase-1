@@ -143,11 +143,22 @@ function LinkResourceCard({
                 {resource.og_site_name || domain}
               </span>
             )}
+            {resource.viewed_at && (
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-green-50 px-1.5 py-0.5 text-[10px] font-medium text-green-600 dark:bg-green-900/20 dark:text-green-400">
+                <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                Viewed
+              </span>
+            )}
             <span className="text-[10px] text-primary-300 dark:text-primary-500">
-              {new Date(resource.shared_at).toLocaleDateString('en-GB', {
-                day: 'numeric',
-                month: 'short',
-              })}
+              {(() => {
+                const date = new Date(resource.shared_at)
+                const now = new Date()
+                const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
+                if (date.getFullYear() !== now.getFullYear()) opts.year = 'numeric'
+                return date.toLocaleDateString('en-GB', opts)
+              })()}
             </span>
           </div>
         </div>

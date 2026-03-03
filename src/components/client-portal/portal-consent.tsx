@@ -45,10 +45,12 @@ export function PortalConsent({ portalToken, onConsented }: PortalConsentProps) 
             No worries. You can still complete individual homework via the links
             your therapist shares with you.
           </p>
-          <p className="mt-3 text-xs text-primary-400 dark:text-primary-600">
-            If you change your mind, visit this page again to access your
-            workspace.
-          </p>
+          <button
+            onClick={() => setDismissed(false)}
+            className="mt-4 text-sm font-medium text-brand-dark hover:text-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 rounded"
+          >
+            I&apos;d like to set up my workspace
+          </button>
         </div>
       </div>
     )
@@ -138,9 +140,9 @@ export function PortalConsent({ portalToken, onConsented }: PortalConsentProps) 
         {/* Legal text */}
         <p className="mt-5 text-xs text-primary-400 dark:text-primary-600">
           By continuing you agree to our{' '}
-          <a href="/privacy" className="underline hover:text-primary-600">Privacy Policy</a>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary-600">Privacy Policy</a>
           {' '}and{' '}
-          <a href="/terms" className="underline hover:text-primary-600">Terms of Use</a>.
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary-600">Terms of Use</a>.
         </p>
 
         {/* Error */}
@@ -157,7 +159,15 @@ export function PortalConsent({ portalToken, onConsented }: PortalConsentProps) 
             disabled={loading}
             className="rounded-lg bg-primary-800 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-900 dark:bg-brand dark:text-primary-900 dark:hover:bg-brand/90 disabled:opacity-50 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
           >
-            {loading ? 'Setting up…' : 'Continue to My Workspace'}
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Setting up…
+              </span>
+            ) : 'Continue to My Workspace'}
           </button>
           <button
             onClick={() => setDismissed(true)}

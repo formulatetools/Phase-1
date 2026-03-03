@@ -15,12 +15,31 @@ export function PinEntry({ portalToken, appUrl }: PinEntryProps) {
   const [attemptsRemaining, setAttemptsRemaining] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [lockedOut, setLockedOut] = useState(false)
+  const [lockoutSeconds, setLockoutSeconds] = useState(0)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // Focus first input on mount
   useEffect(() => {
     inputRefs.current[0]?.focus()
   }, [])
+
+  // Countdown timer for lockout
+  useEffect(() => {
+    if (lockoutSeconds <= 0) return
+    const timer = setInterval(() => {
+      setLockoutSeconds((prev) => {
+        if (prev <= 1) {
+          setLockedOut(false)
+          setError(null)
+          setDigits(['', '', '', ''])
+          setTimeout(() => inputRefs.current[0]?.focus(), 100)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [lockoutSeconds])
 
   const handleDigitChange = (index: number, value: string) => {
     // Only allow single digits
@@ -86,7 +105,8 @@ export function PinEntry({ portalToken, appUrl }: PinEntryProps) {
 
       if (res.status === 429) {
         setLockedOut(true)
-        setError('Too many attempts. Please try again in 15 minutes.')
+        setLockoutSeconds(15 * 60) // 15 minutes
+        setError('Too many attempts.')
         return
       }
 
@@ -162,8 +182,13 @@ export function PinEntry({ portalToken, appUrl }: PinEntryProps) {
 
         {/* Error message */}
         {error && (
-          <div className="mt-4">
+          <div className="mt-4" role="alert">
             <p className="text-sm text-red-600">{error}</p>
+            {lockedOut && lockoutSeconds > 0 && (
+              <p className="mt-1 text-xs text-red-400">
+                Try again in {Math.floor(lockoutSeconds / 60)}:{String(lockoutSeconds % 60).padStart(2, '0')}
+              </p>
+            )}
             {attemptsRemaining !== null && attemptsRemaining > 0 && !lockedOut && (
               <p className="mt-1 text-xs text-red-400">
                 {attemptsRemaining} attempt{attemptsRemaining !== 1 ? 's' : ''} remaining
@@ -179,7 +204,15 @@ export function PinEntry({ portalToken, appUrl }: PinEntryProps) {
             disabled={loading || digits.some((d) => !d)}
             className="mt-6 w-full rounded-xl bg-primary-800 px-4 py-3 text-sm font-medium text-white hover:bg-primary-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Verifying…' : 'Unlock'}
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Verifying…
+              </span>
+            ) : 'Unlock'}
           </button>
         )}
 
