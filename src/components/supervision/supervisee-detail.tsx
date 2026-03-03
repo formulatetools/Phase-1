@@ -19,7 +19,7 @@ import {
   markSupervisionReviewed,
   markSupervisionPaperCompleted,
   gdprEraseSupervision,
-} from '@/app/(dashboard)/supervision/actions'
+} from '@/app/(dashboard)/clients/actions'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
 import { ShareModal } from '@/components/ui/share-modal'
@@ -148,7 +148,7 @@ export function SuperviseeDetail({
     setGdprLoading(true)
     const result = await gdprEraseSupervision(relationship.id)
     if (result.success) {
-      window.location.href = '/supervision'
+      window.location.href = '/clients?tab=supervisees'
     } else {
       toast({ type: 'error', message: result.error || 'Failed to delete supervisee data' })
       setGdprLoading(false)
@@ -168,8 +168,8 @@ export function SuperviseeDetail({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <Link href="/supervision" className="text-sm text-primary-400 hover:text-primary-600 transition-colors">
-            ← Back to supervision
+          <Link href="/clients?tab=supervisees" className="text-sm text-primary-400 hover:text-primary-600 transition-colors">
+            ← Back to supervisees
           </Link>
           <div className="mt-2 flex items-center gap-3">
             {editingLabel ? (

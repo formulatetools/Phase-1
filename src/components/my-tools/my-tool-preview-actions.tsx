@@ -20,7 +20,7 @@ export function MyToolPreviewActions({ worksheetId }: Props) {
     setDeleting(true)
     const result = await deleteCustomWorksheet(worksheetId)
     if (result.success) {
-      router.push('/my-tools')
+      router.push('/worksheets/mine')
     } else {
       toast({ type: 'error', message: result.error || 'Failed to delete' })
       setDeleting(false)

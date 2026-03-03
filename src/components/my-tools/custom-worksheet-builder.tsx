@@ -339,7 +339,7 @@ export function CustomWorksheetBuilder({
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
-            href="/my-tools"
+            href="/worksheets/mine"
             className="rounded-lg p-1.5 text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">

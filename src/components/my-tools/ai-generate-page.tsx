@@ -185,10 +185,10 @@ export function AIGeneratePage({ tier, atLimit }: AIGeneratePageProps) {
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <Link
-            href="/my-tools"
+            href="/worksheets/mine"
             className="rounded-xl border border-primary-200 px-5 py-2.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50"
           >
-            Manage tools
+            My worksheets
           </Link>
           <Link
             href="/pricing"

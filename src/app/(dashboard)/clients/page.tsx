@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import type { TherapeuticRelationship, SubscriptionTier } from '@/types/database'
 import { ClientList } from '@/components/clients/client-list'
+import { SuperviseeList } from '@/components/supervision/supervisee-list'
+import { ClientsTabBar } from '@/components/clients/clients-tab-bar'
 
 export const metadata = {
   title: 'Clients — Formulate',
@@ -14,19 +16,41 @@ export const metadata = {
   },
 }
 
-export default async function ClientsPage() {
+interface PageProps {
+  searchParams: Promise<{ tab?: string }>
+}
+
+export default async function ClientsPage({ searchParams }: PageProps) {
+  const { tab } = await searchParams
   const { user, profile } = await getCurrentUser()
   if (!user || !profile) redirect('/login')
 
   const supabase = await createClient()
+  const tier = profile.subscription_tier as SubscriptionTier
+  const limits = TIER_LIMITS[tier]
 
-  // Fetch relationships and assignments in parallel (independent queries)
-  const [{ data: relationships }, { data: assignments }] = await Promise.all([
+  const activeTab = tab === 'supervisees' ? 'supervisees' : 'clients'
+  const showSupervisees = limits.maxSupervisees > 0
+
+  // Fetch clinical relationships, supervision relationships, and all assignments in parallel
+  const [
+    { data: clinicalRelationships },
+    { data: supervisionRelationships },
+    { data: assignments },
+  ] = await Promise.all([
     supabase
       .from('therapeutic_relationships')
       .select('*')
       .eq('therapist_id', user.id)
       .eq('relationship_type', 'clinical')
+      .is('deleted_at', null)
+      .order('started_at', { ascending: false }),
+
+    supabase
+      .from('therapeutic_relationships')
+      .select('*')
+      .eq('therapist_id', user.id)
+      .eq('relationship_type', 'supervision')
       .is('deleted_at', null)
       .order('started_at', { ascending: false }),
 
@@ -37,14 +61,13 @@ export default async function ClientsPage() {
       .is('deleted_at', null),
   ])
 
-  const tier = profile.subscription_tier as SubscriptionTier
-  const limits = TIER_LIMITS[tier]
-  const clientCount = (relationships || []).length
+  const clientCount = (clinicalRelationships || []).length
+  const superviseeCount = (supervisionRelationships || []).length
   const activeAssignmentCount = (assignments || []).filter(
     (a) => a.status === 'assigned' || a.status === 'in_progress'
   ).length
 
-  // Build per-client assignment counts
+  // Build per-relationship assignment counts
   const assignmentsByClient: Record<string, { active: number; completed: number; total: number }> = {}
   for (const a of assignments || []) {
     if (!assignmentsByClient[a.relationship_id]) {
@@ -64,20 +87,38 @@ export default async function ClientsPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-primary-900">Clients</h1>
         <p className="mt-1 text-sm text-primary-500">
-          Manage your clients and assign homework.
-          Clients are identified by non-identifiable labels only — no personal data is stored.
+          {activeTab === 'supervisees'
+            ? 'Manage your supervisees and assign structured supervision preparation worksheets.'
+            : 'Manage your clients and assign homework. Clients are identified by non-identifiable labels only — no personal data is stored.'}
         </p>
       </div>
 
-      <ClientList
-        relationships={(relationships || []) as TherapeuticRelationship[]}
-        assignmentsByClient={assignmentsByClient}
+      <ClientsTabBar
         clientCount={clientCount}
-        activeAssignmentCount={activeAssignmentCount}
-        maxClients={limits.maxClients}
-        maxActiveAssignments={limits.maxActiveAssignments}
-        tier={tier}
+        superviseeCount={superviseeCount}
+        activeTab={activeTab}
+        showSupervisees={showSupervisees}
       />
+
+      {activeTab === 'supervisees' ? (
+        <SuperviseeList
+          relationships={(supervisionRelationships || []) as TherapeuticRelationship[]}
+          assignmentsByClient={assignmentsByClient}
+          superviseeCount={superviseeCount}
+          maxSupervisees={limits.maxSupervisees}
+          tier={tier}
+        />
+      ) : (
+        <ClientList
+          relationships={(clinicalRelationships || []) as TherapeuticRelationship[]}
+          assignmentsByClient={assignmentsByClient}
+          clientCount={clientCount}
+          activeAssignmentCount={activeAssignmentCount}
+          maxClients={limits.maxClients}
+          maxActiveAssignments={limits.maxActiveAssignments}
+          tier={tier}
+        />
+      )}
     </div>
   )
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import type { TherapeuticRelationship, SubscriptionTier } from '@/types/database'
-import { createSupervisee, endSupervision, reactivateSupervisee } from '@/app/(dashboard)/supervision/actions'
+import { createSupervisee, endSupervision, reactivateSupervisee } from '@/app/(dashboard)/clients/actions'
 import { validateSuperviseeLabel } from '@/lib/validation/supervisee-label'
 
 interface SuperviseeListProps {
@@ -254,7 +254,7 @@ export function SuperviseeList({
             return (
               <Link
                 key={r.id}
-                href={`/supervision/${r.id}`}
+                href={`/clients/${r.id}`}
                 className="flex items-center justify-between rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm hover:border-brand/30 hover:shadow-md transition-all"
               >
                 <div className="flex items-center gap-3">
@@ -314,7 +314,7 @@ export function SuperviseeList({
                 </div>
                 <div className="flex items-center gap-2">
                   <Link
-                    href={`/supervision/${r.id}`}
+                    href={`/clients/${r.id}`}
                     className="rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-500 hover:bg-surface transition-colors"
                   >
                     View

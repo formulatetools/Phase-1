@@ -5,8 +5,7 @@ import Link from 'next/link'
 import type { ResourceType } from '@/lib/utils/resource-type'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { getAssignableRelationships } from '@/app/(dashboard)/worksheets/assign-actions'
-import { createAssignment } from '@/app/(dashboard)/clients/actions'
-import { createSupervisionAssignment } from '@/app/(dashboard)/supervision/actions'
+import { createAssignment, createSupervisionAssignment } from '@/app/(dashboard)/clients/actions'
 import { ShareModal } from '@/components/ui/share-modal'
 import { Button } from '@/components/ui/button'
 
@@ -31,7 +30,7 @@ export function AssignFromLibraryModal({
   const isSupervision = resourceType === 'supervision'
   const recipientLabel = isSupervision ? 'supervisee' : 'client'
   const recipientLabelPlural = isSupervision ? 'supervisees' : 'clients'
-  const addLink = isSupervision ? '/supervision' : '/clients'
+  const addLink = isSupervision ? '/clients?tab=supervisees' : '/clients'
 
   // State
   const [relationships, setRelationships] = useState<{ id: string; client_label: string }[]>([])
@@ -189,7 +188,7 @@ export function AssignFromLibraryModal({
               href={addLink}
               className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary-800 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50"
             >
-              Go to {isSupervision ? 'Supervision' : 'Clients'}
+              Go to {isSupervision ? 'Supervisees' : 'Clients'}
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>

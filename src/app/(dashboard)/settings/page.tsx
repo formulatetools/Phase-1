@@ -108,6 +108,26 @@ export default async function SettingsPage() {
           ) : null
         })()}
 
+        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10">
+              <svg className="h-5 w-5 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h2 className="text-base font-semibold text-primary-900">Refer a Colleague</h2>
+              <p className="text-sm text-primary-400">Share Formulate with a colleague and earn rewards</p>
+            </div>
+            <a
+              href="/referrals"
+              className="text-sm font-medium text-brand hover:text-brand-dark transition-colors"
+            >
+              View &rarr;
+            </a>
+          </div>
+        </div>
+
         {profile.subscription_tier === 'free' && (
           <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
             <h2 className="mb-1 text-base font-semibold text-primary-900">Promo Code</h2>

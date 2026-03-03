@@ -1,15 +1,18 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
+import { TIER_LIMITS } from '@/lib/stripe/config'
+import type { SubscriptionTier } from '@/types/database'
 import { WorksheetSearch } from '@/components/worksheets/worksheet-search'
+import { WorksheetsPageTabs } from '@/components/worksheets/worksheets-page-tabs'
 import { getResourceType } from '@/lib/utils/resource-type'
 import type { ResourceTypeFilter } from '@/lib/utils/resource-type'
 
 export const metadata = {
-  title: 'Resource Library — Formulate',
+  title: 'Worksheets — Formulate',
   description: 'Browse professional CBT worksheets, thought records, and clinical tools by category.',
   openGraph: {
-    title: 'Resource Library — Formulate',
+    title: 'Worksheets — Formulate',
     description: 'Browse professional CBT worksheets, thought records, and clinical tools by category.',
   },
   alternates: {
@@ -24,6 +27,27 @@ export default async function WorksheetsPage({
 }) {
   const params = await searchParams
   const supabase = await createClient()
+
+  // Check auth for tabs (non-blocking — anonymous users see the library without tabs)
+  const { user, profile } = await getCurrentUser()
+  let customWorksheetCount = 0
+  let canCreate = false
+
+  if (user && profile) {
+    const tier = profile.subscription_tier as SubscriptionTier
+    const limit = TIER_LIMITS[tier].maxCustomWorksheets
+    canCreate = limit > 0
+
+    if (canCreate) {
+      const { count } = await supabase
+        .from('worksheets')
+        .select('*', { count: 'exact', head: true })
+        .eq('created_by', user.id)
+        .eq('is_curated', false)
+        .is('deleted_at', null)
+      customWorksheetCount = count ?? 0
+    }
+  }
 
   // Fetch all published worksheets
   const { data: allWorksheets } = await supabase
@@ -77,7 +101,6 @@ export default async function WorksheetsPage({
 
     // Track search for analytics (fire-and-forget)
     if (q) {
-      const { user } = await getCurrentUser()
       if (user) {
         supabase.from('audit_log').insert({
           user_id: user.id,
@@ -134,12 +157,19 @@ export default async function WorksheetsPage({
     <div className="px-4 py-8 sm:px-8 lg:px-12">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-primary-900 sm:text-3xl">
-          Resource Library
+          Worksheets
         </h1>
         <p className="mt-1 text-primary-400">
           {allWorksheets?.length || 0} professional CBT resources
         </p>
       </div>
+
+      {user && (
+        <WorksheetsPageTabs
+          customWorksheetCount={customWorksheetCount}
+          canCreate={canCreate}
+        />
+      )}
 
       <WorksheetSearch initialQuery={params.q} initialTag={params.tag} initialType={params.type} allTags={allTags} />
 

@@ -43,6 +43,21 @@ const nextConfig: NextConfig = {
         destination: "/homework-plans",
         permanent: true,
       },
+      {
+        source: "/supervision",
+        destination: "/clients?tab=supervisees",
+        permanent: false,
+      },
+      {
+        source: "/supervision/:id",
+        destination: "/clients/:id",
+        permanent: false,
+      },
+      {
+        source: "/my-tools",
+        destination: "/worksheets/mine",
+        permanent: false,
+      },
     ];
   },
   images: {

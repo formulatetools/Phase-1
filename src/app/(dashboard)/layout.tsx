@@ -20,24 +20,14 @@ export default async function DashboardLayout({
     return <>{children}</>
   }
 
-  // Fetch sidebar data in parallel — lightweight head-only count queries
+  // Fetch sidebar data — lightweight head-only count query
   const supabase = await createClient()
-  const [{ count: pendingReviewCount }, { count: activeSuperviseeCount }] =
-    await Promise.all([
-      supabase
-        .from('worksheet_assignments')
-        .select('*', { count: 'exact', head: true })
-        .eq('therapist_id', user.id)
-        .eq('status', 'completed')
-        .is('deleted_at', null),
-      supabase
-        .from('therapeutic_relationships')
-        .select('*', { count: 'exact', head: true })
-        .eq('therapist_id', user.id)
-        .eq('relationship_type', 'supervision')
-        .eq('status', 'active')
-        .is('deleted_at', null),
-    ])
+  const { count: pendingReviewCount } = await supabase
+    .from('worksheet_assignments')
+    .select('*', { count: 'exact', head: true })
+    .eq('therapist_id', user.id)
+    .eq('status', 'completed')
+    .is('deleted_at', null)
 
   return (
     <AssignProvider>
@@ -56,7 +46,6 @@ export default async function DashboardLayout({
           tier={profile.subscription_tier}
           role={profile.role}
           pendingReviewCount={pendingReviewCount ?? 0}
-          hasSupervisees={(activeSuperviseeCount ?? 0) > 0}
         />
 
         {/* Main content area — offset by sidebar width on desktop */}

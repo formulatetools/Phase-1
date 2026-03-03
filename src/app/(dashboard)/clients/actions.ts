@@ -13,6 +13,7 @@ import type {
 } from '@/types/database'
 import { unfurlUrl } from '@/lib/og-unfurl'
 import { validateClientLabel } from '@/lib/validation/client-label'
+import { validateSuperviseeLabel } from '@/lib/validation/supervisee-label'
 import { generatePreviewHash } from '@/lib/preview'
 
 // ============================================================================
@@ -710,4 +711,354 @@ export async function archiveResource(resourceId: string) {
 
   revalidatePath('/clients')
   return { success: true }
+}
+
+// ============================================================================
+// SUPERVISEE (SUPERVISION RELATIONSHIP) ACTIONS
+// ============================================================================
+
+export async function createSupervisee(label: string) {
+  const { user, profile } = await getCurrentUser()
+  if (!user || !profile) return { error: 'Not authenticated' }
+
+  const validation = validateSuperviseeLabel(label)
+  if (!validation.valid) return { error: validation.error! }
+
+  const supabase = await createClient()
+  const tier = profile.subscription_tier as SubscriptionTier
+
+  const limit = TIER_LIMITS[tier].maxSupervisees
+  if (limit === 0) {
+    return { error: 'Supervision is available on the Practice plan and above. Upgrade to access the supervision portal.', limitReached: true }
+  }
+
+  const { count } = await supabase
+    .from('therapeutic_relationships')
+    .select('*', { count: 'exact', head: true })
+    .eq('therapist_id', user.id)
+    .eq('relationship_type', 'supervision')
+    .is('deleted_at', null)
+
+  if (count !== null && count >= limit) {
+    return { error: `Your plan is limited to ${limit} supervisees. Upgrade to add more.`, limitReached: true }
+  }
+
+  const { data, error } = await supabase
+    .from('therapeutic_relationships')
+    .insert({
+      therapist_id: user.id,
+      client_label: label.trim(),
+      status: 'active',
+      relationship_type: 'supervision',
+    })
+    .select()
+    .single()
+
+  if (error) return { error: error.message }
+
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'create',
+    entity_type: 'therapeutic_relationship',
+    entity_id: (data as TherapeuticRelationship).id,
+    metadata: { client_label: label.trim(), relationship_type: 'supervision' },
+  })
+
+  revalidatePath('/clients')
+  return { data: data as TherapeuticRelationship }
+}
+
+export async function updateSuperviseeLabel(relationshipId: string, label: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const validation = validateSuperviseeLabel(label)
+  if (!validation.valid) return { error: validation.error! }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('therapeutic_relationships')
+    .update({ client_label: label.trim() })
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .eq('relationship_type', 'supervision')
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/clients')
+  revalidatePath(`/clients/${relationshipId}`)
+  return { success: true }
+}
+
+export async function endSupervision(relationshipId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('therapeutic_relationships')
+    .update({ status: 'discharged', ended_at: new Date().toISOString() })
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .eq('relationship_type', 'supervision')
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/clients')
+  revalidatePath(`/clients/${relationshipId}`)
+  return { success: true }
+}
+
+export async function reactivateSupervisee(relationshipId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('therapeutic_relationships')
+    .update({ status: 'active', ended_at: null })
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .eq('relationship_type', 'supervision')
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/clients')
+  revalidatePath(`/clients/${relationshipId}`)
+  return { success: true }
+}
+
+// ============================================================================
+// SUPERVISION ASSIGNMENT ACTIONS
+// ============================================================================
+
+export async function createSupervisionAssignment(
+  relationshipId: string,
+  worksheetId: string,
+  dueDate?: string,
+  expiresInDays: number = 7
+) {
+  const { user, profile } = await getCurrentUser()
+  if (!user || !profile) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+  const tier = profile.subscription_tier as SubscriptionTier
+
+  const { data: rel } = await supabase
+    .from('therapeutic_relationships')
+    .select('relationship_type, client_portal_token')
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .is('deleted_at', null)
+    .single()
+
+  if (!rel) return { error: 'Supervisee not found' }
+  if (rel.relationship_type !== 'supervision') {
+    return { error: 'Cannot assign supervision worksheets to a clinical client. Use the clients page instead.' }
+  }
+
+  const { count } = await supabase
+    .from('worksheet_assignments')
+    .select('*', { count: 'exact', head: true })
+    .eq('therapist_id', user.id)
+    .in('status', ['assigned', 'in_progress'])
+    .is('deleted_at', null)
+
+  const limit = TIER_LIMITS[tier].maxActiveAssignments
+  if (count !== null && count >= limit) {
+    return { error: `Your plan is limited to ${limit} active assignments. Upgrade for unlimited.`, limitReached: true }
+  }
+
+  const token = generateToken()
+  const expiresAt = new Date()
+  expiresAt.setDate(expiresAt.getDate() + expiresInDays)
+
+  const { data, error } = await supabase
+    .from('worksheet_assignments')
+    .insert({
+      worksheet_id: worksheetId,
+      therapist_id: user.id,
+      relationship_id: relationshipId,
+      token,
+      status: 'assigned',
+      due_date: dueDate || null,
+      expires_at: expiresAt.toISOString(),
+    })
+    .select()
+    .single()
+
+  if (error) return { error: error.message }
+
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'assign',
+    entity_type: 'worksheet_assignment',
+    entity_id: (data as WorksheetAssignment).id,
+    metadata: { worksheet_id: worksheetId, relationship_id: relationshipId, token, supervision: true },
+  })
+
+  if (!rel.client_portal_token) {
+    await supabase
+      .from('therapeutic_relationships')
+      .update({ client_portal_token: generatePortalToken() })
+      .eq('id', relationshipId)
+  }
+
+  revalidatePath(`/clients/${relationshipId}`)
+  return { data: data as WorksheetAssignment, token }
+}
+
+export async function lockSupervisionAssignment(assignmentId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('worksheet_assignments')
+    .update({ locked_at: new Date().toISOString() })
+    .eq('id', assignmentId)
+    .eq('therapist_id', user.id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/clients')
+  return { success: true }
+}
+
+export async function markSupervisionReviewed(assignmentId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('worksheet_assignments')
+    .update({ status: 'reviewed' })
+    .eq('id', assignmentId)
+    .eq('therapist_id', user.id)
+
+  if (error) return { error: error.message }
+
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'read',
+    entity_type: 'worksheet_assignment',
+    entity_id: assignmentId,
+    metadata: { action: 'marked_as_reviewed', supervision: true },
+  })
+
+  revalidatePath('/clients')
+  return { success: true }
+}
+
+export async function markSupervisionPaperCompleted(assignmentId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('worksheet_assignments')
+    .update({
+      status: 'completed',
+      completion_method: 'paper',
+      completed_at: new Date().toISOString(),
+    })
+    .eq('id', assignmentId)
+    .eq('therapist_id', user.id)
+
+  if (error) return { error: error.message }
+
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'update',
+    entity_type: 'worksheet_assignment',
+    entity_id: assignmentId,
+    metadata: { action: 'marked_as_paper_completed', supervision: true },
+  })
+
+  revalidatePath('/clients')
+  return { success: true }
+}
+
+// ============================================================================
+// SUPERVISION GDPR ERASURE — PERMANENT DELETION
+// ============================================================================
+
+export async function gdprEraseSupervision(relationshipId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  const { data: relationship } = await supabase
+    .from('therapeutic_relationships')
+    .select('id, client_label')
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .eq('relationship_type', 'supervision')
+    .is('deleted_at', null)
+    .single()
+
+  if (!relationship) return { error: 'Supervisee not found or already deleted' }
+
+  const { count: responseCount } = await supabase
+    .from('worksheet_responses')
+    .select('*', { count: 'exact', head: true })
+    .eq('relationship_id', relationshipId)
+
+  const { count: assignmentCount } = await supabase
+    .from('worksheet_assignments')
+    .select('*', { count: 'exact', head: true })
+    .eq('relationship_id', relationshipId)
+
+  const { error: respError } = await supabase
+    .from('worksheet_responses')
+    .delete()
+    .eq('relationship_id', relationshipId)
+
+  if (respError) return { error: `Failed to delete responses: ${respError.message}` }
+
+  await supabase
+    .from('homework_events')
+    .delete()
+    .eq('relationship_id', relationshipId)
+
+  await supabase
+    .from('homework_consent')
+    .delete()
+    .eq('relationship_id', relationshipId)
+
+  const { error: assignError } = await supabase
+    .from('worksheet_assignments')
+    .delete()
+    .eq('relationship_id', relationshipId)
+
+  if (assignError) return { error: `Failed to delete assignments: ${assignError.message}` }
+
+  const { error: relError } = await supabase
+    .from('therapeutic_relationships')
+    .delete()
+    .eq('id', relationshipId)
+
+  if (relError) return { error: `Failed to delete relationship: ${relError.message}` }
+
+  await supabase.from('audit_log').insert({
+    user_id: user.id,
+    action: 'gdpr_erasure',
+    entity_type: 'therapeutic_relationship',
+    entity_id: relationshipId,
+    metadata: {
+      responses_deleted: responseCount ?? 0,
+      assignments_deleted: assignmentCount ?? 0,
+      relationship_type: 'supervision',
+    },
+  })
+
+  revalidatePath('/clients')
+  return { success: true, deleted: { responses: responseCount ?? 0, assignments: assignmentCount ?? 0 } }
 }

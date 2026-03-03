@@ -772,7 +772,7 @@ export default async function DashboardPage() {
               href="/worksheets"
               className={`mt-4 ${buttonVariants.ghost('sm')}`}
             >
-              Browse library →
+              Browse worksheets →
             </Link>
           </div>
         )}

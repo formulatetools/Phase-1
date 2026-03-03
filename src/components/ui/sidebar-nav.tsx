@@ -18,7 +18,6 @@ interface SidebarNavProps {
   tier: string
   role?: string
   pendingReviewCount?: number
-  hasSupervisees?: boolean
 }
 
 interface NavItem {
@@ -131,8 +130,8 @@ const icons = {
 const TAB_SHORT_LABELS: Record<string, string> = {
   '/dashboard': 'Home',
   '/clients': 'Clients',
-  '/worksheets': 'Library',
-  '/my-tools': 'Tools',
+  '/worksheets': 'Worksheets',
+  '/homework-plans': 'Plans',
 }
 const TAB_HREFS = new Set(Object.keys(TAB_SHORT_LABELS))
 
@@ -160,7 +159,6 @@ export function SidebarNav({
   tier,
   role,
   pendingReviewCount = 0,
-  hasSupervisees = false,
 }: SidebarNavProps) {
   const pathname = usePathname()
   const [moreOpen, setMoreOpen] = useState(false)
@@ -198,15 +196,7 @@ export function SidebarNav({
       label: 'Workspace',
       items: [
         { label: 'Clients', href: '/clients', icon: icons.clients, tourId: 'nav-clients', badge: pendingReviewCount },
-        { label: 'Library', href: '/worksheets', icon: icons.resources, tourId: 'nav-worksheets' },
-        { label: 'Supervision', href: '/supervision', icon: icons.supervision },
-      ],
-    },
-    {
-      id: 'create',
-      label: 'Create',
-      items: [
-        { label: 'My Tools', href: '/my-tools', icon: icons.myTools },
+        { label: 'Worksheets', href: '/worksheets', icon: icons.resources, tourId: 'nav-worksheets' },
         { label: 'Homework Plans', href: '/homework-plans', icon: icons.templates },
       ],
     },
@@ -222,7 +212,6 @@ export function SidebarNav({
 
   // Standalone items (below sections)
   const standaloneItems: NavItem[] = [
-    { label: 'Refer a Colleague', href: '/referrals', icon: icons.referrals },
     { label: 'Settings', href: '/settings', icon: icons.settings, tourId: 'nav-settings' },
     ...(role === 'admin' ? [{ label: 'Admin', href: '/admin', icon: icons.admin }] : []),
   ]
@@ -241,7 +230,6 @@ export function SidebarNav({
   // ── Active state ───────────────────────────────────────────────────────
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard'
-    if (href === '/my-tools') return pathname.startsWith('/my-tools')
     return pathname.startsWith(href)
   }
 
