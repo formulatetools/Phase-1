@@ -8,17 +8,18 @@ import {
 } from '@/app/(dashboard)/worksheets/assign-actions'
 import { getTemplates, applyTemplate } from '@/app/(dashboard)/homework-plans/actions'
 import { createAssignment, shareResource } from '@/app/(dashboard)/clients/actions'
+import { createQueue } from '@/app/(dashboard)/clients/queue-actions'
 import { ShareModal } from '@/components/ui/share-modal'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import type { WorkspaceTemplate } from '@/types/database'
+import type { WorkspaceTemplate, PlanQueuePushMode } from '@/types/database'
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 type ActiveTab = 'worksheet' | 'resource' | 'template'
-type TemplateStep = 'select' | 'confirm' | 'result'
+type TemplateStep = 'select' | 'delivery' | 'confirm' | 'result'
 
 interface AssignHomeworkModalProps {
   open: boolean
@@ -98,7 +99,15 @@ export function AssignHomeworkModal({
     resources: number
     skipped: number
     portalToken: string | null
+    queued?: boolean
+    queuedCount?: number
   } | null>(null)
+
+  // ---- Delivery mode state (queue vs instant) ----
+  const [deliveryMode, setDeliveryMode] = useState<'instant' | 'queue'>('instant')
+  const [queuePushMode, setQueuePushMode] = useState<PlanQueuePushMode>('manual')
+  const [queueIntervalDays, setQueueIntervalDays] = useState(7)
+  const [pushFirstImmediately, setPushFirstImmediately] = useState(true)
 
   const selectedTemplate = templates.find((t) => t.id === selectedTemplateId)
 
@@ -140,8 +149,12 @@ export function AssignHomeworkModal({
     setResourceTitle('')
     setResourceNote('')
     setSelectedTemplateId(preSelectedTemplateId || null)
-    setTemplateStep(preSelectedTemplateId ? 'confirm' : 'select')
+    setTemplateStep(preSelectedTemplateId ? 'delivery' : 'select')
     setTemplateResult(null)
+    setDeliveryMode('instant')
+    setQueuePushMode('manual')
+    setQueueIntervalDays(7)
+    setPushFirstImmediately(true)
 
     Promise.all([
       getAssignableRelationships('clinical'),
@@ -311,6 +324,51 @@ export function AssignHomeworkModal({
     }
   }
 
+  const handleCreateQueue = async () => {
+    if (!selectedTemplateId || !selectedRelId || !selectedTemplate) return
+    setApplyingTemplate(true)
+    setError(null)
+
+    const items = [
+      ...selectedTemplate.assignment_specs.map((spec) => ({
+        item_type: 'worksheet' as const,
+        worksheet_id: spec.worksheet_id,
+        expires_in_days: spec.expires_in_days ?? selectedTemplate.default_expires_in_days,
+      })),
+      ...selectedTemplate.resource_specs.map((spec) => ({
+        item_type: 'resource' as const,
+        resource_title: spec.title,
+        resource_url: spec.url,
+        resource_note: spec.note,
+      })),
+    ]
+
+    const res = await createQueue(selectedRelId, {
+      templateId: selectedTemplateId,
+      name: selectedTemplate.name,
+      pushMode: queuePushMode,
+      intervalDays: queueIntervalDays,
+      items,
+      pushFirstImmediately,
+    })
+
+    setApplyingTemplate(false)
+
+    if (res.error) {
+      setError(res.error)
+    } else {
+      setTemplateResult({
+        assignments: 0,
+        resources: 0,
+        skipped: 0,
+        portalToken: null,
+        queued: true,
+        queuedCount: items.length,
+      })
+      setTemplateStep('result')
+    }
+  }
+
   const handleShareClose = () => {
     setShowShare(false)
     setResultToken('')
@@ -339,6 +397,7 @@ export function AssignHomeworkModal({
       setSelectedTemplateId(null)
       setTemplateStep('select')
       setTemplateResult(null)
+      setDeliveryMode('instant')
     }
   }
 
@@ -733,6 +792,119 @@ export function AssignHomeworkModal({
             )}
 
             {/* ============================================================= */}
+            {/* TEMPLATE TAB — Delivery mode step */}
+            {/* ============================================================= */}
+            {activeTab === 'template' && templateStep === 'delivery' && selectedTemplate && (
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-primary-700 dark:text-primary-300">
+                  How would you like to deliver this plan?
+                </p>
+
+                {/* Instant option */}
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMode('instant')}
+                  className={`w-full rounded-xl border p-4 text-left transition-colors ${
+                    deliveryMode === 'instant'
+                      ? 'border-brand bg-brand/5 ring-1 ring-brand/30'
+                      : 'border-primary-100 hover:border-primary-200 dark:border-primary-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                      deliveryMode === 'instant' ? 'border-brand' : 'border-primary-300'
+                    }`}>
+                      {deliveryMode === 'instant' && (
+                        <div className="h-2.5 w-2.5 rounded-full bg-brand" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-primary-800 dark:text-primary-200">Apply now (all at once)</p>
+                      <p className="mt-0.5 text-xs text-primary-500">
+                        Assigns all {selectedTemplate.assignment_specs.length} worksheet{selectedTemplate.assignment_specs.length !== 1 ? 's' : ''} and{' '}
+                        {selectedTemplate.resource_specs.length} resource{selectedTemplate.resource_specs.length !== 1 ? 's' : ''} immediately.
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Queue option */}
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMode('queue')}
+                  className={`w-full rounded-xl border p-4 text-left transition-colors ${
+                    deliveryMode === 'queue'
+                      ? 'border-brand bg-brand/5 ring-1 ring-brand/30'
+                      : 'border-primary-100 hover:border-primary-200 dark:border-primary-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                      deliveryMode === 'queue' ? 'border-brand' : 'border-primary-300'
+                    }`}>
+                      {deliveryMode === 'queue' && (
+                        <div className="h-2.5 w-2.5 rounded-full bg-brand" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-primary-800 dark:text-primary-200">Queue &amp; push one at a time</p>
+                      <p className="mt-0.5 text-xs text-primary-500">
+                        Items are queued. You push the next worksheet or resource when your client is ready.
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Queue settings (only shown when queue is selected) */}
+                {deliveryMode === 'queue' && (
+                  <div className="ml-8 space-y-3 rounded-xl border border-primary-100 bg-primary-50/50 p-4 dark:border-primary-700 dark:bg-primary-800/30">
+                    <div>
+                      <label className="block text-xs font-medium text-primary-600 dark:text-primary-400 mb-1">Push mode</label>
+                      <select
+                        value={queuePushMode}
+                        onChange={(e) => setQueuePushMode(e.target.value as PlanQueuePushMode)}
+                        className="w-full rounded-lg border border-primary-200 bg-surface px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30 dark:border-primary-700 dark:text-primary-100"
+                      >
+                        <option value="manual">Manual only</option>
+                        <option value="time_based">Auto-push every N days</option>
+                        <option value="completion_based">Auto-push when homework completed</option>
+                        <option value="both">Both (time-based + completion)</option>
+                      </select>
+                    </div>
+
+                    {(queuePushMode === 'time_based' || queuePushMode === 'both') && (
+                      <div>
+                        <label className="block text-xs font-medium text-primary-600 dark:text-primary-400 mb-1">
+                          Push interval
+                        </label>
+                        <select
+                          value={queueIntervalDays}
+                          onChange={(e) => setQueueIntervalDays(Number(e.target.value))}
+                          className="w-full rounded-lg border border-primary-200 bg-surface px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30 dark:border-primary-700 dark:text-primary-100"
+                        >
+                          <option value={3}>Every 3 days</option>
+                          <option value={7}>Every 7 days</option>
+                          <option value={14}>Every 14 days</option>
+                          <option value={30}>Every 30 days</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <label className="flex items-center gap-2 text-xs">
+                      <input
+                        type="checkbox"
+                        checked={pushFirstImmediately}
+                        onChange={(e) => setPushFirstImmediately(e.target.checked)}
+                        className="rounded border-primary-300 text-brand focus:ring-brand"
+                      />
+                      <span className="text-primary-600 dark:text-primary-400">Push first item immediately</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ============================================================= */}
             {/* TEMPLATE TAB — Confirm step */}
             {/* ============================================================= */}
             {activeTab === 'template' && templateStep === 'confirm' && selectedTemplate && (
@@ -857,7 +1029,7 @@ export function AssignHomeworkModal({
                   onClick={() => {
                     if (selectedTemplateId && selectedRelId) {
                       setError(null)
-                      setTemplateStep('confirm')
+                      setTemplateStep('delivery')
                     }
                   }}
                   disabled={!selectedTemplateId || !selectedRelId}
@@ -871,29 +1043,19 @@ export function AssignHomeworkModal({
               </div>
             )}
 
-            {activeTab === 'template' && templateStep === 'confirm' && (
+            {activeTab === 'template' && templateStep === 'delivery' && (
               <div className="flex items-center gap-3">
                 <Button
-                  onClick={handleApplyTemplate}
-                  disabled={applyingTemplate}
+                  onClick={() => {
+                    setError(null)
+                    setTemplateStep('confirm')
+                  }}
                   className="flex-1"
                 >
-                  {applyingTemplate ? (
-                    <>
-                      <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Applying...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                      Apply Plan
-                    </>
-                  )}
+                  Next
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
                 </Button>
                 <button
                   onClick={() => {
@@ -904,10 +1066,46 @@ export function AssignHomeworkModal({
                       setTemplateStep('select')
                     }
                   }}
+                  className="rounded-lg border border-primary-200 px-4 py-2 text-sm text-primary-600 hover:bg-primary-50 transition-colors dark:border-primary-700 dark:text-primary-400 dark:hover:bg-primary-800"
+                >
+                  {preSelectedTemplateId ? 'Cancel' : 'Back'}
+                </button>
+              </div>
+            )}
+
+            {activeTab === 'template' && templateStep === 'confirm' && (
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={deliveryMode === 'queue' ? handleCreateQueue : handleApplyTemplate}
+                  disabled={applyingTemplate}
+                  className="flex-1"
+                >
+                  {applyingTemplate ? (
+                    <>
+                      <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      {deliveryMode === 'queue' ? 'Creating queue...' : 'Applying...'}
+                    </>
+                  ) : (
+                    <>
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                      {deliveryMode === 'queue' ? 'Create Queue' : 'Apply Plan'}
+                    </>
+                  )}
+                </Button>
+                <button
+                  onClick={() => {
+                    setError(null)
+                    setTemplateStep('delivery')
+                  }}
                   disabled={applyingTemplate}
                   className="rounded-lg border border-primary-200 px-4 py-2 text-sm text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 dark:border-primary-700 dark:text-primary-400 dark:hover:bg-primary-800"
                 >
-                  {preSelectedTemplateId ? 'Cancel' : 'Back'}
+                  Back
                 </button>
               </div>
             )}
@@ -925,16 +1123,29 @@ export function AssignHomeworkModal({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-primary-900 dark:text-primary-100">Homework plan applied</h3>
+              <h3 className="mt-4 text-lg font-semibold text-primary-900 dark:text-primary-100">
+                {templateResult.queued ? 'Queue created' : 'Homework plan applied'}
+              </h3>
               <p className="mt-2 text-sm text-primary-500">
-                {templateResult.assignments > 0 && (
-                  <span>Created {templateResult.assignments} assignment{templateResult.assignments !== 1 ? 's' : ''}</span>
+                {templateResult.queued ? (
+                  <span>
+                    Queued {templateResult.queuedCount} item{templateResult.queuedCount !== 1 ? 's' : ''} for{' '}
+                    {relationships.find((r) => r.id === selectedRelId)?.client_label || 'this client'}.
+                    {pushFirstImmediately && ' The first item has been pushed.'}
+                    {' '}Manage the queue from the client&apos;s Queue tab.
+                  </span>
+                ) : (
+                  <>
+                    {templateResult.assignments > 0 && (
+                      <span>Created {templateResult.assignments} assignment{templateResult.assignments !== 1 ? 's' : ''}</span>
+                    )}
+                    {templateResult.assignments > 0 && templateResult.resources > 0 && <span> and </span>}
+                    {templateResult.resources > 0 && (
+                      <span>assigned {templateResult.resources} resource{templateResult.resources !== 1 ? 's' : ''}</span>
+                    )}
+                    <span> for {relationships.find((r) => r.id === selectedRelId)?.client_label || 'this client'}.</span>
+                  </>
                 )}
-                {templateResult.assignments > 0 && templateResult.resources > 0 && <span> and </span>}
-                {templateResult.resources > 0 && (
-                  <span>assigned {templateResult.resources} resource{templateResult.resources !== 1 ? 's' : ''}</span>
-                )}
-                <span> for {relationships.find((r) => r.id === selectedRelId)?.client_label || 'this client'}.</span>
               </p>
 
               {templateResult.skipped > 0 && (

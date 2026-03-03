@@ -309,6 +309,24 @@ export async function gdprErase(relationshipId: string) {
     .delete()
     .eq('relationship_id', relationshipId)
 
+  // Hard-delete plan queue items, then queues linked to this relationship
+  const { data: queues } = await supabase
+    .from('plan_queues')
+    .select('id')
+    .eq('relationship_id', relationshipId)
+
+  if (queues && queues.length > 0) {
+    const queueIds = queues.map((q: { id: string }) => q.id)
+    await supabase
+      .from('plan_queue_items')
+      .delete()
+      .in('queue_id', queueIds)
+    await supabase
+      .from('plan_queues')
+      .delete()
+      .eq('relationship_id', relationshipId)
+  }
+
   // Hard-delete shared resources linked to this relationship
   await supabase
     .from('shared_resources')

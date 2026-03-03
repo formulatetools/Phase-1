@@ -10,6 +10,8 @@ import type {
   SharedResource,
   WorkspaceTemplate,
   SubscriptionTier,
+  PlanQueue,
+  PlanQueueItem,
 } from '@/types/database'
 import { ClientDetail } from '@/components/clients/client-detail'
 
@@ -44,6 +46,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
     { count: totalActiveAssignments },
     { data: sharedResources },
     { data: templates },
+    { data: queues },
   ] = await Promise.all([
     supabase
       .from('worksheet_assignments')
@@ -81,6 +84,14 @@ export default async function ClientDetailPage({ params }: PageProps) {
       .eq('therapist_id', user.id)
       .is('deleted_at', null)
       .order('name'),
+
+    supabase
+      .from('plan_queues')
+      .select('*')
+      .eq('relationship_id', id)
+      .eq('therapist_id', user.id)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false }),
   ])
 
   // Fetch responses (depends on assignments result)
@@ -94,6 +105,19 @@ export default async function ClientDetailPage({ params }: PageProps) {
       .is('deleted_at', null)
 
     responses = (data || []) as WorksheetResponse[]
+  }
+
+  // Fetch queue items (depends on queues result)
+  const queueIds = (queues || []).map((q) => q.id)
+  let queueItems: PlanQueueItem[] = []
+  if (queueIds.length > 0) {
+    const { data } = await supabase
+      .from('plan_queue_items')
+      .select('*')
+      .in('queue_id', queueIds)
+      .order('position')
+
+    queueItems = (data || []) as PlanQueueItem[]
   }
 
   const tier = profile.subscription_tier as SubscriptionTier
@@ -110,6 +134,8 @@ export default async function ClientDetailPage({ params }: PageProps) {
         worksheets={(worksheets || []) as Worksheet[]}
         sharedResources={(sharedResources || []) as SharedResource[]}
         templates={(templates || []) as WorkspaceTemplate[]}
+        queues={(queues || []) as PlanQueue[]}
+        queueItems={queueItems}
         totalActiveAssignments={totalActiveAssignments || 0}
         maxActiveAssignments={limits.maxActiveAssignments}
         tier={tier}

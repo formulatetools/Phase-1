@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { sendEmail } from '@/lib/email'
 import { homeworkCompletedEmail } from '@/lib/email-templates'
+import { triggerCompletionPush } from '@/lib/queue/completion-trigger'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
 
@@ -128,6 +129,10 @@ export async function POST(request: NextRequest) {
         notifyTherapist(supabase, assignment).catch((e) =>
           console.error('Failed to send homework completed email:', e)
         )
+        // Auto-push next queue item if completion-based push is enabled
+        triggerCompletionPush(supabase, assignment).catch((e) =>
+          console.error('Completion push failed:', e)
+        )
       }
 
       return NextResponse.json({ success: true, responseId: existingResponse.id })
@@ -172,6 +177,10 @@ export async function POST(request: NextRequest) {
       if (action === 'submit') {
         notifyTherapist(supabase, assignment).catch((e) =>
           console.error('Failed to send homework completed email:', e)
+        )
+        // Auto-push next queue item if completion-based push is enabled
+        triggerCompletionPush(supabase, assignment).catch((e) =>
+          console.error('Completion push failed:', e)
         )
       }
 

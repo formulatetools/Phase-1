@@ -11,7 +11,10 @@ import type {
   SharedResource,
   WorkspaceTemplate,
   SubscriptionTier,
+  PlanQueue,
+  PlanQueueItem,
 } from '@/types/database'
+import { QueuePanel } from '@/components/clients/queue-panel'
 import {
   updateClientLabel,
   dischargeClient,
@@ -32,6 +35,8 @@ import { ShareModal } from '@/components/ui/share-modal'
 import { useAssign } from '@/components/providers/assign-provider'
 import { useToast } from '@/hooks/use-toast'
 
+type ClientTab = 'homework' | 'resources' | 'queue'
+
 interface ClientDetailProps {
   relationship: TherapeuticRelationship
   assignments: WorksheetAssignment[]
@@ -39,6 +44,8 @@ interface ClientDetailProps {
   worksheets: Worksheet[]
   sharedResources: SharedResource[]
   templates: WorkspaceTemplate[]
+  queues: PlanQueue[]
+  queueItems: PlanQueueItem[]
   totalActiveAssignments: number
   maxActiveAssignments: number
   tier: SubscriptionTier
@@ -70,6 +77,8 @@ export function ClientDetail({
   worksheets,
   sharedResources,
   templates,
+  queues,
+  queueItems,
   totalActiveAssignments,
   maxActiveAssignments,
   tier,
@@ -102,6 +111,12 @@ export function ClientDetail({
   const { toast } = useToast()
   const { openAssignModal } = useAssign()
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<ClientTab>('homework')
+
+  // Compute queue badge count (remaining items across active queues)
+  const queueRemainingCount = queueItems.filter(
+    (i) => i.status === 'queued' && queues.some((q) => q.id === i.queue_id && q.status !== 'completed')
+  ).length
 
   const handleAction = useCallback(async (
     key: string,
@@ -710,11 +725,39 @@ export function ClientDetail({
         </div>
       </div>
 
-      {/* Assignments list */}
+      {/* Tab bar */}
+      <div className="flex rounded-lg border border-primary-200 bg-primary-50 p-0.5 dark:border-primary-700 dark:bg-primary-800">
+        {([
+          { key: 'homework' as const, label: 'Homework', count: assignments.length },
+          { key: 'resources' as const, label: 'Resources', count: sharedResources.length },
+          { key: 'queue' as const, label: 'Queue', count: queueRemainingCount },
+        ]).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              activeTab === tab.key
+                ? 'bg-surface text-primary-900 shadow-sm dark:text-primary-100'
+                : 'text-primary-500 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300'
+            }`}
+          >
+            {tab.label}
+            {tab.count > 0 && (
+              <span className={`ml-1.5 inline-flex items-center justify-center rounded-full px-1.5 text-[10px] font-semibold ${
+                activeTab === tab.key
+                  ? 'bg-primary-100 text-primary-600 dark:bg-primary-700 dark:text-primary-300'
+                  : 'bg-primary-100/50 text-primary-400 dark:bg-primary-700/50 dark:text-primary-500'
+              }`}>
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Homework tab */}
+      {activeTab === 'homework' && (
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-primary-900">
-          Assignments ({assignments.length})
-        </h2>
 
         {assignments.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-primary-200 p-6 text-center">
@@ -892,68 +935,88 @@ export function ClientDetail({
           </div>
         )}
       </div>
+      )}
 
-      {/* Shared Resources */}
-      {sharedResources.length > 0 && (
+      {/* Resources tab */}
+      {activeTab === 'resources' && (
         <div>
-          <h2 className="mb-4 text-lg font-semibold text-primary-900">
-            Shared Resources ({sharedResources.length})
-          </h2>
-          <div className="space-y-3">
-            {sharedResources.map((r) => (
-              <div
-                key={r.id}
-                className="rounded-2xl border border-primary-100 bg-surface shadow-sm overflow-hidden border-l-[3px] border-l-brand"
-              >
-                <div className="flex items-center justify-between p-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <svg className="h-4 w-4 shrink-0 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 6.364L6.002 13.5a4.5 4.5 0 006.364 6.364l4.5-4.5a4.5 4.5 0 001.242-7.244" />
-                      </svg>
-                      <p className="font-medium text-primary-800 truncate">
-                        {r.og_title || r.title}
-                      </p>
-                      {r.viewed_at && (
-                        <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700">
-                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          Viewed
-                        </span>
-                      )}
+          {sharedResources.length === 0 ? (
+            <div className="rounded-2xl border-2 border-dashed border-primary-200 py-10 text-center dark:border-primary-700">
+              <svg className="mx-auto h-10 w-10 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 6.364L6.002 13.5a4.5 4.5 0 006.364 6.364l4.5-4.5a4.5 4.5 0 001.242-7.244" />
+              </svg>
+              <p className="mt-3 text-sm font-medium text-primary-600 dark:text-primary-400">No shared resources</p>
+              <p className="mt-1 text-xs text-primary-400 dark:text-primary-500">
+                Assign a resource to share links, videos, and articles with your client.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sharedResources.map((r) => (
+                <div
+                  key={r.id}
+                  className="rounded-2xl border border-primary-100 bg-surface shadow-sm overflow-hidden border-l-[3px] border-l-brand"
+                >
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <svg className="h-4 w-4 shrink-0 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 6.364L6.002 13.5a4.5 4.5 0 006.364 6.364l4.5-4.5a4.5 4.5 0 001.242-7.244" />
+                        </svg>
+                        <p className="font-medium text-primary-800 truncate">
+                          {r.og_title || r.title}
+                        </p>
+                        {r.viewed_at && (
+                          <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Viewed
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 flex items-center gap-3 text-xs text-primary-400">
+                        <span>Shared {new Date(r.shared_at).toLocaleDateString('en-GB')}</span>
+                        {r.url && (
+                          <a
+                            href={r.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-brand hover:underline truncate max-w-[200px]"
+                          >
+                            {r.og_site_name || new URL(r.url).hostname.replace(/^www\./, '')}
+                          </a>
+                        )}
+                        {r.viewed_at && (
+                          <span>Viewed {new Date(r.viewed_at).toLocaleDateString('en-GB')}</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="mt-1 flex items-center gap-3 text-xs text-primary-400">
-                      <span>Shared {new Date(r.shared_at).toLocaleDateString('en-GB')}</span>
-                      {r.url && (
-                        <a
-                          href={r.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-brand hover:underline truncate max-w-[200px]"
-                        >
-                          {r.og_site_name || new URL(r.url).hostname.replace(/^www\./, '')}
-                        </a>
-                      )}
-                      {r.viewed_at && (
-                        <span>Viewed {new Date(r.viewed_at).toLocaleDateString('en-GB')}</span>
-                      )}
-                    </div>
+                    <button
+                      onClick={() => handleAction(`archive-${r.id}`, () => archiveResource(r.id), 'Resource archived')}
+                      disabled={actionLoading === `archive-${r.id}`}
+                      className="shrink-0 ml-3 rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-500 hover:bg-primary-50 transition-colors disabled:opacity-50"
+                      title="Archive resource"
+                    >
+                      {actionLoading === `archive-${r.id}` ? 'Archiving…' : 'Archive'}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleAction(`archive-${r.id}`, () => archiveResource(r.id), 'Resource archived')}
-                    disabled={actionLoading === `archive-${r.id}`}
-                    className="shrink-0 ml-3 rounded-lg border border-primary-200 px-2.5 py-1.5 text-xs font-medium text-primary-500 hover:bg-primary-50 transition-colors disabled:opacity-50"
-                    title="Archive resource"
-                  >
-                    {actionLoading === `archive-${r.id}` ? 'Archiving…' : 'Archive'}
-                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
+      )}
+
+      {/* Queue tab */}
+      {activeTab === 'queue' && (
+        <QueuePanel
+          queues={queues}
+          queueItems={queueItems}
+          worksheets={worksheets}
+          relationshipId={relationship.id}
+        />
       )}
 
       {/* Share modal */}

@@ -482,6 +482,45 @@ export interface WorkspaceTemplate {
   updated_at: string
 }
 
+// Plan Queues — drip-feed homework from a plan one item at a time
+export type PlanQueuePushMode = 'manual' | 'time_based' | 'completion_based' | 'both'
+export type PlanQueueStatus = 'active' | 'paused' | 'completed'
+export type QueueItemStatus = 'queued' | 'pushed' | 'skipped'
+export type QueueItemType = 'worksheet' | 'resource'
+
+export interface PlanQueue {
+  id: string
+  relationship_id: string
+  therapist_id: string
+  template_id: string | null
+  name: string
+  push_mode: PlanQueuePushMode
+  auto_push_interval_days: number
+  status: PlanQueueStatus
+  last_pushed_at: string | null
+  next_auto_push_at: string | null
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface PlanQueueItem {
+  id: string
+  queue_id: string
+  item_type: QueueItemType
+  worksheet_id: string | null
+  expires_in_days: number
+  resource_title: string | null
+  resource_url: string | null
+  resource_note: string | null
+  position: number
+  status: QueueItemStatus
+  pushed_at: string | null
+  assignment_id: string | null
+  shared_resource_id: string | null
+  created_at: string
+}
+
 // Note: We use untyped Supabase clients and cast query results to our
 // row types explicitly. This avoids fighting Supabase's complex internal
 // generics which require Views, Functions, Enums, and Relationships fields.
