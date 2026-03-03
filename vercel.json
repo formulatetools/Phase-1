@@ -22,7 +22,7 @@
     },
     {
       "path": "/api/cron/homework-nudge",
-      "schedule": "0 10 * * *"
+      "schedule": "0 9 * * 1"
     },
     {
       "path": "/api/cron/queue-auto-push",

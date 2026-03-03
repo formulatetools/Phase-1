@@ -269,6 +269,78 @@ export function homeworkFollowUpEmail(
   }
 }
 
+// ─── Homework Weekly Digest Email (replaces daily nudges) ─────
+
+export interface DigestClient {
+  clientLabel: string
+  clientUrl: string
+  items: DigestItem[]
+}
+
+export interface DigestItem {
+  title: string
+  status: 'completed' | 'outstanding' | 'queued'
+  detail: string // e.g. "Completed Mon" or "Assigned 3 days ago" or "Next in queue"
+}
+
+export function homeworkWeeklyDigestEmail(
+  therapistName: string | null,
+  clients: DigestClient[],
+  totalCompleted: number,
+  totalOutstanding: number
+): { subject: string; html: string } {
+  const greeting = therapistName ? `Hi ${esc(therapistName)},` : 'Hi there,'
+
+  const statusIcon = (s: DigestItem['status']) =>
+    s === 'completed' ? '&#9989;' : s === 'outstanding' ? '&#9203;' : '&#128228;'
+
+  const statusColor = (s: DigestItem['status']) =>
+    s === 'completed' ? '#16a34a' : s === 'outstanding' ? '#d97706' : '#6b7280'
+
+  const clientRows = clients.map(c => `
+    <tr>
+      <td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;">
+        <a href="${c.clientUrl}" style="font-size:14px;font-weight:600;color:#2d2d2d;text-decoration:none;">${esc(c.clientLabel)}</a>
+        ${c.items.map(item => `
+          <div style="margin-top:6px;font-size:13px;color:#555;">
+            <span style="color:${statusColor(item.status)}">${statusIcon(item.status)}</span>
+            ${esc(item.title)} &mdash;
+            <span style="color:${statusColor(item.status)}">${esc(item.detail)}</span>
+          </div>
+        `).join('')}
+      </td>
+    </tr>
+  `).join('')
+
+  const summaryParts: string[] = []
+  if (totalCompleted > 0) summaryParts.push(`${totalCompleted} completed`)
+  if (totalOutstanding > 0) summaryParts.push(`${totalOutstanding} outstanding`)
+  const summaryText = summaryParts.length > 0 ? summaryParts.join(', ') : 'No homework activity'
+
+  return {
+    subject: `Your weekly homework summary`,
+    html: wrap(`
+      <h2 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#2d2d2d;">Weekly homework summary</h2>
+      <p style="margin:0 0 16px;font-size:15px;color:#444;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 20px;font-size:15px;color:#444;">
+        Here&rsquo;s your homework overview for the past week: <strong>${summaryText}</strong>.
+      </p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;">
+        ${clientRows}
+      </table>
+      <div style="margin-top:24px;">
+        ${button('View all clients', `${APP_URL}/clients`)}
+      </div>
+    `, {
+      preheader: `Weekly homework summary: ${summaryText}`,
+      signature: false,
+      footerContext: 'You received this weekly summary because you have active clients on Formulate.',
+    }),
+  }
+}
+
 // ─── Subscription Cancelled Email ─────────────────────────────
 
 export function subscriptionCancelledEmail(

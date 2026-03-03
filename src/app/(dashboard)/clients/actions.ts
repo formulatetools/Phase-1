@@ -261,6 +261,63 @@ export async function lockAssignment(assignmentId: string) {
 // GDPR ERASURE — PERMANENT DELETION
 // ============================================================================
 
+export async function getErasureSummary(relationshipId: string) {
+  const { user } = await getCurrentUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+
+  // Verify ownership
+  const { data: relationship } = await supabase
+    .from('therapeutic_relationships')
+    .select('id')
+    .eq('id', relationshipId)
+    .eq('therapist_id', user.id)
+    .is('deleted_at', null)
+    .single()
+
+  if (!relationship) return { error: 'Client not found' }
+
+  const [
+    { count: responses },
+    { count: assignments },
+    { count: activeAssignments },
+    { count: sharedResources },
+    { count: queues },
+  ] = await Promise.all([
+    supabase
+      .from('worksheet_responses')
+      .select('*', { count: 'exact', head: true })
+      .eq('relationship_id', relationshipId),
+    supabase
+      .from('worksheet_assignments')
+      .select('*', { count: 'exact', head: true })
+      .eq('relationship_id', relationshipId),
+    supabase
+      .from('worksheet_assignments')
+      .select('*', { count: 'exact', head: true })
+      .eq('relationship_id', relationshipId)
+      .in('status', ['assigned', 'in_progress']),
+    supabase
+      .from('shared_resources')
+      .select('*', { count: 'exact', head: true })
+      .eq('relationship_id', relationshipId),
+    supabase
+      .from('plan_queues')
+      .select('*', { count: 'exact', head: true })
+      .eq('relationship_id', relationshipId)
+      .is('deleted_at', null),
+  ])
+
+  return {
+    responses: responses ?? 0,
+    assignments: assignments ?? 0,
+    activeAssignments: activeAssignments ?? 0,
+    sharedResources: sharedResources ?? 0,
+    queues: queues ?? 0,
+  }
+}
+
 export async function gdprErase(relationshipId: string) {
   const { user } = await getCurrentUser()
   if (!user) return { error: 'Not authenticated' }

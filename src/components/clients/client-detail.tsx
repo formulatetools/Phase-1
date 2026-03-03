@@ -24,6 +24,7 @@ import {
   markAsReviewed,
   markAsPaperCompleted,
   gdprErase,
+  getErasureSummary,
   getPreviewUrl,
   regeneratePortalToken,
   resetClientPin,
@@ -94,8 +95,13 @@ export function ClientDetail({
   const [assignError, setAssignError] = useState<string | null>(null)
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
   const [viewingResponse, setViewingResponse] = useState<string | null>(null)
-  const [showGdprConfirm, setShowGdprConfirm] = useState(false)
+  const [gdprStep, setGdprStep] = useState<'idle' | 'summary' | 'confirming'>('idle')
   const [gdprLoading, setGdprLoading] = useState(false)
+  const [gdprSummary, setGdprSummary] = useState<{
+    responses: number; assignments: number; activeAssignments: number;
+    sharedResources: number; queues: number;
+  } | null>(null)
+  const [gdprConfirmText, setGdprConfirmText] = useState('')
   const [shareModal, setShareModal] = useState<{
     url: string
     title: string
@@ -229,7 +235,21 @@ export function ClientDetail({
     })
   }
 
+  const handleGdprShowSummary = async () => {
+    setGdprLoading(true)
+    const result = await getErasureSummary(relationship.id)
+    if ('error' in result) {
+      toast({ type: 'error', message: result.error || 'Failed to fetch summary' })
+      setGdprLoading(false)
+      return
+    }
+    setGdprSummary(result)
+    setGdprStep('summary')
+    setGdprLoading(false)
+  }
+
   const handleGdprErase = async () => {
+    setGdprStep('confirming')
     setGdprLoading(true)
     const result = await gdprErase(relationship.id)
     if (result.success) {
@@ -238,7 +258,8 @@ export function ClientDetail({
     } else {
       toast({ type: 'error', message: result.error || 'Failed to delete client data' })
       setGdprLoading(false)
-      setShowGdprConfirm(false)
+      setGdprStep('idle')
+      setGdprConfirmText('')
     }
   }
 
@@ -698,31 +719,62 @@ export function ClientDetail({
               data for this client. Audit records of the deletion will be retained.
             </p>
           </div>
-          {!showGdprConfirm ? (
+          {gdprStep === 'idle' && (
             <button
-              onClick={() => setShowGdprConfirm(true)}
-              className="shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+              onClick={handleGdprShowSummary}
+              disabled={gdprLoading}
+              className="shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
             >
-              Delete all data
+              {gdprLoading ? 'Loading...' : 'Delete all data'}
             </button>
-          ) : (
-            <div className="flex shrink-0 items-center gap-2">
+          )}
+        </div>
+
+        {gdprStep === 'summary' && gdprSummary && (
+          <div className="mt-4 space-y-3 border-t border-red-100 dark:border-red-900 pt-4">
+            {gdprSummary.activeAssignments > 0 && (
+              <div className="flex items-center gap-2 rounded-lg bg-red-100 dark:bg-red-900/30 px-3 py-2">
+                <svg className="h-4 w-4 shrink-0 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+                <span className="text-xs font-medium text-red-700 dark:text-red-300">
+                  {gdprSummary.activeAssignments} active assignment{gdprSummary.activeAssignments !== 1 ? 's' : ''} will be permanently deleted
+                </span>
+              </div>
+            )}
+            <div className="text-xs text-red-600/80 dark:text-red-400/80 space-y-1">
+              <p>{gdprSummary.assignments} assignment{gdprSummary.assignments !== 1 ? 's' : ''}, {gdprSummary.responses} response{gdprSummary.responses !== 1 ? 's' : ''}</p>
+              <p>{gdprSummary.sharedResources} shared resource{gdprSummary.sharedResources !== 1 ? 's' : ''}, {gdprSummary.queues} queue{gdprSummary.queues !== 1 ? 's' : ''}</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-red-700 dark:text-red-300 mb-1">
+                Type <strong>{relationship.client_label}</strong> to confirm
+              </label>
+              <input
+                type="text"
+                value={gdprConfirmText}
+                onChange={(e) => setGdprConfirmText(e.target.value)}
+                placeholder={relationship.client_label}
+                className="block w-full rounded-lg border border-red-200 bg-white dark:bg-red-900/10 px-3 py-1.5 text-sm text-red-900 dark:text-red-100 placeholder-red-300 focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400/30"
+              />
+            </div>
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleGdprErase}
-                disabled={gdprLoading}
+                disabled={gdprLoading || gdprConfirmText !== relationship.client_label}
                 className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
-                {gdprLoading ? 'Deleting...' : 'Confirm permanent deletion'}
+                {gdprLoading ? 'Deleting...' : 'Permanently delete all data'}
               </button>
               <button
-                onClick={() => setShowGdprConfirm(false)}
+                onClick={() => { setGdprStep('idle'); setGdprConfirmText(''); setGdprSummary(null) }}
                 className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
               >
                 Cancel
               </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Tab bar */}

@@ -1,190 +1,215 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/email'
-import { homeworkNudgeEmail, homeworkFollowUpEmail } from '@/lib/email-templates'
+import {
+  homeworkWeeklyDigestEmail,
+  type DigestClient,
+  type DigestItem,
+} from '@/lib/email-templates'
 import { verifyCronSecret } from '@/lib/utils/verify-cron-secret'
 
 /**
- * Homework nudge cron — sends therapist reminders when a client's
- * homework hasn't been completed after assignment.
+ * Homework weekly digest — sends each therapist a single summary email
+ * covering all clients' homework status for the past week.
  *
- * Schedule: daily at 09:00 UTC (via Vercel Cron or external scheduler)
+ * Schedule: Mondays at 09:00 UTC (via Vercel Cron)
  * Endpoint: GET /api/cron/homework-nudge
  *
- * Two nudge tiers:
- *   1. 48-hour nudge  — gentle first reminder (dedup key: homework_nudge_48h)
- *   2. 7-day follow-up — firmer second reminder (dedup key: homework_nudge_7d)
+ * Replaces the old daily per-assignment nudge system.
+ * Instant completion notifications (notifyTherapist in /api/homework) are unchanged.
  *
- * Each tier sends at most once per assignment (dedup via audit_log).
- * Only targets assignments that are still active (not expired, not deleted).
- *
- * Backwards compatible: legacy audit entries with entity_id 'homework_nudge'
- * are treated as 48h nudges already sent.
+ * Dedup: one email per therapist per week via audit_log entity_id = homework_digest_YYYY-MM-DD
  */
 
-// Nudge tier definitions
-const NUDGE_TIERS = [
-  { key: 'homework_nudge_48h', minHours: 48, emailType: 'homework_nudge' as const },
-  { key: 'homework_nudge_7d', minHours: 168, emailType: 'homework_follow_up' as const },
-] as const
-
 export async function GET(request: NextRequest) {
-  // Verify cron secret (timing-safe)
   if (!verifyCronSecret(request.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const supabase = createAdminClient()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
+  const now = new Date()
+  const oneWeekAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString()
+  const nowIso = now.toISOString()
 
-  // Find assignments that are:
-  // - still 'assigned' (never started) or 'in_progress' (started but not submitted)
-  // - assigned more than 48 hours ago (earliest tier threshold)
-  // - not expired, not deleted
-  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
-  const now = new Date().toISOString()
+  // Dedup key — one digest per week per therapist
+  const weekKey = `homework_digest_${now.toISOString().slice(0, 10)}`
 
-  const { data: candidates } = await supabase
+  // ── 1. Fetch all active assignments (not expired, not withdrawn, not deleted) ──
+  const { data: assignments } = await supabase
     .from('worksheet_assignments')
-    .select('id, therapist_id, relationship_id, worksheet_id, assigned_at')
-    .in('status', ['assigned', 'in_progress'])
-    .lt('assigned_at', fortyEightHoursAgo)
-    .gt('expires_at', now)
+    .select('id, therapist_id, relationship_id, worksheet_id, status, assigned_at, completed_at')
+    .not('status', 'eq', 'withdrawn')
     .is('deleted_at', null)
-    .is('locked_at', null)
+    .gt('expires_at', nowIso)
 
-  if (!candidates || candidates.length === 0) {
-    return NextResponse.json({ ok: true, sent: 0, candidates: 0 })
+  // Also fetch recently completed (this week, even if expired)
+  const { data: recentlyCompleted } = await supabase
+    .from('worksheet_assignments')
+    .select('id, therapist_id, relationship_id, worksheet_id, status, assigned_at, completed_at')
+    .eq('status', 'completed')
+    .gte('completed_at', oneWeekAgo)
+    .is('deleted_at', null)
+
+  // Merge, dedup by ID
+  const allAssignments = new Map<string, typeof assignments extends (infer T)[] | null ? T : never>()
+  for (const a of assignments ?? []) allAssignments.set(a.id, a)
+  for (const a of recentlyCompleted ?? []) allAssignments.set(a.id, a)
+
+  const assignmentList = [...allAssignments.values()]
+
+  if (assignmentList.length === 0) {
+    return NextResponse.json({ ok: true, sent: 0, reason: 'no assignments' })
   }
 
-  // Batch dedup: check which assignments already got nudges at each tier
-  // Include legacy 'homework_nudge' key for backwards compatibility
-  const assignmentIds = candidates.map(a => a.id)
-  const allKeys = [...NUDGE_TIERS.map(t => t.key), 'homework_nudge']
-  const { data: sentEmails } = await supabase
+  // ── 2. Group by therapist → relationship → assignments ──
+  const therapistGroups = new Map<string, Map<string, typeof assignmentList>>()
+
+  for (const a of assignmentList) {
+    if (!therapistGroups.has(a.therapist_id)) {
+      therapistGroups.set(a.therapist_id, new Map())
+    }
+    const relMap = therapistGroups.get(a.therapist_id)!
+    if (!relMap.has(a.relationship_id)) {
+      relMap.set(a.relationship_id, [])
+    }
+    relMap.get(a.relationship_id)!.push(a)
+  }
+
+  // ── 3. Batch dedup check ──
+  const therapistIds = [...therapistGroups.keys()]
+  const { data: alreadySent } = await supabase
     .from('audit_log')
-    .select('entity_id, metadata')
+    .select('user_id')
     .eq('entity_type', 'email')
-    .in('entity_id', allKeys)
-    .in('metadata->>assignment_id', assignmentIds)
+    .eq('entity_id', weekKey)
+    .in('user_id', therapistIds)
 
-  // Build a set of "assignmentId:tierKey" pairs already sent
-  const sentPairs = new Set<string>()
-  for (const entry of sentEmails ?? []) {
-    const assignmentId = (entry.metadata as Record<string, string>)?.assignment_id
-    if (!assignmentId) continue
-    if (entry.entity_id === 'homework_nudge' || entry.entity_id === 'homework_nudge_48h') {
-      // Legacy or current 48h key — mark 48h tier as sent
-      sentPairs.add(`${assignmentId}:homework_nudge_48h`)
-    } else {
-      sentPairs.add(`${assignmentId}:${entry.entity_id}`)
-    }
-  }
+  const sentSet = new Set((alreadySent ?? []).map(e => e.user_id))
 
-  // Determine which (assignment, tier) pairs need sending
-  const toSend: { assignment: typeof candidates[0]; tier: typeof NUDGE_TIERS[number] }[] = []
-
-  for (const assignment of candidates) {
-    const hoursAgo = (Date.now() - new Date(assignment.assigned_at).getTime()) / 3_600_000
-
-    for (const tier of NUDGE_TIERS) {
-      if (hoursAgo >= tier.minHours && !sentPairs.has(`${assignment.id}:${tier.key}`)) {
-        toSend.push({ assignment, tier })
-      }
-    }
-  }
-
-  if (toSend.length === 0) {
-    return NextResponse.json({ ok: true, sent: 0, candidates: candidates.length })
-  }
-
-  // Batch fetch therapist profiles
-  const therapistIds = [...new Set(toSend.map(s => s.assignment.therapist_id))]
+  // ── 4. Batch fetch therapists, relationships, worksheets ──
   const { data: therapists } = await supabase
     .from('profiles')
     .select('id, email, full_name')
     .in('id', therapistIds)
-
   const therapistMap = new Map((therapists ?? []).map(t => [t.id, t]))
 
-  // Batch fetch relationships for client labels
-  const relationshipIds = [...new Set(toSend.map(s => s.assignment.relationship_id))]
+  const allRelIds = [...new Set(assignmentList.map(a => a.relationship_id))]
   const { data: relationships } = await supabase
     .from('therapeutic_relationships')
     .select('id, client_label')
-    .in('id', relationshipIds)
-
+    .in('id', allRelIds)
   const relMap = new Map((relationships ?? []).map(r => [r.id, r]))
 
-  // Batch fetch worksheet titles
-  const worksheetIds = [...new Set(toSend.map(s => s.assignment.worksheet_id))]
+  const allWsIds = [...new Set(assignmentList.map(a => a.worksheet_id))]
   const { data: worksheets } = await supabase
     .from('worksheets')
     .select('id, title')
-    .in('id', worksheetIds)
-
+    .in('id', allWsIds)
   const wsMap = new Map((worksheets ?? []).map(w => [w.id, w]))
 
+  // ── 5. Send digest emails ──
   let sent = 0
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-  for (const { assignment, tier } of toSend) {
-    const therapist = therapistMap.get(assignment.therapist_id)
-    const relationship = relMap.get(assignment.relationship_id)
-    const worksheet = wsMap.get(assignment.worksheet_id)
+  for (const [therapistId, clientMap] of therapistGroups) {
+    if (sentSet.has(therapistId)) continue
 
-    if (!therapist || !relationship || !worksheet) continue
+    const therapist = therapistMap.get(therapistId)
+    if (!therapist?.email) continue
 
-    const daysAgo = Math.floor(
-      (Date.now() - new Date(assignment.assigned_at).getTime()) / 86_400_000
+    const clients: DigestClient[] = []
+    let totalCompleted = 0
+    let totalOutstanding = 0
+
+    for (const [relId, relAssignments] of clientMap) {
+      const rel = relMap.get(relId)
+      if (!rel) continue
+
+      const items: DigestItem[] = []
+
+      for (const a of relAssignments) {
+        const ws = wsMap.get(a.worksheet_id)
+        const title = (ws?.title as string) ?? 'Untitled'
+
+        if (a.status === 'completed' && a.completed_at) {
+          const completedDay = dayNames[new Date(a.completed_at).getUTCDay()]
+          items.push({ title, status: 'completed', detail: `Completed ${completedDay}` })
+          totalCompleted++
+        } else if (a.status === 'assigned' || a.status === 'in_progress') {
+          const daysAgo = Math.floor(
+            (now.getTime() - new Date(a.assigned_at).getTime()) / 86_400_000
+          )
+          const detail = daysAgo === 0
+            ? 'Assigned today'
+            : daysAgo === 1
+              ? 'Assigned 1 day ago'
+              : `Assigned ${daysAgo} days ago`
+          items.push({ title, status: 'outstanding', detail })
+          totalOutstanding++
+        }
+      }
+
+      if (items.length === 0) continue
+
+      // Sort: outstanding first, then completed
+      items.sort((a, b) => {
+        const order = { outstanding: 0, queued: 1, completed: 2 }
+        return order[a.status] - order[b.status]
+      })
+
+      clients.push({
+        clientLabel: rel.client_label as string,
+        clientUrl: `${appUrl}/clients/${relId}`,
+        items,
+      })
+    }
+
+    if (clients.length === 0) continue
+
+    // Sort clients alphabetically
+    clients.sort((a, b) => a.clientLabel.localeCompare(b.clientLabel))
+
+    const email = homeworkWeeklyDigestEmail(
+      therapist.full_name as string | null,
+      clients,
+      totalCompleted,
+      totalOutstanding
     )
-
-    const clientDetailUrl = `${appUrl}/clients/${assignment.relationship_id}`
-
-    // Pick the appropriate email template based on tier
-    const email = tier.emailType === 'homework_follow_up'
-      ? homeworkFollowUpEmail(
-          therapist.full_name as string | null,
-          relationship.client_label as string,
-          worksheet.title as string,
-          clientDetailUrl,
-          daysAgo
-        )
-      : homeworkNudgeEmail(
-          therapist.full_name as string | null,
-          relationship.client_label as string,
-          worksheet.title as string,
-          clientDetailUrl,
-          daysAgo
-        )
 
     try {
       await sendEmail({
         to: therapist.email,
         subject: email.subject,
         html: email.html,
-        emailType: tier.emailType,
+        emailType: 'homework_digest',
       })
     } catch (emailError) {
-      console.error(`Failed to send ${tier.key} for assignment ${assignment.id}:`, emailError)
+      console.error(`Failed to send homework digest for therapist ${therapistId}:`, emailError)
       continue
     }
 
-    // Log for dedup — one record per (assignment, tier)
+    // Log for dedup
     await supabase.from('audit_log').insert({
-      user_id: assignment.therapist_id,
+      user_id: therapistId,
       action: 'create',
       entity_type: 'email',
-      entity_id: tier.key,
+      entity_id: weekKey,
       metadata: {
-        template: tier.emailType,
-        assignment_id: assignment.id,
-        worksheet_title: worksheet.title,
-        client_label: relationship.client_label,
+        template: 'homework_digest',
+        clients: clients.length,
+        completed: totalCompleted,
+        outstanding: totalOutstanding,
       },
     })
 
     sent++
   }
 
-  return NextResponse.json({ ok: true, sent, candidates: candidates.length })
+  return NextResponse.json({
+    ok: true,
+    sent,
+    therapists: therapistGroups.size,
+    skippedDedup: sentSet.size,
+  })
 }
