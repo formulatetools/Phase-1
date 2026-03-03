@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { deleteTemplate } from '@/app/(dashboard)/homework-plans/actions'
 import { TemplateForm } from '@/components/templates/template-form'
+import { useAssign } from '@/components/providers/assign-provider'
 import { useToast } from '@/hooks/use-toast'
 import type { Worksheet, WorkspaceTemplate } from '@/types/database'
 
@@ -21,6 +23,7 @@ export function TemplateList({ templates, worksheets, limit, count }: TemplateLi
   const [deleteLoading, setDeleteLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { openAssignModal } = useAssign()
 
   const atLimit = limit !== Infinity && count >= limit
 
@@ -153,7 +156,31 @@ export function TemplateList({ templates, worksheets, limit, count }: TemplateLi
             </div>
 
             {/* Actions */}
-            <div className="flex shrink-0 items-center gap-1">
+            <div className="flex shrink-0 flex-wrap items-center gap-1">
+              {/* Assign to client */}
+              <button
+                onClick={() =>
+                  openAssignModal({
+                    tab: 'template',
+                    preSelectedTemplateId: t.id,
+                  })
+                }
+                className="rounded-lg bg-primary-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-900 transition-colors dark:bg-primary-700 dark:hover:bg-primary-600"
+              >
+                Assign
+              </button>
+              {/* Client view preview */}
+              <Link
+                href={`/homework-plans/preview/${t.id}`}
+                target="_blank"
+                className="inline-flex items-center gap-1 rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Client view
+              </Link>
               {/* Edit button — hidden for example plans */}
               {!t.is_example && (
                 <button

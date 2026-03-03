@@ -9,6 +9,7 @@ interface AssignModalOptions {
   clientId?: string
   worksheetId?: string
   tab?: AssignTab
+  preSelectedTemplateId?: string
 }
 
 interface AssignContextValue {
@@ -27,11 +28,13 @@ export function AssignProvider({ children }: { children: React.ReactNode }) {
   const [modalOpen, setModalOpen] = useState(false)
   const [preSelectedClientId, setPreSelectedClientId] = useState<string | undefined>()
   const [preSelectedWorksheetId, setPreSelectedWorksheetId] = useState<string | undefined>()
+  const [preSelectedTemplateId, setPreSelectedTemplateId] = useState<string | undefined>()
   const [initialTab, setInitialTab] = useState<AssignTab>('worksheet')
 
   const openAssignModal = useCallback((options?: AssignModalOptions) => {
     setPreSelectedClientId(options?.clientId)
     setPreSelectedWorksheetId(options?.worksheetId)
+    setPreSelectedTemplateId(options?.preSelectedTemplateId)
     setInitialTab(options?.tab || 'worksheet')
     setModalOpen(true)
   }, [])
@@ -40,6 +43,7 @@ export function AssignProvider({ children }: { children: React.ReactNode }) {
     setModalOpen(false)
     setPreSelectedClientId(undefined)
     setPreSelectedWorksheetId(undefined)
+    setPreSelectedTemplateId(undefined)
     setInitialTab('worksheet')
   }, [])
 
@@ -51,6 +55,7 @@ export function AssignProvider({ children }: { children: React.ReactNode }) {
         onClose={closeAssignModal}
         preSelectedClientId={preSelectedClientId}
         preSelectedWorksheetId={preSelectedWorksheetId}
+        preSelectedTemplateId={preSelectedTemplateId}
         initialTab={initialTab}
       />
     </AssignContext.Provider>

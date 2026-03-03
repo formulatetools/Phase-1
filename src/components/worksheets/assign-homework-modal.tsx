@@ -25,6 +25,7 @@ interface AssignHomeworkModalProps {
   onClose: () => void
   preSelectedClientId?: string
   preSelectedWorksheetId?: string
+  preSelectedTemplateId?: string
   initialTab?: ActiveTab
 }
 
@@ -50,6 +51,7 @@ export function AssignHomeworkModal({
   onClose,
   preSelectedClientId,
   preSelectedWorksheetId,
+  preSelectedTemplateId,
   initialTab = 'worksheet',
 }: AssignHomeworkModalProps) {
   const { toast } = useToast()
@@ -137,8 +139,8 @@ export function AssignHomeworkModal({
     setResourceUrl('')
     setResourceTitle('')
     setResourceNote('')
-    setSelectedTemplateId(null)
-    setTemplateStep('select')
+    setSelectedTemplateId(preSelectedTemplateId || null)
+    setTemplateStep(preSelectedTemplateId ? 'confirm' : 'select')
     setTemplateResult(null)
 
     Promise.all([
@@ -165,11 +167,16 @@ export function AssignHomeworkModal({
         setError(tplResult.error)
       } else {
         setTemplates(tplResult.data)
+        // If a template was pre-selected but not found, fall back to select step
+        if (preSelectedTemplateId && !tplResult.data.find((t: WorkspaceTemplate) => t.id === preSelectedTemplateId)) {
+          setSelectedTemplateId(null)
+          setTemplateStep('select')
+        }
       }
 
       setLoading(false)
     })
-  }, [open, preSelectedClientId, preSelectedWorksheetId, initialTab])
+  }, [open, preSelectedClientId, preSelectedWorksheetId, preSelectedTemplateId, initialTab])
 
   // ---- Focus trap + Escape ----
   useEffect(() => {
@@ -891,12 +898,16 @@ export function AssignHomeworkModal({
                 <button
                   onClick={() => {
                     setError(null)
-                    setTemplateStep('select')
+                    if (preSelectedTemplateId) {
+                      onClose()
+                    } else {
+                      setTemplateStep('select')
+                    }
                   }}
                   disabled={applyingTemplate}
                   className="rounded-lg border border-primary-200 px-4 py-2 text-sm text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 dark:border-primary-700 dark:text-primary-400 dark:hover:bg-primary-800"
                 >
-                  Back
+                  {preSelectedTemplateId ? 'Cancel' : 'Back'}
                 </button>
               </div>
             )}
