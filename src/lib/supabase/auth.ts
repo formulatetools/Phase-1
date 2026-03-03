@@ -25,10 +25,11 @@ export const getCurrentUser = cache(async (): Promise<{
     .eq('id', user.id)
     .single()
 
-  // ── Lazy promo expiry check ────────────────────────────────────────────
-  // A promo user has subscription_status='free' but subscription_tier!='free'.
-  // If their latest redemption has expired, revert them to the free tier.
-  // Contributors with active roles keep their tier regardless of promo status.
+  // ── Lazy temporary-access expiry check ─────────────────────────────────
+  // A user with subscription_status='free' but subscription_tier!='free'
+  // has temporary access (via promo code or referral reward).
+  // Check if ALL sources of temp access have expired; if so, revert to free.
+  // Contributors with active roles keep their tier regardless.
   const roles = profile?.contributor_roles as { clinical_contributor?: boolean; clinical_reviewer?: boolean; content_writer?: boolean } | null
   const hasContributorRole = roles?.clinical_contributor || roles?.clinical_reviewer || roles?.content_writer
 
@@ -38,15 +39,40 @@ export const getCurrentUser = cache(async (): Promise<{
     profile.subscription_tier !== 'free' &&
     !hasContributorRole
   ) {
-    const { data: latest } = await supabase
-      .from('promo_redemptions')
-      .select('access_expires_at')
-      .eq('user_id', user.id)
-      .order('access_expires_at', { ascending: false })
-      .limit(1)
-      .single()
+    const now = new Date().toISOString()
 
-    if (latest && new Date(latest.access_expires_at) < new Date()) {
+    const [promoResult, refereeResult, referrerResult] = await Promise.all([
+      // Active promo redemption
+      supabase
+        .from('promo_redemptions')
+        .select('access_expires_at')
+        .eq('user_id', user.id)
+        .gt('access_expires_at', now)
+        .limit(1),
+      // Active referral reward as referee
+      supabase
+        .from('referrals')
+        .select('referee_reward_expires_at')
+        .eq('referee_id', user.id)
+        .not('referee_reward_expires_at', 'is', null)
+        .gt('referee_reward_expires_at', now)
+        .limit(1),
+      // Active referral reward as referrer
+      supabase
+        .from('referrals')
+        .select('referrer_reward_expires_at')
+        .eq('referrer_id', user.id)
+        .not('referrer_reward_expires_at', 'is', null)
+        .gt('referrer_reward_expires_at', now)
+        .limit(1),
+    ])
+
+    const hasActiveAccess =
+      (promoResult.data && promoResult.data.length > 0) ||
+      (refereeResult.data && refereeResult.data.length > 0) ||
+      (referrerResult.data && referrerResult.data.length > 0)
+
+    if (!hasActiveAccess) {
       const admin = createAdminClient()
       await admin
         .from('profiles')

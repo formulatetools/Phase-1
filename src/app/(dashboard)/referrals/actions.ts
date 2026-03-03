@@ -44,14 +44,16 @@ export async function getOrCreateReferralCode(): Promise<{ code: string } | { er
 export async function getReferralStats(): Promise<{
   total: number
   converted: number
+  rewarded: number
 }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { total: 0, converted: 0 }
+  if (!user) return { total: 0, converted: 0, rewarded: 0 }
 
   const [
     { count: total },
     { count: converted },
+    { count: rewarded },
   ] = await Promise.all([
     supabase
       .from('referrals')
@@ -62,7 +64,12 @@ export async function getReferralStats(): Promise<{
       .select('*', { count: 'exact', head: true })
       .eq('referrer_id', user.id)
       .eq('status', 'converted'),
+    supabase
+      .from('referrals')
+      .select('*', { count: 'exact', head: true })
+      .eq('referrer_id', user.id)
+      .eq('referrer_rewarded', true),
   ])
 
-  return { total: total ?? 0, converted: converted ?? 0 }
+  return { total: total ?? 0, converted: converted ?? 0, rewarded: rewarded ?? 0 }
 }

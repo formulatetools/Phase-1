@@ -81,6 +81,65 @@ export async function GET(request: NextRequest) {
                   referral_code_id: refCode.id,
                   status: 'pending',
                 })
+
+                // ── Grant referral rewards (both get 30 days of Starter) ──
+                const REWARD_TIER = 'starter'
+                const REWARD_DAYS = 30
+                const refereeExpiresAt = new Date(
+                  Date.now() + REWARD_DAYS * 86_400_000
+                ).toISOString()
+
+                // Referee reward — upgrade to starter if on free tier
+                await admin
+                  .from('profiles')
+                  .update({ subscription_tier: REWARD_TIER })
+                  .eq('id', user.id)
+                  .eq('subscription_tier', 'free')
+
+                await admin
+                  .from('referrals')
+                  .update({
+                    referee_reward_tier: REWARD_TIER,
+                    referee_reward_expires_at: refereeExpiresAt,
+                  })
+                  .eq('referee_id', user.id)
+                  .eq('referral_code_id', refCode.id)
+
+                // Referrer reward — stack if they have an existing future-dated reward
+                const { data: existingRewards } = await admin
+                  .from('referrals')
+                  .select('referrer_reward_expires_at')
+                  .eq('referrer_id', refCode.user_id)
+                  .not('referrer_reward_expires_at', 'is', null)
+                  .order('referrer_reward_expires_at', { ascending: false })
+                  .limit(1)
+
+                const latestExpiry = existingRewards?.[0]
+                  ?.referrer_reward_expires_at as string | undefined
+                const referrerBase =
+                  latestExpiry && new Date(latestExpiry) > new Date()
+                    ? new Date(latestExpiry)
+                    : new Date()
+                const referrerExpiresAt = new Date(
+                  referrerBase.getTime() + REWARD_DAYS * 86_400_000
+                ).toISOString()
+
+                // Upgrade referrer to starter if on free tier
+                await admin
+                  .from('profiles')
+                  .update({ subscription_tier: REWARD_TIER })
+                  .eq('id', refCode.user_id)
+                  .eq('subscription_tier', 'free')
+
+                await admin
+                  .from('referrals')
+                  .update({
+                    referrer_rewarded: true,
+                    referrer_reward_tier: REWARD_TIER,
+                    referrer_reward_expires_at: referrerExpiresAt,
+                  })
+                  .eq('referee_id', user.id)
+                  .eq('referral_code_id', refCode.id)
               }
             } catch {
               // Don't block redirect on referral tracking failure

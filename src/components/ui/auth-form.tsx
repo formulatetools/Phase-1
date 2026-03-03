@@ -193,6 +193,17 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
           </div>
         )}
 
+        {mode === 'login' && method === 'password' && (
+          <div className="text-right">
+            <a
+              href="/forgot-password"
+              className="text-sm text-primary-400 hover:text-primary-600 transition-colors"
+            >
+              Forgot password?
+            </a>
+          </div>
+        )}
+
         {/* Promo code field — signup + password mode only */}
         {mode === 'signup' && method === 'password' && (
           <div>
