@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   pushNextItem,
@@ -35,6 +35,12 @@ export function QueuePanel({ queues, queueItems, worksheets, relationshipId }: Q
   const [settingsOpenId, setSettingsOpenId] = useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
+  // Local order state for optimistic reordering (keyed by queue ID)
+  const [localOrder, setLocalOrder] = useState<Record<string, string[]>>({})
+  const reorderTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+  const dragItem = useRef<{ queueId: string; itemId: string } | null>(null)
+  const dragOverItem = useRef<string | null>(null)
+
   const worksheetMap = new Map(worksheets.map((w) => [w.id, w]))
 
   const getItemTitle = (item: PlanQueueItem) => {
@@ -68,26 +74,74 @@ export function QueuePanel({ queues, queueItems, worksheets, relationshipId }: Q
     }
   }
 
-  const handleMoveItem = async (queueId: string, items: PlanQueueItem[], index: number, direction: 'up' | 'down') => {
+  // Persist reorder to server (debounced to batch rapid moves)
+  const persistOrder = useCallback((queueId: string, orderedIds: string[]) => {
+    if (reorderTimers.current[queueId]) clearTimeout(reorderTimers.current[queueId])
+    reorderTimers.current[queueId] = setTimeout(async () => {
+      const result = await reorderItems(queueId, orderedIds)
+      if (result.error) {
+        toast({ type: 'error', message: result.error })
+      }
+    }, 400)
+  }, [toast])
+
+  // Get the ordered queued items for a queue (local state or server order)
+  const getQueuedOrder = (queueId: string, items: PlanQueueItem[]) => {
     const queuedItems = items.filter((i) => i.status === 'queued')
-    const queuedIndex = queuedItems.findIndex((i) => i.id === items.filter((it) => it.status === 'queued')[index]?.id)
-    if (queuedIndex === -1) return
+    const order = localOrder[queueId]
+    if (!order) return queuedItems
+    const itemMap = new Map(queuedItems.map((i) => [i.id, i]))
+    return order.map((id) => itemMap.get(id)).filter(Boolean) as PlanQueueItem[]
+  }
 
-    const swapIndex = direction === 'up' ? queuedIndex - 1 : queuedIndex + 1
-    if (swapIndex < 0 || swapIndex >= queuedItems.length) return
+  // Optimistic arrow move (instant UI, debounced server persist)
+  const handleMoveItem = (queueId: string, items: PlanQueueItem[], itemId: string, direction: 'up' | 'down') => {
+    const ordered = getQueuedOrder(queueId, items)
+    const idx = ordered.findIndex((i) => i.id === itemId)
+    if (idx === -1) return
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (swapIdx < 0 || swapIdx >= ordered.length) return
 
-    const newOrder = [...queuedItems]
-    const [moved] = newOrder.splice(queuedIndex, 1)
-    newOrder.splice(swapIndex, 0, moved)
+    const newOrder = ordered.map((i) => i.id)
+    ;[newOrder[idx], newOrder[swapIdx]] = [newOrder[swapIdx], newOrder[idx]]
+    setLocalOrder((prev) => ({ ...prev, [queueId]: newOrder }))
+    persistOrder(queueId, newOrder)
+  }
 
-    setActionLoading(`reorder-${queueId}`)
-    const result = await reorderItems(queueId, newOrder.map((i) => i.id))
-    setActionLoading(null)
-    if (result.error) {
-      toast({ type: 'error', message: result.error })
-    } else {
-      router.refresh()
-    }
+  // Drag and drop handlers
+  const handleDragStart = (queueId: string, itemId: string) => {
+    dragItem.current = { queueId, itemId }
+  }
+
+  const handleDragOver = (e: React.DragEvent, itemId: string) => {
+    e.preventDefault()
+    dragOverItem.current = itemId
+  }
+
+  const handleDrop = (queueId: string, items: PlanQueueItem[]) => {
+    if (!dragItem.current || !dragOverItem.current) return
+    if (dragItem.current.queueId !== queueId) return
+    if (dragItem.current.itemId === dragOverItem.current) return
+
+    const ordered = getQueuedOrder(queueId, items)
+    const ids = ordered.map((i) => i.id)
+    const fromIdx = ids.indexOf(dragItem.current.itemId)
+    const toIdx = ids.indexOf(dragOverItem.current)
+    if (fromIdx === -1 || toIdx === -1) return
+
+    const newOrder = [...ids]
+    const [moved] = newOrder.splice(fromIdx, 1)
+    newOrder.splice(toIdx, 0, moved)
+
+    setLocalOrder((prev) => ({ ...prev, [queueId]: newOrder }))
+    persistOrder(queueId, newOrder)
+    dragItem.current = null
+    dragOverItem.current = null
+  }
+
+  const handleDragEnd = () => {
+    dragItem.current = null
+    dragOverItem.current = null
   }
 
   const handleUpdateSettings = async (queueId: string, pushMode: PlanQueuePushMode, intervalDays: number) => {
@@ -162,7 +216,8 @@ export function QueuePanel({ queues, queueItems, worksheets, relationshipId }: Q
           .sort((a, b) => a.position - b.position)
         const totalItems = items.length
         const pushedCount = items.filter((i) => i.status === 'pushed').length
-        const queuedItems = items.filter((i) => i.status === 'queued')
+        const orderedQueuedItems = getQueuedOrder(queue.id, items)
+        const nonQueuedItems = items.filter((i) => i.status !== 'queued')
         const isCompleted = queue.status === 'completed'
         const isPaused = queue.status === 'paused'
 
@@ -217,109 +272,132 @@ export function QueuePanel({ queues, queueItems, worksheets, relationshipId }: Q
 
             {/* Items list */}
             <div className="border-t border-primary-100 dark:border-primary-800">
-              {items.map((item, idx) => {
-                const isPushed = item.status === 'pushed'
-                const isSkipped = item.status === 'skipped'
-                const isQueued = item.status === 'queued'
-                const queuedIndex = queuedItems.findIndex((qi) => qi.id === item.id)
-
-                return (
-                  <div
-                    key={item.id}
-                    className={`flex items-center gap-3 px-4 py-2.5 ${
-                      idx > 0 ? 'border-t border-primary-50 dark:border-primary-800/50' : ''
-                    } ${isPushed || isSkipped ? 'opacity-50' : ''}`}
-                  >
-                    {/* Status icon */}
-                    <div className="shrink-0">
-                      {isPushed && (
-                        <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
-                      )}
-                      {isSkipped && (
-                        <svg className="h-4 w-4 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 8.689c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 010 1.953l-7.108 4.062A1.125 1.125 0 013 16.811V8.69zM12.75 8.689c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 010 1.953l-7.108 4.062a1.125 1.125 0 01-1.683-.977V8.69z" />
-                        </svg>
-                      )}
-                      {isQueued && (
-                        <div className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-primary-300 dark:border-primary-600">
-                          <span className="text-[8px] font-bold text-primary-400">{queuedIndex + 1}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Item info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        {item.item_type === 'worksheet' ? (
-                          <svg className="h-3.5 w-3.5 shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                          </svg>
-                        ) : (
-                          <svg className="h-3.5 w-3.5 shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 6.364L6.002 13.5a4.5 4.5 0 006.364 6.364l4.5-4.5a4.5 4.5 0 001.242-7.244" />
-                          </svg>
-                        )}
-                        <span className="text-sm text-primary-700 dark:text-primary-300 truncate">
-                          {getItemTitle(item)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Actions for queued items */}
-                    {isQueued && !isCompleted && !isPaused && (
-                      <div className="flex items-center gap-1 shrink-0">
-                        {/* Move up */}
-                        <button
-                          onClick={() => handleMoveItem(queue.id, items, idx, 'up')}
-                          disabled={queuedIndex === 0 || !!actionLoading}
-                          className="rounded p-1 text-primary-400 hover:bg-primary-50 hover:text-primary-600 disabled:opacity-30 transition-colors"
-                          title="Move up"
-                        >
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
-                          </svg>
-                        </button>
-                        {/* Move down */}
-                        <button
-                          onClick={() => handleMoveItem(queue.id, items, idx, 'down')}
-                          disabled={queuedIndex === queuedItems.length - 1 || !!actionLoading}
-                          className="rounded p-1 text-primary-400 hover:bg-primary-50 hover:text-primary-600 disabled:opacity-30 transition-colors"
-                          title="Move down"
-                        >
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                          </svg>
-                        </button>
-                        {/* Skip */}
-                        <button
-                          onClick={() => handleSkip(item.id)}
-                          disabled={actionLoading === `skip-${item.id}`}
-                          className="rounded px-1.5 py-0.5 text-[10px] font-medium text-primary-400 hover:bg-primary-50 hover:text-primary-600 disabled:opacity-50 transition-colors"
-                          title="Skip this item"
-                        >
-                          Skip
-                        </button>
-                      </div>
+              {/* Non-queued items (pushed/skipped) — static */}
+              {nonQueuedItems.map((item, idx) => (
+                <div
+                  key={item.id}
+                  className={`flex items-center gap-3 px-4 py-2.5 opacity-50 ${
+                    idx > 0 ? 'border-t border-primary-50 dark:border-primary-800/50' : ''
+                  }`}
+                >
+                  <div className="shrink-0">
+                    {item.status === 'pushed' && (
+                      <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
                     )}
-
-                    {/* Status label for pushed/skipped */}
-                    {isPushed && (
-                      <span className="shrink-0 text-[10px] font-medium text-green-600 dark:text-green-400">Pushed</span>
-                    )}
-                    {isSkipped && (
-                      <span className="shrink-0 text-[10px] font-medium text-primary-400">Skipped</span>
+                    {item.status === 'skipped' && (
+                      <svg className="h-4 w-4 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8.689c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 010 1.953l-7.108 4.062A1.125 1.125 0 013 16.811V8.69zM12.75 8.689c0-.864.933-1.405 1.683-.977l7.108 4.062a1.125 1.125 0 010 1.953l-7.108 4.062a1.125 1.125 0 01-1.683-.977V8.69z" />
+                      </svg>
                     )}
                   </div>
-                )
-              })}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      {item.item_type === 'worksheet' ? (
+                        <svg className="h-3.5 w-3.5 shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                      ) : (
+                        <svg className="h-3.5 w-3.5 shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 6.364L6.002 13.5a4.5 4.5 0 006.364 6.364l4.5-4.5a4.5 4.5 0 001.242-7.244" />
+                        </svg>
+                      )}
+                      <span className="text-sm text-primary-700 dark:text-primary-300 truncate">
+                        {getItemTitle(item)}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="shrink-0 text-[10px] font-medium text-green-600 dark:text-green-400">
+                    {item.status === 'pushed' ? 'Pushed' : 'Skipped'}
+                  </span>
+                </div>
+              ))}
+
+              {/* Queued items — draggable */}
+              {orderedQueuedItems.map((item, qIdx) => (
+                <div
+                  key={item.id}
+                  draggable={!isCompleted && !isPaused}
+                  onDragStart={() => handleDragStart(queue.id, item.id)}
+                  onDragOver={(e) => handleDragOver(e, item.id)}
+                  onDrop={() => handleDrop(queue.id, items)}
+                  onDragEnd={handleDragEnd}
+                  className={`flex items-center gap-3 px-4 py-2.5 ${
+                    (nonQueuedItems.length > 0 || qIdx > 0) ? 'border-t border-primary-50 dark:border-primary-800/50' : ''
+                  } ${!isCompleted && !isPaused ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                >
+                  {/* Drag handle + position number */}
+                  <div className="shrink-0 flex items-center gap-1.5">
+                    {!isCompleted && !isPaused && (
+                      <svg className="h-3.5 w-3.5 text-primary-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                      </svg>
+                    )}
+                    <div className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-primary-300 dark:border-primary-600">
+                      <span className="text-[8px] font-bold text-primary-400">{qIdx + 1}</span>
+                    </div>
+                  </div>
+
+                  {/* Item info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      {item.item_type === 'worksheet' ? (
+                        <svg className="h-3.5 w-3.5 shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                      ) : (
+                        <svg className="h-3.5 w-3.5 shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-9.86a4.5 4.5 0 00-6.364 6.364L6.002 13.5a4.5 4.5 0 006.364 6.364l4.5-4.5a4.5 4.5 0 001.242-7.244" />
+                        </svg>
+                      )}
+                      <span className="text-sm text-primary-700 dark:text-primary-300 truncate">
+                        {getItemTitle(item)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions for queued items */}
+                  {!isCompleted && !isPaused && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => handleMoveItem(queue.id, items, item.id, 'up')}
+                        disabled={qIdx === 0}
+                        className="rounded p-1 text-primary-400 hover:bg-primary-50 hover:text-primary-600 disabled:opacity-30 transition-colors"
+                        title="Move up"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleMoveItem(queue.id, items, item.id, 'down')}
+                        disabled={qIdx === orderedQueuedItems.length - 1}
+                        className="rounded p-1 text-primary-400 hover:bg-primary-50 hover:text-primary-600 disabled:opacity-30 transition-colors"
+                        title="Move down"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleSkip(item.id)}
+                        disabled={actionLoading === `skip-${item.id}`}
+                        className="rounded px-1.5 py-0.5 text-[10px] font-medium text-primary-400 hover:bg-primary-50 hover:text-primary-600 disabled:opacity-50 transition-colors"
+                        title="Skip this item"
+                      >
+                        Skip
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
             {/* Footer actions */}
             {!isCompleted && (
               <div className="border-t border-primary-100 dark:border-primary-800 p-3 flex items-center gap-2">
-                {!isPaused && queuedItems.length > 0 && (
+                {!isPaused && orderedQueuedItems.length > 0 && (
                   <button
                     onClick={() => handlePush(queue.id)}
                     disabled={actionLoading === `push-${queue.id}`}
