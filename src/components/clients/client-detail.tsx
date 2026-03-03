@@ -118,10 +118,19 @@ export function ClientDetail({
   const { openAssignModal } = useAssign()
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<ClientTab>('homework')
+  const [showClientSettings, setShowClientSettings] = useState(false)
 
   // Compute queue badge count (remaining items across active queues)
   const queueRemainingCount = queueItems.filter(
     (i) => i.status === 'queued' && queues.some((q) => q.id === i.queue_id && q.status !== 'completed')
+  ).length
+
+  // Summary stats
+  const activeAssignmentCount = assignments.filter(
+    (a) => a.status === 'assigned' || a.status === 'in_progress'
+  ).length
+  const completedAssignmentCount = assignments.filter(
+    (a) => a.status === 'completed' || a.status === 'reviewed'
   ).length
 
   const handleAction = useCallback(async (
@@ -354,6 +363,24 @@ export function ClientDetail({
         </div>
       )}
 
+      {/* Summary strip */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+          <span className="tabular-nums">{activeAssignmentCount}</span> active
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/20 dark:text-green-300">
+          <span className="tabular-nums">{completedAssignmentCount}</span> completed
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-semibold text-brand-dark dark:bg-brand/20">
+          <span className="tabular-nums">{sharedResources.length}</span> resource{sharedResources.length !== 1 ? 's' : ''}
+        </span>
+        {queueRemainingCount > 0 && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+            <span className="tabular-nums">{queueRemainingCount}</span> queued
+          </span>
+        )}
+      </div>
+
       {/* Action buttons */}
       {relationship.status === 'active' && !showAssign && (
         <div className="flex items-center gap-2">
@@ -562,221 +589,6 @@ export function ClientDetail({
         </div>
       )}
 
-      {/* Client Portal */}
-      {relationship.client_portal_token && (
-        <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-semibold text-primary-800">Client Portal</h3>
-              <p className="mt-1 text-xs text-primary-500">
-                {relationship.client_label}&apos;s personal workspace where they can view assignments, track progress, and manage their data.
-              </p>
-            </div>
-            {/* Portal status badge */}
-            {relationship.portal_consented_at ? (
-              <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-green-700">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true" />
-                Active
-              </span>
-            ) : (
-              <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-primary-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary-500">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-300" aria-hidden="true" />
-                Not yet activated
-              </span>
-            )}
-          </div>
-
-          {relationship.portal_consented_at && (
-            <p className="mt-2 text-[10px] text-primary-400">
-              Consented {new Date(relationship.portal_consented_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </p>
-          )}
-
-          <div className="mt-3 flex items-center gap-2">
-            <code className="flex-1 truncate rounded-lg border border-primary-200 bg-primary-50 px-3 py-2 text-xs text-primary-600">
-              {appUrl}/client/{relationship.client_portal_token}
-            </code>
-            <button
-              onClick={async () => {
-                await navigator.clipboard.writeText(`${appUrl}/client/${relationship.client_portal_token}`)
-                setCopiedPortalLink(true)
-                setTimeout(() => setCopiedPortalLink(false), 3000)
-              }}
-              className="shrink-0 rounded-lg border border-primary-200 px-3 py-2 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors"
-            >
-              {copiedPortalLink ? 'Copied!' : 'Copy link'}
-            </button>
-          </div>
-
-          {/* Regenerate link */}
-          <div className="mt-3 border-t border-primary-100 pt-3">
-            {!showRegenConfirm ? (
-              <button
-                onClick={() => setShowRegenConfirm(true)}
-                className="text-xs text-primary-400 hover:text-primary-600 transition-colors underline underline-offset-2"
-              >
-                Regenerate portal link
-              </button>
-            ) : (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                <p className="text-xs text-amber-800 font-medium">
-                  Regenerate this portal link?
-                </p>
-                <p className="mt-1 text-[10px] text-amber-700">
-                  The current link will stop working immediately. Your client will need the new link to access their workspace. If they installed the portal as an app, they will need to reinstall it.
-                </p>
-                <div className="mt-2 flex items-center gap-2">
-                  <button
-                    onClick={async () => {
-                      await handleAction(
-                        'regen-portal',
-                        () => regeneratePortalToken(relationship.id),
-                        'Portal link regenerated. Share the new link with your client.'
-                      )
-                      setShowRegenConfirm(false)
-                    }}
-                    disabled={actionLoading === 'regen-portal'}
-                    className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
-                  >
-                    {actionLoading === 'regen-portal' ? 'Regenerating\u2026' : 'Yes, regenerate'}
-                  </button>
-                  <button
-                    onClick={() => setShowRegenConfirm(false)}
-                    className="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* PIN protection status */}
-          {relationship.portal_pin_set_at && (
-            <div className="mt-3 border-t border-primary-100 pt-3">
-              <div className="flex items-center gap-2">
-                <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                </svg>
-                <span className="text-xs text-primary-600">
-                  PIN protection enabled
-                  <span className="text-primary-400 ml-1">
-                    (set {new Date(relationship.portal_pin_set_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
-                  </span>
-                </span>
-              </div>
-              {!showPinResetConfirm ? (
-                <button
-                  onClick={() => setShowPinResetConfirm(true)}
-                  className="mt-2 text-xs text-primary-400 hover:text-primary-600 transition-colors underline underline-offset-2"
-                >
-                  Reset client PIN
-                </button>
-              ) : (
-                <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
-                  <p className="text-xs text-amber-800 font-medium">
-                    Reset this client&apos;s PIN?
-                  </p>
-                  <p className="mt-1 text-[10px] text-amber-700">
-                    This will remove the PIN lock from {relationship.client_label}&apos;s workspace. They will be able to set a new PIN from their portal.
-                  </p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <button
-                      onClick={async () => {
-                        await handleAction(
-                          'reset-pin',
-                          () => resetClientPin(relationship.id),
-                          'Client PIN has been reset.'
-                        )
-                        setShowPinResetConfirm(false)
-                      }}
-                      disabled={actionLoading === 'reset-pin'}
-                      className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
-                    >
-                      {actionLoading === 'reset-pin' ? 'Resetting\u2026' : 'Yes, reset PIN'}
-                    </button>
-                    <button
-                      onClick={() => setShowPinResetConfirm(false)}
-                      className="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* GDPR Erasure section */}
-      <div className="rounded-2xl border border-red-100 bg-red-50/30 dark:border-red-900 dark:bg-red-900/10 p-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-red-800 dark:text-red-300">Permanently Delete Client Data</h3>
-            <p className="mt-1 text-xs text-red-600/80 dark:text-red-400/80">
-              This will permanently and irreversibly delete all worksheets, responses, and assignment
-              data for this client. Audit records of the deletion will be retained.
-            </p>
-          </div>
-          {gdprStep === 'idle' && (
-            <button
-              onClick={handleGdprShowSummary}
-              disabled={gdprLoading}
-              className="shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
-            >
-              {gdprLoading ? 'Loading...' : 'Delete all data'}
-            </button>
-          )}
-        </div>
-
-        {gdprStep === 'summary' && gdprSummary && (
-          <div className="mt-4 space-y-3 border-t border-red-100 dark:border-red-900 pt-4">
-            {gdprSummary.activeAssignments > 0 && (
-              <div className="flex items-center gap-2 rounded-lg bg-red-100 dark:bg-red-900/30 px-3 py-2">
-                <svg className="h-4 w-4 shrink-0 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                </svg>
-                <span className="text-xs font-medium text-red-700 dark:text-red-300">
-                  {gdprSummary.activeAssignments} active assignment{gdprSummary.activeAssignments !== 1 ? 's' : ''} will be permanently deleted
-                </span>
-              </div>
-            )}
-            <div className="text-xs text-red-600/80 dark:text-red-400/80 space-y-1">
-              <p>{gdprSummary.assignments} assignment{gdprSummary.assignments !== 1 ? 's' : ''}, {gdprSummary.responses} response{gdprSummary.responses !== 1 ? 's' : ''}</p>
-              <p>{gdprSummary.sharedResources} shared resource{gdprSummary.sharedResources !== 1 ? 's' : ''}, {gdprSummary.queues} queue{gdprSummary.queues !== 1 ? 's' : ''}</p>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-red-700 dark:text-red-300 mb-1">
-                Type <strong>{relationship.client_label}</strong> to confirm
-              </label>
-              <input
-                type="text"
-                value={gdprConfirmText}
-                onChange={(e) => setGdprConfirmText(e.target.value)}
-                placeholder={relationship.client_label}
-                className="block w-full rounded-lg border border-red-200 bg-white dark:bg-red-900/10 px-3 py-1.5 text-sm text-red-900 dark:text-red-100 placeholder-red-300 focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400/30"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleGdprErase}
-                disabled={gdprLoading || gdprConfirmText !== relationship.client_label}
-                className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
-              >
-                {gdprLoading ? 'Deleting...' : 'Permanently delete all data'}
-              </button>
-              <button
-                onClick={() => { setGdprStep('idle'); setGdprConfirmText(''); setGdprSummary(null) }}
-                className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Tab bar */}
       <div className="flex rounded-lg border border-primary-200 bg-primary-50 p-0.5 dark:border-primary-700 dark:bg-primary-800">
         {([
@@ -827,7 +639,7 @@ export function ClientDetail({
                 a.status === 'completed' || a.status === 'reviewed' ? 'border-l-green-500'
                 : a.status === 'in_progress' || a.status === 'pdf_downloaded' ? 'border-l-amber-500'
                 : a.status === 'withdrawn' ? 'border-l-primary-300'
-                : 'border-l-red-400'
+                : 'border-l-blue-400'
 
               return (
                 <div
@@ -1070,6 +882,260 @@ export function ClientDetail({
           relationshipId={relationship.id}
         />
       )}
+
+      {/* Client settings (collapsible) */}
+      <div className="rounded-2xl border border-primary-100 bg-surface shadow-sm overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowClientSettings(!showClientSettings)}
+          className="flex w-full items-center justify-between px-5 py-4 text-left"
+          aria-expanded={showClientSettings}
+        >
+          <div className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span className="text-sm font-semibold text-primary-700">Client settings</span>
+          </div>
+          <svg
+            className={`h-4 w-4 text-primary-400 transition-transform duration-200 ${showClientSettings ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+
+        <div
+          className="grid transition-[grid-template-rows] duration-200 ease-in-out"
+          style={{ gridTemplateRows: showClientSettings ? '1fr' : '0fr' }}
+        >
+          <div className="overflow-hidden">
+            <div className="space-y-5 px-5 pb-5">
+
+              {/* Client Portal */}
+              {relationship.client_portal_token && (
+                <div className="rounded-2xl border border-primary-100 bg-surface p-5 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-primary-800">Client Portal</h3>
+                      <p className="mt-1 text-xs text-primary-500">
+                        {relationship.client_label}&apos;s personal workspace where they can view assignments, track progress, and manage their data.
+                      </p>
+                    </div>
+                    {/* Portal status badge */}
+                    {relationship.portal_consented_at ? (
+                      <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-green-700">
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true" />
+                        Active
+                      </span>
+                    ) : (
+                      <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-primary-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary-500">
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary-300" aria-hidden="true" />
+                        Not yet activated
+                      </span>
+                    )}
+                  </div>
+
+                  {relationship.portal_consented_at && (
+                    <p className="mt-2 text-[10px] text-primary-400">
+                      Consented {new Date(relationship.portal_consented_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
+                  )}
+
+                  <div className="mt-3 flex items-center gap-2">
+                    <code className="flex-1 truncate rounded-lg border border-primary-200 bg-primary-50 px-3 py-2 text-xs text-primary-600">
+                      {appUrl}/client/{relationship.client_portal_token}
+                    </code>
+                    <button
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(`${appUrl}/client/${relationship.client_portal_token}`)
+                        setCopiedPortalLink(true)
+                        setTimeout(() => setCopiedPortalLink(false), 3000)
+                      }}
+                      className="shrink-0 rounded-lg border border-primary-200 px-3 py-2 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+                    >
+                      {copiedPortalLink ? 'Copied!' : 'Copy link'}
+                    </button>
+                  </div>
+
+                  {/* Regenerate link */}
+                  <div className="mt-3 border-t border-primary-100 pt-3">
+                    {!showRegenConfirm ? (
+                      <button
+                        onClick={() => setShowRegenConfirm(true)}
+                        className="text-xs text-primary-400 hover:text-primary-600 transition-colors underline underline-offset-2"
+                      >
+                        Regenerate portal link
+                      </button>
+                    ) : (
+                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                        <p className="text-xs text-amber-800 font-medium">
+                          Regenerate this portal link?
+                        </p>
+                        <p className="mt-1 text-[10px] text-amber-700">
+                          The current link will stop working immediately. Your client will need the new link to access their workspace. If they installed the portal as an app, they will need to reinstall it.
+                        </p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <button
+                            onClick={async () => {
+                              await handleAction(
+                                'regen-portal',
+                                () => regeneratePortalToken(relationship.id),
+                                'Portal link regenerated. Share the new link with your client.'
+                              )
+                              setShowRegenConfirm(false)
+                            }}
+                            disabled={actionLoading === 'regen-portal'}
+                            className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
+                          >
+                            {actionLoading === 'regen-portal' ? 'Regenerating\u2026' : 'Yes, regenerate'}
+                          </button>
+                          <button
+                            onClick={() => setShowRegenConfirm(false)}
+                            className="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PIN protection status */}
+                  {relationship.portal_pin_set_at && (
+                    <div className="mt-3 border-t border-primary-100 pt-3">
+                      <div className="flex items-center gap-2">
+                        <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                        <span className="text-xs text-primary-600">
+                          PIN protection enabled
+                          <span className="text-primary-400 ml-1">
+                            (set {new Date(relationship.portal_pin_set_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
+                          </span>
+                        </span>
+                      </div>
+                      {!showPinResetConfirm ? (
+                        <button
+                          onClick={() => setShowPinResetConfirm(true)}
+                          className="mt-2 text-xs text-primary-400 hover:text-primary-600 transition-colors underline underline-offset-2"
+                        >
+                          Reset client PIN
+                        </button>
+                      ) : (
+                        <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                          <p className="text-xs text-amber-800 font-medium">
+                            Reset this client&apos;s PIN?
+                          </p>
+                          <p className="mt-1 text-[10px] text-amber-700">
+                            This will remove the PIN lock from {relationship.client_label}&apos;s workspace. They will be able to set a new PIN from their portal.
+                          </p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <button
+                              onClick={async () => {
+                                await handleAction(
+                                  'reset-pin',
+                                  () => resetClientPin(relationship.id),
+                                  'Client PIN has been reset.'
+                                )
+                                setShowPinResetConfirm(false)
+                              }}
+                              disabled={actionLoading === 'reset-pin'}
+                              className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
+                            >
+                              {actionLoading === 'reset-pin' ? 'Resetting\u2026' : 'Yes, reset PIN'}
+                            </button>
+                            <button
+                              onClick={() => setShowPinResetConfirm(false)}
+                              className="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* GDPR Erasure section */}
+              <div className="rounded-2xl border border-red-100 bg-red-50/30 dark:border-red-900 dark:bg-red-900/10 p-5">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-red-800 dark:text-red-300">Permanently Delete Client Data</h3>
+                    <p className="mt-1 text-xs text-red-600/80 dark:text-red-400/80">
+                      This will permanently and irreversibly delete all worksheets, responses, and assignment
+                      data for this client. Audit records of the deletion will be retained.
+                    </p>
+                  </div>
+                  {gdprStep === 'idle' && (
+                    <button
+                      onClick={handleGdprShowSummary}
+                      disabled={gdprLoading}
+                      className="shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
+                    >
+                      {gdprLoading ? 'Loading...' : 'Delete all data'}
+                    </button>
+                  )}
+                </div>
+
+                {gdprStep === 'summary' && gdprSummary && (
+                  <div className="mt-4 space-y-3 border-t border-red-100 dark:border-red-900 pt-4">
+                    {gdprSummary.activeAssignments > 0 && (
+                      <div className="flex items-center gap-2 rounded-lg bg-red-100 dark:bg-red-900/30 px-3 py-2">
+                        <svg className="h-4 w-4 shrink-0 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                        <span className="text-xs font-medium text-red-700 dark:text-red-300">
+                          {gdprSummary.activeAssignments} active assignment{gdprSummary.activeAssignments !== 1 ? 's' : ''} will be permanently deleted
+                        </span>
+                      </div>
+                    )}
+                    <div className="text-xs text-red-600/80 dark:text-red-400/80 space-y-1">
+                      <p>{gdprSummary.assignments} assignment{gdprSummary.assignments !== 1 ? 's' : ''}, {gdprSummary.responses} response{gdprSummary.responses !== 1 ? 's' : ''}</p>
+                      <p>{gdprSummary.sharedResources} shared resource{gdprSummary.sharedResources !== 1 ? 's' : ''}, {gdprSummary.queues} queue{gdprSummary.queues !== 1 ? 's' : ''}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-red-700 dark:text-red-300 mb-1">
+                        Type <strong>{relationship.client_label}</strong> to confirm
+                      </label>
+                      <input
+                        type="text"
+                        value={gdprConfirmText}
+                        onChange={(e) => setGdprConfirmText(e.target.value)}
+                        placeholder={relationship.client_label}
+                        className="block w-full rounded-lg border border-red-200 bg-white dark:bg-red-900/10 px-3 py-1.5 text-sm text-red-900 dark:text-red-100 placeholder-red-300 focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400/30"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleGdprErase}
+                        disabled={gdprLoading || gdprConfirmText !== relationship.client_label}
+                        className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                      >
+                        {gdprLoading ? 'Deleting...' : 'Permanently delete all data'}
+                      </button>
+                      <button
+                        onClick={() => { setGdprStep('idle'); setGdprConfirmText(''); setGdprSummary(null) }}
+                        className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Share modal */}
       <ShareModal
