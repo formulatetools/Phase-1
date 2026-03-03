@@ -9,10 +9,10 @@ import { getResourceType } from '@/lib/utils/resource-type'
 import type { ResourceTypeFilter } from '@/lib/utils/resource-type'
 
 export const metadata = {
-  title: 'Worksheets — Formulate',
+  title: 'Library — Formulate',
   description: 'Browse professional CBT worksheets, thought records, and clinical tools by category.',
   openGraph: {
-    title: 'Worksheets — Formulate',
+    title: 'Library — Formulate',
     description: 'Browse professional CBT worksheets, thought records, and clinical tools by category.',
   },
   alternates: {
@@ -157,7 +157,7 @@ export default async function WorksheetsPage({
     <div className="px-4 py-8 sm:px-8 lg:px-12">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-primary-900 sm:text-3xl">
-          Worksheets
+          Library
         </h1>
         <p className="mt-1 text-primary-400">
           {allWorksheets?.length || 0} professional CBT resources
@@ -280,35 +280,69 @@ export default async function WorksheetsPage({
               </div>
               <p className="mt-3 text-sm font-medium text-primary-500">No resources found</p>
               <p className="mt-1 text-xs text-primary-400">Try a different search term or filter</p>
+              {user && canCreate && params.q && (
+                <Link
+                  href={`/my-tools/ai?prompt=${encodeURIComponent(params.q)}`}
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary-800 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                  </svg>
+                  Generate with AI
+                </Link>
+              )}
             </div>
           )}
         </div>
       ) : (
-        /* Resource type cards */
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          {resourceTypeCards.map((card) => (
-            <Link
-              key={card.type}
-              href={`/worksheets?type=${card.type}`}
-              className="group rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
-            >
-              <div className="flex items-center justify-between">
-                <div className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${card.colour}`}>
-                  {card.icon}
+        <>
+          {/* Resource type cards */}
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {resourceTypeCards.map((card) => (
+              <Link
+                key={card.type}
+                href={`/worksheets?type=${card.type}`}
+                className="group rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm transition-all hover:border-brand/30 hover:shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${card.colour}`}>
+                    {card.icon}
+                  </div>
+                  <span className="rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-500">
+                    {card.count} tool{card.count !== 1 ? 's' : ''}
+                  </span>
                 </div>
-                <span className="rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-500">
-                  {card.count} tool{card.count !== 1 ? 's' : ''}
-                </span>
+                <h2 className="mt-4 text-base font-semibold text-primary-900 group-hover:text-brand-dark">
+                  {card.label}
+                </h2>
+                <p className="mt-1 text-sm text-primary-400 line-clamp-2">
+                  {card.description}
+                </p>
+              </Link>
+            ))}
+          </div>
+
+          {/* AI generation banner */}
+          {user && canCreate && (
+            <Link
+              href="/my-tools/ai"
+              className="group mt-6 flex items-center gap-4 rounded-2xl border border-primary-100 bg-gradient-to-r from-brand-light to-surface p-5 shadow-sm transition-all hover:border-brand/30 hover:shadow-md dark:from-brand/5 dark:to-surface"
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand/10 transition-colors group-hover:bg-brand/20">
+                <svg className="h-6 w-6 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                </svg>
               </div>
-              <h2 className="mt-4 text-base font-semibold text-primary-900 group-hover:text-brand-dark">
-                {card.label}
-              </h2>
-              <p className="mt-1 text-sm text-primary-400 line-clamp-2">
-                {card.description}
-              </p>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-primary-900">Can&apos;t find what you need?</p>
+                <p className="mt-0.5 text-xs text-primary-500">Describe a worksheet and let AI build it for you</p>
+              </div>
+              <svg className="h-5 w-5 shrink-0 text-primary-300 transition-colors group-hover:text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
             </Link>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   )

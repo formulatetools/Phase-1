@@ -60,7 +60,7 @@ export function MyToolsList({ worksheets }: MyToolsListProps) {
             href="/worksheets"
             className="inline-flex items-center gap-2 rounded-lg border border-primary-200 px-4 py-2 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50"
           >
-            Browse worksheets
+            Browse library
           </Link>
         </div>
       </div>

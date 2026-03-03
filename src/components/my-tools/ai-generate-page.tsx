@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
@@ -68,17 +68,23 @@ export function AIGeneratePage({ tier, atLimit }: AIGeneratePageProps) {
     return () => clearInterval(interval)
   }, [state])
 
-  // Check localStorage for a prompt from the landing page teaser
+  // Check localStorage or URL params for a pre-filled prompt
+  const searchParams = useSearchParams()
   const autoTriggered = useRef(false)
   useEffect(() => {
     const landingPrompt = localStorage.getItem('formulate_landing_prompt')
+    const urlPrompt = searchParams.get('prompt')
     if (landingPrompt) {
       localStorage.removeItem('formulate_landing_prompt')
       autoTriggered.current = true
       setDescription(landingPrompt)
+    } else if (urlPrompt) {
+      setDescription(urlPrompt)
+      inputRef.current?.focus()
     } else {
       inputRef.current?.focus()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleGenerate = useCallback(async () => {

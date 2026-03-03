@@ -18,7 +18,7 @@ const TOUR_STEPS: TourStep[] = [
   },
   {
     target: 'nav-worksheets',
-    title: 'Worksheets',
+    title: 'Library',
     description: 'Browse evidence-based CBT worksheets, create your own custom tools, or generate them with AI.',
     position: 'right',
   },

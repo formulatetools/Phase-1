@@ -130,7 +130,7 @@ const icons = {
 const TAB_SHORT_LABELS: Record<string, string> = {
   '/dashboard': 'Home',
   '/clients': 'Clients',
-  '/worksheets': 'Worksheets',
+  '/worksheets': 'Library',
   '/homework-plans': 'Plans',
 }
 const TAB_HREFS = new Set(Object.keys(TAB_SHORT_LABELS))
@@ -196,7 +196,7 @@ export function SidebarNav({
       label: 'Workspace',
       items: [
         { label: 'Clients', href: '/clients', icon: icons.clients, tourId: 'nav-clients', badge: pendingReviewCount },
-        { label: 'Worksheets', href: '/worksheets', icon: icons.resources, tourId: 'nav-worksheets' },
+        { label: 'Library', href: '/worksheets', icon: icons.resources, tourId: 'nav-worksheets' },
         { label: 'Homework Plans', href: '/homework-plans', icon: icons.templates },
       ],
     },

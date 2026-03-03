@@ -104,7 +104,7 @@ const COMMANDS: CommandItem[] = [
   // Navigation
   { id: 'nav-dashboard', label: 'Dashboard', href: '/dashboard', icon: icons.dashboard, category: 'navigation', keywords: ['home', 'overview'] },
   { id: 'nav-clients', label: 'Clients', href: '/clients', icon: icons.clients, category: 'navigation', keywords: ['manage', 'caseload', 'patients'] },
-  { id: 'nav-library', label: 'Worksheets', href: '/worksheets', icon: icons.resources, category: 'navigation', keywords: ['resources', 'worksheets', 'browse', 'search', 'library'] },
+  { id: 'nav-library', label: 'Library', href: '/worksheets', icon: icons.resources, category: 'navigation', keywords: ['resources', 'worksheets', 'browse', 'search', 'library'] },
   { id: 'nav-templates', label: 'Homework Plans', href: '/homework-plans', icon: icons.templates, category: 'navigation', keywords: ['onboarding', 'starter pack', 'homework plan', 'bundle'] },
   { id: 'nav-supervision', label: 'Supervisees', href: '/clients?tab=supervisees', icon: icons.supervision, category: 'navigation', keywords: ['supervisee', 'training', 'supervision'] },
   { id: 'nav-blog', label: 'Blog', href: '/blog', icon: icons.blog, category: 'navigation', keywords: ['articles', 'read', 'clinical'] },
@@ -116,7 +116,7 @@ const COMMANDS: CommandItem[] = [
   // Quick actions
   { id: 'act-ai-generate', label: 'Generate AI worksheet', description: 'Describe and let AI build it', href: '/my-tools/ai', icon: icons.sparkles, category: 'action', keywords: ['ai', 'create', 'generate', 'build'] },
   { id: 'act-new-tool', label: 'Create custom worksheet', description: 'Build from scratch', href: '/my-tools/new', icon: icons.plus, category: 'action', keywords: ['new', 'create', 'custom', 'builder'] },
-  { id: 'act-browse', label: 'Browse worksheets', description: 'Search the worksheet library', href: '/worksheets', icon: icons.resources, category: 'action', keywords: ['search', 'find', 'resources', 'browse', 'library'] },
+  { id: 'act-browse', label: 'Browse library', description: 'Search the worksheet library', href: '/worksheets', icon: icons.resources, category: 'action', keywords: ['search', 'find', 'resources', 'browse', 'library'] },
 ]
 
 const CATEGORY_LABELS: Record<string, string> = {

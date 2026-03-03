@@ -26,7 +26,7 @@ export function WorksheetsPageTabs({
               : 'text-primary-500 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-200'
           }`}
         >
-          All Worksheets
+          All Resources
         </Link>
         <Link
           href="/worksheets/mine"
