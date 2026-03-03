@@ -22,6 +22,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { portalToken } = await params
   return {
     title: 'My Therapy Workspace — Formulate',
+    description: 'Access your therapy homework, worksheets, and shared resources from your therapist.',
+    openGraph: {
+      title: 'My Therapy Workspace',
+      description: 'Access your therapy homework, worksheets, and shared resources from your therapist.',
+      siteName: 'Formulate',
+    },
     robots: 'noindex, nofollow',
     manifest: `/api/client-portal/manifest?token=${portalToken}`,
     other: {

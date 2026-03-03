@@ -5,6 +5,11 @@ import { ReferralLinkCard } from '@/components/ui/referral-link-card'
 
 export const metadata = {
   title: 'Referrals — Formulate',
+  description: 'Share Formulate with colleagues and earn rewards for each referral.',
+  openGraph: {
+    title: 'Referrals — Formulate',
+    description: 'Share Formulate with colleagues and earn rewards for each referral.',
+  },
 }
 
 export default async function ReferralsPage() {

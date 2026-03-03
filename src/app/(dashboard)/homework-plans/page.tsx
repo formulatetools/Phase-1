@@ -8,6 +8,11 @@ import { TemplateList } from '@/components/templates/template-list'
 
 export const metadata = {
   title: 'Homework Plans — Formulate',
+  description: 'Pre-built bundles of worksheets and resources you can assign to clients in one click.',
+  openGraph: {
+    title: 'Homework Plans — Formulate',
+    description: 'Pre-built bundles of worksheets and resources you can assign to clients in one click.',
+  },
 }
 
 export default async function HomeworkPlansPage() {

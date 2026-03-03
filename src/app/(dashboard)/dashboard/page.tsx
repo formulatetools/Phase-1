@@ -15,6 +15,11 @@ import { buttonVariants } from '@/components/ui/button-variants'
 
 export const metadata = {
   title: 'Dashboard — Formulate',
+  description: 'Your therapy practice at a glance — clients, homework, and recent activity.',
+  openGraph: {
+    title: 'Dashboard — Formulate',
+    description: 'Your therapy practice at a glance — clients, homework, and recent activity.',
+  },
 }
 
 export default async function DashboardPage() {

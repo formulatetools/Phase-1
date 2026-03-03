@@ -11,7 +11,13 @@ import { getBrandingConfig, resolveBranding } from '@/lib/branding'
 
 export const metadata = {
   title: 'Homework — Formulate',
-  robots: 'noindex, nofollow', // Don't index homework pages
+  description: 'Complete your therapy homework worksheet assigned by your therapist.',
+  openGraph: {
+    title: 'Therapy Homework',
+    description: 'Complete your therapy homework worksheet assigned by your therapist.',
+    siteName: 'Formulate',
+  },
+  robots: 'noindex, nofollow',
 }
 
 interface PageProps {

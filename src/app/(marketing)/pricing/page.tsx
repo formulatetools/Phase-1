@@ -3,6 +3,10 @@ import { PricingTable } from '@/components/marketing/pricing-table'
 export const metadata = {
   title: 'Pricing',
   description: 'Professional CBT tools starting free. Unlimited worksheet access from £4.99/month.',
+  openGraph: {
+    title: 'Pricing — Formulate',
+    description: 'Professional CBT tools starting free. Unlimited worksheet access from £4.99/month.',
+  },
   alternates: {
     canonical: '/pricing',
   },

@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   title: 'Create Account',
   description:
     'Sign up free for access to professional CBT worksheets and clinical tools.',
+  openGraph: {
+    title: 'Create Account — Formulate',
+    description: 'Sign up free for access to professional CBT worksheets and clinical tools.',
+  },
   alternates: {
     canonical: '/signup',
   },

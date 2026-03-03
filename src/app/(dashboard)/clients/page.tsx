@@ -5,7 +5,14 @@ import { TIER_LIMITS } from '@/lib/stripe/config'
 import type { TherapeuticRelationship, SubscriptionTier } from '@/types/database'
 import { ClientList } from '@/components/clients/client-list'
 
-export const metadata = { title: 'Clients — Formulate' }
+export const metadata = {
+  title: 'Clients — Formulate',
+  description: 'Manage your therapy clients, assign homework, and track progress.',
+  openGraph: {
+    title: 'Clients — Formulate',
+    description: 'Manage your therapy clients, assign homework, and track progress.',
+  },
+}
 
 export default async function ClientsPage() {
   const { user, profile } = await getCurrentUser()

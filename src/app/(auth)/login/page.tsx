@@ -5,6 +5,11 @@ import { AuthForm } from '@/components/ui/auth-form'
 
 export const metadata: Metadata = {
   title: 'Sign In',
+  description: 'Sign in to your Formulate account to access CBT worksheets and therapy tools.',
+  openGraph: {
+    title: 'Sign In — Formulate',
+    description: 'Sign in to your Formulate account to access CBT worksheets and therapy tools.',
+  },
   robots: { index: false, follow: false },
 }
 

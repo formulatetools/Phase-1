@@ -10,6 +10,11 @@ import type { ContributorRoles, ContributorProfile } from '@/types/database'
 
 export const metadata = {
   title: 'Settings — Formulate',
+  description: 'Manage your profile, subscription, and practice settings.',
+  openGraph: {
+    title: 'Settings — Formulate',
+    description: 'Manage your profile, subscription, and practice settings.',
+  },
 }
 
 export default async function SettingsPage() {

@@ -8,6 +8,11 @@ import { MyToolsList } from '@/components/my-tools/my-tools-list'
 
 export const metadata = {
   title: 'My Tools — Formulate',
+  description: 'Your custom worksheets and AI-generated therapy tools.',
+  openGraph: {
+    title: 'My Tools — Formulate',
+    description: 'Your custom worksheets and AI-generated therapy tools.',
+  },
 }
 
 export default async function MyToolsPage() {
