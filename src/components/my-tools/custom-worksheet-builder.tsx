@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,8 @@ import { createCustomWorksheet, updateCustomWorksheet, saveImportedResponse } fr
 import { SubmitToLibraryModal } from './submit-to-library-modal'
 import { ClientPreviewModal } from './client-preview-modal'
 import { useToast } from '@/hooks/use-toast'
+import { useHistory } from '@/hooks/use-history'
+import { cloneSection } from '@/lib/clone-worksheet-elements'
 
 interface CustomWorksheetBuilderProps {
   mode: 'create' | 'edit'
@@ -71,7 +73,7 @@ export function CustomWorksheetBuilder({
     setTitle(data.title)
     setDescription(data.description)
     setInstructions(data.instructions)
-    setSections(data.schema.sections)
+    resetHistory(data.schema.sections)
     setTagsInput(data.tags.join(', '))
     setEstimatedMinutes(data.estimatedMinutes)
 
@@ -95,10 +97,16 @@ export function CustomWorksheetBuilder({
   const [repeatable, setRepeatable] = useState(initialData?.schema?.repeatable || false)
   const [maxEntries, setMaxEntries] = useState(initialData?.schema?.max_entries || 7)
 
-  // Schema state
-  const [sections, setSections] = useState<WorksheetSection[]>(
-    initialData?.schema?.sections || []
-  )
+  // Schema state (with undo/redo history)
+  const {
+    value: sections,
+    set: setSections,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    reset: resetHistory,
+  } = useHistory<WorksheetSection[]>(initialData?.schema?.sections || [])
 
   // Pick up AI-generated draft from sessionStorage (from /my-tools/ai)
   useEffect(() => {
@@ -117,7 +125,7 @@ export function CustomWorksheetBuilder({
         setTitle(data.title || '')
         setDescription(data.description || '')
         setInstructions(data.instructions || '')
-        setSections(data.schema?.sections || [])
+        resetHistory(data.schema?.sections || [])
         setTagsInput((data.tags || []).join(', '))
         setEstimatedMinutes(data.estimated_minutes)
         if (data.schema?.repeatable) {
@@ -219,6 +227,55 @@ export function CustomWorksheetBuilder({
     newSections.splice(to, 0, moved)
     setSections(newSections)
   }
+
+  const duplicateSection = (index: number) => {
+    const cloned = cloneSection(sections[index])
+    cloned.title = cloned.title ? `${cloned.title} (copy)` : 'Copy'
+    const newSections = [...sections]
+    newSections.splice(index + 1, 0, cloned)
+    setSections(newSections)
+  }
+
+  // ── Section drag-and-drop ────────────────────────────────────────────────
+  const dragSectionRef = useRef<number | null>(null)
+  const dragOverSectionRef = useRef<number | null>(null)
+
+  const handleSectionDragStart = (index: number) => {
+    dragSectionRef.current = index
+  }
+  const handleSectionDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    dragOverSectionRef.current = index
+  }
+  const handleSectionDrop = () => {
+    if (dragSectionRef.current === null || dragOverSectionRef.current === null) return
+    if (dragSectionRef.current === dragOverSectionRef.current) return
+    moveSection(dragSectionRef.current, dragOverSectionRef.current)
+    dragSectionRef.current = null
+    dragOverSectionRef.current = null
+  }
+  const handleSectionDragEnd = () => {
+    dragSectionRef.current = null
+    dragOverSectionRef.current = null
+  }
+
+  // ── Undo/redo keyboard shortcuts ─────────────────────────────────────────
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMod = e.metaKey || e.ctrlKey
+      if (!isMod) return
+
+      if (e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+      } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+        e.preventDefault()
+        redo()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [undo, redo])
 
   // ── Save ───────────────────────────────────────────────────────────────
   const handleSave = async () => {
@@ -354,6 +411,29 @@ export function CustomWorksheetBuilder({
               Customised from library
             </span>
           )}
+          {/* Undo / Redo */}
+          <div className="flex items-center gap-0.5 ml-1">
+            <button
+              onClick={undo}
+              disabled={!canUndo}
+              className="rounded p-1.5 text-primary-400 hover:bg-primary-50 hover:text-primary-600 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-primary-400"
+              title="Undo (⌘Z)"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+              </svg>
+            </button>
+            <button
+              onClick={redo}
+              disabled={!canRedo}
+              className="rounded p-1.5 text-primary-400 hover:bg-primary-50 hover:text-primary-600 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-primary-400"
+              title="Redo (⌘⇧Z)"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {/* Mobile preview toggle */}
@@ -551,6 +631,11 @@ export function CustomWorksheetBuilder({
                 onRemove={() => removeSection(si)}
                 onMoveUp={() => si > 0 && moveSection(si, si - 1)}
                 onMoveDown={() => si < sections.length - 1 && moveSection(si, si + 1)}
+                onDuplicate={() => duplicateSection(si)}
+                onDragStart={() => handleSectionDragStart(si)}
+                onDragOver={(e) => handleSectionDragOver(e, si)}
+                onDrop={handleSectionDrop}
+                onDragEnd={handleSectionDragEnd}
               />
             ))}
 

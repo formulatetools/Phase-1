@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import type { WorksheetSection, WorksheetField, CustomFieldType, ShowWhenRule } from '@/types/worksheet'
+import { cloneField } from '@/lib/clone-worksheet-elements'
 import { FieldEditor } from './field-editor'
 
 interface SectionEditorProps {
@@ -16,6 +17,11 @@ interface SectionEditorProps {
   onRemove: () => void
   onMoveUp: () => void
   onMoveDown: () => void
+  onDuplicate?: () => void
+  onDragStart?: (e: React.DragEvent) => void
+  onDragOver?: (e: React.DragEvent) => void
+  onDrop?: (e: React.DragEvent) => void
+  onDragEnd?: (e: React.DragEvent) => void
 }
 
 const SHOW_WHEN_OPERATORS: { value: ShowWhenRule['operator']; label: string; needsValue: boolean }[] = [
@@ -120,9 +126,60 @@ export function SectionEditor({
   onRemove,
   onMoveUp,
   onMoveDown,
+  onDuplicate,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
 }: SectionEditorProps) {
   const [showFieldPicker, setShowFieldPicker] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+
+  // ── Field-level drag-and-drop ──────────────────────────────────────────
+  const dragFieldRef = useRef<number | null>(null)
+  const dragOverFieldRef = useRef<number | null>(null)
+
+  const handleFieldDragStart = (e: React.DragEvent, fieldIndex: number) => {
+    e.stopPropagation() // prevent section drag
+    dragFieldRef.current = fieldIndex
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleFieldDragOver = (e: React.DragEvent, fieldIndex: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragOverFieldRef.current = fieldIndex
+  }
+
+  const handleFieldDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const from = dragFieldRef.current
+    const to = dragOverFieldRef.current
+    if (from !== null && to !== null && from !== to) {
+      moveField(from, to)
+    }
+    dragFieldRef.current = null
+    dragOverFieldRef.current = null
+  }
+
+  const handleFieldDragEnd = (e: React.DragEvent) => {
+    e.stopPropagation()
+    dragFieldRef.current = null
+    dragOverFieldRef.current = null
+  }
+
+  // ── Duplicate field ────────────────────────────────────────────────────
+  const duplicateField = (fieldIndex: number) => {
+    const original = section.fields[fieldIndex]
+    const cloned = cloneField(original)
+    if (cloned.type !== 'formulation') {
+      cloned.label = `${cloned.label || 'Untitled'} (copy)`
+    }
+    const newFields = [...section.fields]
+    newFields.splice(fieldIndex + 1, 0, cloned)
+    onUpdate({ ...section, fields: newFields })
+  }
 
   const hasShowWhen = !!section.show_when
 
@@ -158,9 +215,23 @@ export function SectionEditor({
   }
 
   return (
-    <div className="rounded-2xl border border-primary-200 bg-primary-25 overflow-hidden">
+    <div
+      className="rounded-2xl border border-primary-200 bg-primary-25 overflow-hidden"
+      draggable={!!onDragStart}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+    >
       {/* Section header */}
       <div className="flex items-center gap-2 border-b border-primary-100 bg-surface px-4 py-3">
+        {onDragStart && (
+          <span className="cursor-grab text-primary-300 hover:text-primary-500 active:cursor-grabbing" title="Drag to reorder">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </span>
+        )}
         <button onClick={() => setCollapsed(!collapsed)} className="text-primary-400 hover:text-primary-600">
           <svg className={`h-4 w-4 transition-transform ${collapsed ? '' : 'rotate-90'}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -181,6 +252,11 @@ export function SectionEditor({
           <button onClick={onMoveDown} disabled={index === totalSections - 1} className="rounded p-1 text-primary-300 hover:bg-primary-50 hover:text-primary-500 disabled:opacity-30" title="Move section down">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
           </button>
+          {onDuplicate && (
+            <button onClick={onDuplicate} className="rounded p-1 text-primary-300 hover:bg-blue-50 hover:text-blue-500" title="Duplicate section">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
+            </button>
+          )}
           <button onClick={onRemove} className="rounded p-1 text-primary-300 hover:bg-red-50 hover:text-red-500" title="Remove section">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
           </button>
@@ -298,6 +374,11 @@ export function SectionEditor({
                 onRemove={() => removeField(fi)}
                 onMoveUp={() => fi > 0 && moveField(fi, fi - 1)}
                 onMoveDown={() => fi < section.fields.length - 1 && moveField(fi, fi + 1)}
+                onDuplicate={() => duplicateField(fi)}
+                onDragStart={(e) => handleFieldDragStart(e, fi)}
+                onDragOver={(e) => handleFieldDragOver(e, fi)}
+                onDrop={handleFieldDrop}
+                onDragEnd={handleFieldDragEnd}
               />
             ))}
           </div>

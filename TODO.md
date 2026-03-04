@@ -26,13 +26,25 @@
 - [x] Audit empty states across all pages (dashboard, clients, worksheets — all present)
 - **Existing onboarding was already comprehensive; fixes ensure mobile parity.**
 
-## 4. Worksheet Builder Improvements
-- [ ] Field reordering (drag-and-drop within sections)
-- [ ] Section reordering
-- [ ] Duplicate section/field
-- [ ] Live preview (as client would see it)
-- [ ] Undo/redo support
-- **Why**: Creation UX is functional but basic. Power users need more flexibility.
+## ~~4. Worksheet Builder Improvements~~ ✅
+- [x] Field reordering (drag-and-drop within sections)
+  - Native HTML5 DnD on fields with `e.stopPropagation()` to prevent section drag
+  - Drag handle icon (grip bars) on each field header
+  - Arrow buttons retained as mobile fallback
+- [x] Section reordering (drag-and-drop)
+  - Native HTML5 DnD on sections with drag handle icon
+  - Arrow buttons retained as mobile fallback
+- [x] Duplicate section/field
+  - Deep clone utility (`clone-worksheet-elements.ts`) with full ID regeneration
+  - Handles all field types: options, columns, formulation nodes/connections, record groups/sub-fields
+  - Copy button in section and field header button groups
+- [x] Live preview — already existed (right panel renders `<WorksheetRenderer>`)
+- [x] Undo/redo support
+  - Generic `useHistory<T>` hook with `useRef` stacks (max 50 snapshots)
+  - Keyboard shortcuts: `Cmd/Ctrl+Z` (undo), `Cmd/Ctrl+Shift+Z` or `Cmd/Ctrl+Y` (redo)
+  - Toolbar buttons (curved arrow icons) in builder header
+  - Import/AI-draft flows reset history stack
+- **5 files changed: `use-history.ts`, `clone-worksheet-elements.ts`, `custom-worksheet-builder.tsx`, `section-editor.tsx`, `field-editor.tsx`**
 
 ## ~~5. Monitoring & Observability~~ ✅
 - [x] Created `src/lib/logger.ts` — structured logger wrapping console + Sentry
