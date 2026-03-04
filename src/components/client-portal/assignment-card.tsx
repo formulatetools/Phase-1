@@ -42,11 +42,6 @@ function formatDate(dateStr: string) {
   return date.toLocaleDateString('en-GB', opts)
 }
 
-function isOverdue(dueDateStr: string | null): boolean {
-  if (!dueDateStr) return false
-  return new Date(dueDateStr) < new Date()
-}
-
 export function AssignmentCard({
   assignment,
   worksheet,
@@ -62,7 +57,6 @@ export function AssignmentCard({
 
   const isExpired = new Date(assignment.expires_at) < new Date()
   const isCurrent = variant === 'current'
-  const overdue = isCurrent && !isExpired && isOverdue(assignment.due_date) && assignment.status !== 'completed'
 
   const handleDownloadPdf = async () => {
     if (!schema) return
@@ -84,11 +78,9 @@ export function AssignmentCard({
 
   return (
     <div className={`rounded-2xl border bg-surface p-4 shadow-sm transition-colors sm:p-5 ${
-      overdue
-        ? 'border-amber-200 hover:border-amber-300'
-        : isExpired
-          ? 'border-primary-200 border-dashed'
-          : 'border-primary-100 hover:border-primary-200'
+      isExpired
+        ? 'border-primary-200 border-dashed'
+        : 'border-primary-100 hover:border-primary-200'
     }`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -99,9 +91,7 @@ export function AssignmentCard({
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-primary-400 dark:text-primary-600">
             <span>Assigned {formatDate(assignment.assigned_at)}</span>
             {assignment.due_date && (
-              <span className={overdue ? 'font-medium text-amber-600' : ''}>
-                {overdue ? 'Overdue — was due' : 'Due'} {formatDate(assignment.due_date)}
-              </span>
+              <span>Due {formatDate(assignment.due_date)}</span>
             )}
             {assignment.completed_at && variant === 'completed' && (
               <span>

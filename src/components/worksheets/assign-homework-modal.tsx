@@ -849,7 +849,7 @@ export function AssignHomeworkModal({
                     <div>
                       <p className="font-medium text-primary-800 dark:text-primary-200">Queue &amp; push one at a time</p>
                       <p className="mt-0.5 text-xs text-primary-500">
-                        Items are queued. You push the next worksheet or resource when your client is ready.
+                        Items are added to a queue. Only the first item is assigned immediately — you control when to send each subsequent item from the client&apos;s queue panel.
                       </p>
                     </div>
                   </div>

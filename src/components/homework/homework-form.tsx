@@ -58,6 +58,7 @@ export function HomeworkForm({
   const [generatingPdf, setGeneratingPdf] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected')
   const [pendingSubmit, setPendingSubmit] = useState(false)
+  const [showValidation, setShowValidation] = useState(false)
 
   // ── Multi-entry (diary mode) ───────────────────────────────────────────
   const isRepeatable = schema.repeatable === true
@@ -302,6 +303,9 @@ export function HomeworkForm({
   const handleSubmit = async () => {
     if (readOnly || submitted || isPreview) return
 
+    // Show validation hints on required fields
+    setShowValidation(true)
+
     if (!isOnline) {
       // Queue submission for when we reconnect
       setPendingSubmit(true)
@@ -512,6 +516,7 @@ export function HomeworkForm({
           initialValues={mergedInitialValues}
           readOnlyFieldIds={isRepeatable ? undefined : prefillReadOnlyIds}
           onValuesChange={readOnly ? undefined : handleValuesChange}
+          showValidation={showValidation}
         />
       </div>
 

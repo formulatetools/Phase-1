@@ -9,6 +9,7 @@ import { ThemeToggle, ThemeIcon } from '@/components/ui/theme-toggle'
 import { useTheme } from '@/components/providers/theme-provider'
 import { useShortcutsModal } from '@/components/providers/keyboard-shortcuts-provider'
 import { buttonVariants } from '@/components/ui/button'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -259,9 +260,10 @@ export function SidebarNav({
 
   // ── Sign out ───────────────────────────────────────────────────────────
   const [signingOut, setSigningOut] = useState(false)
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
 
   const handleSignOut = async () => {
-    if (!confirm('Are you sure you want to sign out?')) return
+    setShowSignOutConfirm(false)
     setSigningOut(true)
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -400,7 +402,7 @@ export function SidebarNav({
           </button>
         </div>
         <button
-          onClick={handleSignOut}
+          onClick={() => setShowSignOutConfirm(true)}
           disabled={signingOut}
           className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600 disabled:opacity-50"
         >
@@ -575,7 +577,7 @@ export function SidebarNav({
             </button>
           </div>
           <button
-            onClick={handleSignOut}
+            onClick={() => setShowSignOutConfirm(true)}
             disabled={signingOut}
             className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600 disabled:opacity-50"
           >
@@ -584,6 +586,16 @@ export function SidebarNav({
           </button>
         </div>
       </div>
+
+      <ConfirmModal
+        open={showSignOutConfirm}
+        title="Sign out?"
+        description="Are you sure you want to sign out of Formulate?"
+        confirmLabel="Sign out"
+        onConfirm={handleSignOut}
+        onCancel={() => setShowSignOutConfirm(false)}
+        loading={signingOut}
+      />
     </>
   )
 }

@@ -23,7 +23,7 @@ export const metadata = {
 export default async function WorksheetsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; tag?: string; type?: string }>
+  searchParams: Promise<{ q?: string; tag?: string; type?: string; page?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -49,7 +49,7 @@ export default async function WorksheetsPage({
     }
   }
 
-  // Fetch all published worksheets
+  // Fetch all published worksheets (used for tags, counts, and non-search views)
   const { data: allWorksheets } = await supabase
     .from('worksheets')
     .select('id, title, slug, description, tags, estimated_minutes, category_id, is_premium, categories(name, slug)')
@@ -74,42 +74,62 @@ export default async function WorksheetsPage({
   // Resource type filter
   const typeFilter = (params.type || 'all') as ResourceTypeFilter
 
-  // Client-side-style filtering (we already fetched everything)
+  // Pagination
+  const PAGE_SIZE = 24
+  const currentPage = Math.max(1, parseInt(params.page || '1', 10) || 1)
+
+  // Server-side search when query is provided
   let searchResults: typeof allWorksheets | null = null
   const hasSearchOrTag = params.q || params.tag
   const hasTypeFilter = typeFilter !== 'all'
 
   if (hasSearchOrTag || hasTypeFilter) {
-    const q = params.q?.toLowerCase() || ''
+    const q = params.q || ''
     const tag = params.tag || ''
 
-    searchResults = (allWorksheets || []).filter(
-      (w: { title: string; description: string; tags?: string[] }) => {
-        // Text/tag search filter
-        const matchesQuery =
-          !q ||
-          w.title.toLowerCase().includes(q) ||
-          w.description.toLowerCase().includes(q) ||
-          (w.tags || []).some((t: string) => t.toLowerCase().includes(q))
-        const matchesTag =
-          !tag || (w.tags || []).some((t: string) => t.toLowerCase() === tag.toLowerCase())
-        // Resource type filter
-        const matchesType = !hasTypeFilter || getResourceType(w.tags) === typeFilter
-        return matchesQuery && matchesTag && matchesType
+    if (q) {
+      // Use server-side ilike for text search
+      let searchQuery = supabase
+        .from('worksheets')
+        .select('id, title, slug, description, tags, estimated_minutes, category_id, is_premium, categories(name, slug)')
+        .eq('is_published', true)
+        .is('deleted_at', null)
+        .or(`title.ilike.%${q}%,description.ilike.%${q}%`)
+        .order('display_order')
+
+      const { data: serverResults } = await searchQuery
+      searchResults = serverResults || []
+
+      // Further filter by tag and type client-side (these are array operations not easily done in SQL)
+      if (tag || hasTypeFilter) {
+        searchResults = searchResults.filter(
+          (w: { tags?: string[] }) => {
+            const matchesTag = !tag || (w.tags || []).some((t: string) => t.toLowerCase() === tag.toLowerCase())
+            const matchesType = !hasTypeFilter || getResourceType(w.tags) === typeFilter
+            return matchesTag && matchesType
+          }
+        )
       }
-    )
+    } else {
+      // Tag/type only filter — use already-fetched data
+      searchResults = (allWorksheets || []).filter(
+        (w: { tags?: string[] }) => {
+          const matchesTag = !tag || (w.tags || []).some((t: string) => t.toLowerCase() === tag.toLowerCase())
+          const matchesType = !hasTypeFilter || getResourceType(w.tags) === typeFilter
+          return matchesTag && matchesType
+        }
+      )
+    }
 
     // Track search for analytics (fire-and-forget)
-    if (q) {
-      if (user) {
-        supabase.from('audit_log').insert({
-          user_id: user.id,
-          action: 'read',
-          entity_type: 'search',
-          entity_id: 'worksheet_search',
-          metadata: { query: q, tag: tag || null, type: typeFilter, results_count: searchResults.length },
-        }).then(() => {})
-      }
+    if (q && user) {
+      supabase.from('audit_log').insert({
+        user_id: user.id,
+        action: 'read',
+        entity_type: 'search',
+        entity_id: 'worksheet_search',
+        metadata: { query: q, tag: tag || null, type: typeFilter, results_count: searchResults.length },
+      }).then(() => {})
     }
   }
 
@@ -174,18 +194,24 @@ export default async function WorksheetsPage({
       <WorksheetSearch initialQuery={params.q} initialTag={params.tag} initialType={params.type} allTags={allTags} />
 
       {/* Search / filter results */}
-      {searchResults ? (
+      {searchResults ? (() => {
+        const totalResults = searchResults.length
+        const totalPages = Math.ceil(totalResults / PAGE_SIZE)
+        const paginatedResults = searchResults.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+        return (
         <div className="mt-8">
           {hasSearchOrTag && (
             <h2 className="mb-4 text-base font-semibold text-primary-800">
-              {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}{' '}
+              {totalResults} result{totalResults !== 1 ? 's' : ''}{' '}
               {params.q && <>for &quot;{params.q}&quot;</>}
               {params.tag && <> tagged &quot;{params.tag}&quot;</>}
             </h2>
           )}
-          {searchResults.length > 0 ? (
+          {paginatedResults.length > 0 ? (
+            <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {searchResults.map(
+              {paginatedResults.map(
                 (worksheet: {
                   id: string
                   slug: string
@@ -261,6 +287,32 @@ export default async function WorksheetsPage({
                 }
               )}
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <nav aria-label="Pagination" className="mt-8 flex items-center justify-center gap-2">
+                {currentPage > 1 && (
+                  <Link
+                    href={`/worksheets?${new URLSearchParams({ ...(params.q ? { q: params.q } : {}), ...(params.tag ? { tag: params.tag } : {}), ...(params.type ? { type: params.type } : {}), page: String(currentPage - 1) }).toString()}`}
+                    className="rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-600 hover:bg-primary-50 transition-colors"
+                  >
+                    Previous
+                  </Link>
+                )}
+                <span className="text-sm text-primary-400">
+                  Page {currentPage} of {totalPages}
+                </span>
+                {currentPage < totalPages && (
+                  <Link
+                    href={`/worksheets?${new URLSearchParams({ ...(params.q ? { q: params.q } : {}), ...(params.tag ? { tag: params.tag } : {}), ...(params.type ? { type: params.type } : {}), page: String(currentPage + 1) }).toString()}`}
+                    className="rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-600 hover:bg-primary-50 transition-colors"
+                  >
+                    Next
+                  </Link>
+                )}
+              </nav>
+            )}
+            </>
           ) : (
             <div className="rounded-2xl border border-dashed border-primary-200 bg-surface p-10 text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
@@ -294,7 +346,8 @@ export default async function WorksheetsPage({
             </div>
           )}
         </div>
-      ) : (
+        )
+      })() : (
         <>
           {/* Resource type cards */}
           <div className="mt-8 grid gap-4 sm:grid-cols-3">

@@ -99,7 +99,7 @@ export function WelcomeModal({ open, onStartTour }: WelcomeModalProps) {
             ))}
           </div>
           {!isLast && (
-            <Button variant="ghost" size="sm" onClick={handleDismiss}>
+            <Button variant="ghost" size="sm" onClick={handleDismiss} aria-label="Skip onboarding">
               Skip
             </Button>
           )}

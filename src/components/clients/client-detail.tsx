@@ -35,6 +35,7 @@ import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
 import { ShareModal } from '@/components/ui/share-modal'
 import { useAssign } from '@/components/providers/assign-provider'
 import { useToast } from '@/hooks/use-toast'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 type ClientTab = 'homework' | 'resources' | 'queue'
 
@@ -176,8 +177,10 @@ export function ClientDetail({
     }
   }
 
+  const [showDischargeConfirm, setShowDischargeConfirm] = useState(false)
+
   const handleDischarge = async () => {
-    if (!confirm('Discharge this client? They can be reactivated later.')) return
+    setShowDischargeConfirm(false)
     await dischargeClient(relationship.id)
   }
 
@@ -336,7 +339,7 @@ export function ClientDetail({
         <div className="flex gap-2">
           {relationship.status === 'active' ? (
             <button
-              onClick={handleDischarge}
+              onClick={() => setShowDischargeConfirm(true)}
               className="rounded-lg border border-primary-200 px-3 py-1.5 text-sm text-primary-500 hover:bg-primary-50 transition-colors"
             >
               Discharge
@@ -1148,6 +1151,15 @@ export function ClientDetail({
         portalUrl={relationship.client_portal_token ? `${appUrl}/client/${relationship.client_portal_token}` : undefined}
       />
 
+      <ConfirmModal
+        open={showDischargeConfirm}
+        title="Discharge client?"
+        description="This client will be moved to the discharged list. You can reactivate them later."
+        confirmLabel="Discharge"
+        variant="danger"
+        onConfirm={handleDischarge}
+        onCancel={() => setShowDischargeConfirm(false)}
+      />
     </div>
   )
 }
