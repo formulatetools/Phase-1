@@ -4,6 +4,7 @@ import { buildGeneratePrompt } from '@/lib/ai/generate-prompt'
 import { checkRateLimit } from '@/lib/rate-limit'
 import type { WorksheetSchema } from '@/types/worksheet'
 import Anthropic from '@anthropic-ai/sdk'
+import { logger } from '@/lib/logger'
 
 // AI call needs headroom beyond the default 10s
 export const maxDuration = 60
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
     // ── 5. Build prompt & call Claude ────────────────────────────────
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
-      console.error('ANTHROPIC_API_KEY not configured')
+      logger.error('ANTHROPIC_API_KEY not configured')
       return NextResponse.json(
         { error: 'AI service not configured. Please contact support.' },
         { status: 500 }
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
     try {
       parsed = JSON.parse(cleanedJson)
     } catch {
-      console.error('Demo AI returned invalid JSON:', cleanedJson.slice(0, 300))
+      logger.warn('Demo AI returned invalid JSON', { preview: cleanedJson.slice(0, 300) })
       return NextResponse.json(
         {
           error:
@@ -172,14 +173,14 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         )
       }
-      console.error('Anthropic API error (demo):', err.status, err.message)
+      logger.error('Anthropic API error (demo)', err, { status: err.status })
       return NextResponse.json(
         { error: 'AI service temporarily unavailable. Please try again.' },
         { status: 502 }
       )
     }
 
-    console.error('Demo generate error:', err)
+    logger.error('Demo generate error', err)
     return NextResponse.json(
       { error: 'Something went wrong. Please try again.' },
       { status: 500 }

@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { sendEmail } from '@/lib/email'
 import { homeworkCompletedEmail } from '@/lib/email-templates'
 import { triggerCompletionPush } from '@/lib/queue/completion-trigger'
+import { logger } from '@/lib/logger'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://formulatetools.co.uk'
 
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
         .eq('id', existingResponse.id)
 
       if (responseUpdateError) {
-        console.error('Response update error:', responseUpdateError)
+        logger.error('Response update error', responseUpdateError)
         return NextResponse.json({ error: 'Failed to save response' }, { status: 500 })
       }
 
@@ -120,18 +121,18 @@ export async function POST(request: NextRequest) {
         .eq('id', assignment.id)
 
       if (assignmentUpdateError) {
-        console.error('Assignment update error:', assignmentUpdateError)
+        logger.error('Assignment update error', assignmentUpdateError)
         return NextResponse.json({ error: 'Failed to update assignment status' }, { status: 500 })
       }
 
       // Send therapist notification email on submission
       if (action === 'submit') {
         notifyTherapist(supabase, assignment).catch((e) =>
-          console.error('Failed to send homework completed email:', e)
+          logger.warn('Failed to send homework completed email', { error: String(e) })
         )
         // Auto-push next queue item if completion-based push is enabled
         triggerCompletionPush(supabase, assignment).catch((e) =>
-          console.error('Completion push failed:', e)
+          logger.warn('Completion push failed', { error: String(e) })
         )
       }
 
@@ -152,7 +153,7 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (insertError) {
-        console.error('Insert error:', insertError)
+        logger.error('Insert error', insertError)
         return NextResponse.json({ error: 'Failed to save response' }, { status: 500 })
       }
 
@@ -169,25 +170,25 @@ export async function POST(request: NextRequest) {
         .eq('id', assignment.id)
 
       if (assignmentUpdateError2) {
-        console.error('Assignment update error:', assignmentUpdateError2)
+        logger.error('Assignment update error', assignmentUpdateError2)
         return NextResponse.json({ error: 'Failed to update assignment status' }, { status: 500 })
       }
 
       // Send therapist notification email on submission
       if (action === 'submit') {
         notifyTherapist(supabase, assignment).catch((e) =>
-          console.error('Failed to send homework completed email:', e)
+          logger.warn('Failed to send homework completed email', { error: String(e) })
         )
         // Auto-push next queue item if completion-based push is enabled
         triggerCompletionPush(supabase, assignment).catch((e) =>
-          console.error('Completion push failed:', e)
+          logger.warn('Completion push failed', { error: String(e) })
         )
       }
 
       return NextResponse.json({ success: true, responseId: newResponse?.id })
     }
   } catch (err) {
-    console.error('Homework API error:', err)
+    logger.error('Homework API error', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

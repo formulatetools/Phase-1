@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/supabase/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { stripe } from '@/lib/stripe/client'
 import { revalidatePath } from 'next/cache'
+import { logger } from '@/lib/logger'
 
 /**
  * Permanently deletes ALL data for the currently authenticated therapist.
@@ -52,7 +53,7 @@ export async function deleteAccount(): Promise<{ error?: string }> {
         }
       } catch (e) {
         // Log but don't block deletion — orphaned Stripe records are harmless
-        console.error('Failed to cancel Stripe subscriptions:', e)
+        logger.warn('Failed to cancel Stripe subscriptions', { error: String(e) })
       }
     }
 
@@ -70,13 +71,13 @@ export async function deleteAccount(): Promise<{ error?: string }> {
         .from('plan_queue_items')
         .delete()
         .in('queue_id', queueIds)
-      if (itemsErr) console.error('Failed to delete plan_queue_items:', itemsErr.message)
+      if (itemsErr) logger.warn('Failed to delete plan_queue_items', { error: itemsErr.message })
 
       const { error: queuesErr } = await admin
         .from('plan_queues')
         .delete()
         .eq('therapist_id', user.id)
-      if (queuesErr) console.error('Failed to delete plan_queues:', queuesErr.message)
+      if (queuesErr) logger.warn('Failed to delete plan_queues', { error: queuesErr.message })
     }
 
     // 2b. blog_reactions
@@ -84,7 +85,7 @@ export async function deleteAccount(): Promise<{ error?: string }> {
       .from('blog_reactions')
       .delete()
       .eq('user_id', user.id)
-    if (reactionsErr) console.error('Failed to delete blog_reactions:', reactionsErr.message)
+    if (reactionsErr) logger.warn('Failed to delete blog_reactions', { error: reactionsErr.message })
 
     // 2c. blog_posts (soft-delete to preserve comment threads / SEO)
     const { error: postsErr } = await admin
@@ -92,14 +93,14 @@ export async function deleteAccount(): Promise<{ error?: string }> {
       .update({ deleted_at: new Date().toISOString() })
       .eq('author_id', user.id)
       .is('deleted_at', null)
-    if (postsErr) console.error('Failed to soft-delete blog_posts:', postsErr.message)
+    if (postsErr) logger.warn('Failed to soft-delete blog_posts', { error: postsErr.message })
 
     // 2d. worksheet_reviews
     const { error: reviewsErr } = await admin
       .from('worksheet_reviews')
       .delete()
       .eq('reviewer_id', user.id)
-    if (reviewsErr) console.error('Failed to delete worksheet_reviews:', reviewsErr.message)
+    if (reviewsErr) logger.warn('Failed to delete worksheet_reviews', { error: reviewsErr.message })
 
     // ── 3. Nullify FK columns on system worksheets ─────────────────────
     // Curated worksheets may have submitted_by / published_by pointing to this user
@@ -107,25 +108,25 @@ export async function deleteAccount(): Promise<{ error?: string }> {
       .from('worksheets')
       .update({ submitted_by: null })
       .eq('submitted_by', user.id)
-    if (submittedErr) console.error('Failed to nullify submitted_by:', submittedErr.message)
+    if (submittedErr) logger.warn('Failed to nullify submitted_by', { error: submittedErr.message })
 
     const { error: publishedErr } = await admin
       .from('worksheets')
       .update({ published_by: null })
       .eq('published_by', user.id)
-    if (publishedErr) console.error('Failed to nullify published_by:', publishedErr.message)
+    if (publishedErr) logger.warn('Failed to nullify published_by', { error: publishedErr.message })
 
     // ── 4. Delete auth user (cascades profile → everything else) ───────
     const { error: authErr } = await admin.auth.admin.deleteUser(user.id)
     if (authErr) {
-      console.error('Failed to delete auth user:', authErr.message)
+      logger.error('Failed to delete auth user', authErr)
       return { error: 'Failed to delete your account. Please contact support.' }
     }
 
     revalidatePath('/settings')
     return {}
   } catch (e) {
-    console.error('Account deletion failed:', e)
+    logger.error('Account deletion failed', e)
     return { error: 'An unexpected error occurred. Please contact support.' }
   }
 }

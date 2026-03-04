@@ -1,13 +1,20 @@
 'use client'
 
+import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import Link from 'next/link'
 
 export default function AuthError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  useEffect(() => {
+    Sentry.captureException(error)
+  }, [error])
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-4 bg-background">
       <div className="mx-auto max-w-md rounded-2xl border border-primary-100 bg-surface p-8 text-center shadow-sm">

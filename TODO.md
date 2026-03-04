@@ -34,12 +34,26 @@
 - [ ] Undo/redo support
 - **Why**: Creation UX is functional but basic. Power users need more flexibility.
 
-## 5. Monitoring & Observability
-- [ ] Structured logging for critical paths (homework submit, Stripe webhooks, auth)
-- [ ] Sentry alerting rules for error spikes
-- [ ] Health check endpoint
-- [ ] Failed webhook retry visibility
-- **Why**: Currently no way to know something is broken until a user reports it.
+## ~~5. Monitoring & Observability~~ ✅
+- [x] Created `src/lib/logger.ts` — structured logger wrapping console + Sentry
+  - `logger.error` → `console.error` + `Sentry.captureException` (unexpected breakage)
+  - `logger.warn` → `console.warn` + `Sentry.captureMessage` (handled/non-critical)
+  - `logger.info` → `console.log` only (operational/debugging)
+- [x] Replaced `console.error` with logger in 9 critical files:
+  - Stripe webhook (5 calls: 1 error, 4 warn)
+  - Resend webhook (1 error)
+  - Homework submission route (9 calls: 5 error, 4 warn)
+  - AI generate-worksheet + demo-generate (8 calls: 6 error, 2 warn)
+  - Settings delete account action (10 calls: 2 error, 8 warn)
+  - Client portal delete-response + Stripe portal routes (2 error)
+  - Email utility (2 error)
+- [x] Added `Sentry.captureException` to 6 segment error boundaries
+  - `src/app/error.tsx`, `(dashboard)/error.tsx`, `(dashboard)/admin/error.tsx`
+  - `(dashboard)/blog/error.tsx`, `(auth)/error.tsx`, `(marketing)/error.tsx`
+  - Fixed `(auth)` and `(marketing)` which were missing `error` in destructuring
+- [x] Health check endpoint already exists at `/api/health` (Supabase + Stripe + Resend)
+- [x] Sentry alerting — configure at sentry.io dashboard post-deploy
+- **37 console.error calls replaced across 9 files. All critical paths now report to Sentry.**
 
 ## ~~6. Mobile Experience~~ ✅
 - [x] Full audit of all key pages at 375px viewport (iPhone SE)

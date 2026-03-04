@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { STRIPE_PRICES, TIER_LABELS } from '@/lib/stripe/config'
 import { sendEmail } from '@/lib/email'
 import { abandonedCheckoutEmail, subscriptionCancelledEmail, paymentFailedEmail } from '@/lib/email-templates'
+import { logger } from '@/lib/logger'
 
 // Determine subscription tier from the Stripe price ID
 function getTierFromPriceId(priceId: string): 'starter' | 'standard' | 'professional' | null {
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
       process.env.STRIPE_WEBHOOK_SECRET!
     )
   } catch (err) {
-    console.error('Webhook signature verification failed:', err)
+    logger.warn('Webhook signature verification failed', { error: String(err) })
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
           }
         } catch {
           // Don't fail the webhook if referral tracking fails
-          console.error('[referral] Failed to convert referral for user:', userId)
+          logger.warn('[referral] Failed to convert referral', { userId })
         }
 
         break
@@ -246,7 +247,7 @@ export async function POST(request: NextRequest) {
             subject: cancelEmail.subject,
             html: cancelEmail.html,
             emailType: 'subscription_cancelled',
-          }).catch((e) => console.error('Failed to send cancellation email:', e))
+          }).catch((e) => logger.warn('Failed to send cancellation email', { error: String(e) }))
         }
 
         break
@@ -289,7 +290,7 @@ export async function POST(request: NextRequest) {
             subject: failedEmail.subject,
             html: failedEmail.html,
             emailType: 'payment_failed',
-          }).catch((e) => console.error('Failed to send payment failed email:', e))
+          }).catch((e) => logger.warn('Failed to send payment failed email', { error: String(e) }))
         }
 
         break
@@ -344,7 +345,7 @@ export async function POST(request: NextRequest) {
     // Log but return 200 to prevent Stripe from retrying non-transient errors
     // (e.g. profile not found, DB constraint violations). Stripe will retry
     // indefinitely on 5xx responses, creating noise and wasted compute.
-    console.error('Webhook handler error:', error)
+    logger.error('Stripe webhook handler error', error)
   }
 
   return NextResponse.json({ received: true })

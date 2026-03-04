@@ -10,6 +10,7 @@ import {
 import type { SubscriptionTier } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
 import Anthropic from '@anthropic-ai/sdk'
+import { logger } from '@/lib/logger'
 
 // Hobby plan default is 10s — AI call needs more headroom
 export const maxDuration = 60
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
     // ── 6. Call Claude ───────────────────────────────────────────────
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
-      console.error('ANTHROPIC_API_KEY not configured')
+      logger.error('ANTHROPIC_API_KEY not configured')
       return NextResponse.json(
         { error: 'AI service not configured. Please contact support.' },
         { status: 500 }
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
     try {
       parsed = JSON.parse(cleanedJson)
     } catch {
-      console.error('AI returned invalid JSON:', cleanedJson.slice(0, 300))
+      logger.warn('AI returned invalid JSON', { preview: cleanedJson.slice(0, 300) })
       return NextResponse.json(
         {
           error:
@@ -244,14 +245,14 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         )
       }
-      console.error('Anthropic API error:', err.status, err.message)
+      logger.error('Anthropic API error', err, { status: err.status })
       return NextResponse.json(
         { error: 'AI service temporarily unavailable. Please try again.' },
         { status: 502 }
       )
     }
 
-    console.error('Generate worksheet error:', err)
+    logger.error('Generate worksheet error', err)
     return NextResponse.json(
       { error: 'Something went wrong. Please try again.' },
       { status: 500 }

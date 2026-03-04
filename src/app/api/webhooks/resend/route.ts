@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
 
 /**
  * Resend webhook handler — tracks email delivery events
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('[resend-webhook] Error processing event:', error)
+    logger.error('[resend-webhook] Error processing event', error)
     // Always return 200 to prevent Resend from retrying
     return NextResponse.json({ received: true })
   }

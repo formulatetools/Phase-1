@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { sendEmail } from '@/lib/email'
 import { withdrawalNotificationEmail } from '@/lib/email-templates'
+import { logger } from '@/lib/logger'
 
 // POST /api/client-portal/delete-response — delete a single homework response
 // Uses service role (anonymous client portal, no auth)
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('Client portal delete-response error:', err)
+    logger.error('Client portal delete-response error', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
