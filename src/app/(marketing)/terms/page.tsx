@@ -9,7 +9,7 @@ export default function TermsPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold text-primary-900">Terms of Service</h1>
-      <p className="mt-2 text-sm text-primary-400">Draft — last updated February 2026. These terms require legal drafting before formal publication.</p>
+      <p className="mt-2 text-sm text-primary-400">Last updated February 2026.</p>
 
       <div className="mt-10 space-y-8 text-sm leading-relaxed text-primary-700">
         <section>

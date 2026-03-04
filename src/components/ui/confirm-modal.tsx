@@ -27,11 +27,16 @@ export function ConfirmModal({
   onCancel,
 }: ConfirmModalProps) {
   const confirmRef = useRef<HTMLButtonElement>(null)
+  const triggerRef = useRef<Element | null>(null)
 
-  // Focus the confirm button when modal opens
+  // Save the trigger element and focus the confirm button when modal opens; restore on close
   useEffect(() => {
     if (open) {
+      triggerRef.current = document.activeElement
       requestAnimationFrame(() => confirmRef.current?.focus())
+    } else if (triggerRef.current instanceof HTMLElement) {
+      triggerRef.current.focus()
+      triggerRef.current = null
     }
   }, [open])
 

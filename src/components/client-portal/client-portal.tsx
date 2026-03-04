@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
 import { PortalConsent } from './portal-consent'
 import { AssignmentCard } from './assignment-card'
@@ -73,8 +73,8 @@ export function ClientPortal({
   const [consented, setConsented] = useState(initialConsented)
   const [activeTab, setActiveTab] = useState<PortalTab>('homework')
 
-  const worksheetMap = new Map(worksheets.map((w) => [w.id, w]))
-  const responseMap = new Map(responses.map((r) => [r.assignment_id, r]))
+  const worksheetMap = useMemo(() => new Map(worksheets.map((w) => [w.id, w])), [worksheets])
+  const responseMap = useMemo(() => new Map(responses.map((r) => [r.assignment_id, r])), [responses])
 
   // Register service worker after consent
   useEffect(() => {

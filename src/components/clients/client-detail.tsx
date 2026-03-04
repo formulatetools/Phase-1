@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type {
@@ -156,8 +156,8 @@ export function ClientDetail({
 
   const canAssign = maxActiveAssignments === Infinity || totalActiveAssignments < maxActiveAssignments
 
-  const worksheetMap = new Map(worksheets.map((w) => [w.id, w]))
-  const responseMap = new Map(responses.map((r) => [r.assignment_id, r]))
+  const worksheetMap = useMemo(() => new Map(worksheets.map((w) => [w.id, w])), [worksheets])
+  const responseMap = useMemo(() => new Map(responses.map((r) => [r.assignment_id, r])), [responses])
 
   const handleSaveLabel = async () => {
     if (!label.trim()) return
@@ -593,7 +593,7 @@ export function ClientDetail({
       )}
 
       {/* Tab bar */}
-      <div className="flex rounded-lg border border-primary-200 bg-primary-50 p-0.5 dark:border-primary-700 dark:bg-primary-800">
+      <div className="flex rounded-lg border border-primary-200 bg-primary-50 p-0.5 dark:border-primary-700 dark:bg-primary-800" role="tablist" aria-label="Client content">
         {([
           { key: 'homework' as const, label: 'Homework', count: assignments.length },
           { key: 'resources' as const, label: 'Resources', count: sharedResources.length },
@@ -601,6 +601,8 @@ export function ClientDetail({
         ]).map((tab) => (
           <button
             key={tab.key}
+            role="tab"
+            aria-selected={activeTab === tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
               activeTab === tab.key

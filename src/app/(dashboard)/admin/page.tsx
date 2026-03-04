@@ -5,9 +5,10 @@ import { createClient } from '@/lib/supabase/server'
 import { activityLabel, activityIcon, timeAgo, type ActivityItem } from '@/lib/utils/activity'
 import { TIER_PRICES, TIER_LABELS } from '@/lib/stripe/config'
 import { AdminTabs } from '@/components/admin/admin-tabs'
-import { SignupChart } from '@/components/admin/signup-chart'
-import { AssignmentChart } from '@/components/admin/assignment-chart'
-import { PopularWorksheetsChart } from '@/components/admin/popular-worksheets-chart'
+import dynamic from 'next/dynamic'
+const SignupChart = dynamic(() => import('@/components/admin/signup-chart').then(m => m.SignupChart), { ssr: false })
+const AssignmentChart = dynamic(() => import('@/components/admin/assignment-chart').then(m => m.AssignmentChart), { ssr: false })
+const PopularWorksheetsChart = dynamic(() => import('@/components/admin/popular-worksheets-chart').then(m => m.PopularWorksheetsChart), { ssr: false })
 
 export const metadata = { title: 'Admin Dashboard — Formulate' }
 
@@ -188,10 +189,11 @@ export default async function AdminPage() {
       .gte('created_at', twelveMonthsAgo.toISOString())
       .order('created_at', { ascending: true }),
 
-    // 9. All access logs
+    // 9. Access logs (last 90 days — sufficient for popularity ranking)
     supabase
       .from('worksheet_access_log')
-      .select('worksheet_id, access_type'),
+      .select('worksheet_id, access_type')
+      .gte('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()),
 
     // 10. All assignment logs
     supabase

@@ -269,7 +269,7 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
         )}
 
         {error && (
-          <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </div>
         )}

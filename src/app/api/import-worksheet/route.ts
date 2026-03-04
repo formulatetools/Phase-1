@@ -80,7 +80,6 @@ export async function POST(request: NextRequest) {
     let extractedText: string
 
     const buffer = Buffer.from(await file.arrayBuffer())
-    console.log(`[import-worksheet] Extracting text from ${file.type} (${file.size} bytes)`)
 
     if (file.type === 'application/pdf') {
       try {
@@ -90,7 +89,6 @@ export async function POST(request: NextRequest) {
         extractedText = Array.isArray(result.text)
           ? result.text.join('\n\n')
           : String(result.text)
-        console.log(`[import-worksheet] PDF text extracted: ${extractedText.length} chars`)
       } catch (pdfErr) {
         console.error('[import-worksheet] PDF parse failed:', pdfErr)
         return NextResponse.json(
@@ -121,12 +119,6 @@ export async function POST(request: NextRequest) {
     // ── 4b. Strip PII before AI processing ───────────────────────────
     const { text: sanitisedText, strippedCounts } = stripPii(extractedText)
 
-    if (strippedCounts.total > 0) {
-      console.log(
-        `[import-worksheet] Stripped ${strippedCounts.total} PII items:`,
-        JSON.stringify(strippedCounts)
-      )
-    }
 
     // ── 5. Call Claude Haiku 4.5 ─────────────────────────────────────
     const filled = formData.get('filled') === 'true'

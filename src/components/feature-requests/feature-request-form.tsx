@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { submitFeatureRequest } from '@/app/(dashboard)/feature-requests/actions'
 import type { FeatureRequestCategory } from '@/types/database'
 
@@ -20,6 +20,11 @@ export function FeatureRequestForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const successTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => {
+    return () => { if (successTimerRef.current) clearTimeout(successTimerRef.current) }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,7 +47,7 @@ export function FeatureRequestForm() {
       setDescription('')
       setCurrentTool('')
       setCategory('platform_feature')
-      setTimeout(() => setSuccess(false), 5000)
+      successTimerRef.current = setTimeout(() => setSuccess(false), 5000)
     }
     setLoading(false)
   }
@@ -72,8 +77,9 @@ export function FeatureRequestForm() {
       <div className="space-y-4">
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium text-primary-700 mb-1">Category</label>
+          <label htmlFor="fr-category" className="block text-sm font-medium text-primary-700 mb-1">Category</label>
           <select
+            id="fr-category"
             value={category}
             onChange={(e) => setCategory(e.target.value as FeatureRequestCategory)}
             className="w-full rounded-lg border border-primary-200 px-3 py-2 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none"
@@ -86,10 +92,11 @@ export function FeatureRequestForm() {
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-primary-700 mb-1">
+          <label htmlFor="fr-title" className="block text-sm font-medium text-primary-700 mb-1">
             Title <span className="text-red-400">*</span>
           </label>
           <input
+            id="fr-title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -102,10 +109,11 @@ export function FeatureRequestForm() {
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-primary-700 mb-1">
+          <label htmlFor="fr-description" className="block text-sm font-medium text-primary-700 mb-1">
             Description <span className="text-primary-400">(optional)</span>
           </label>
           <textarea
+            id="fr-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
@@ -116,10 +124,11 @@ export function FeatureRequestForm() {
 
         {/* Current tool */}
         <div>
-          <label className="block text-sm font-medium text-primary-700 mb-1">
+          <label htmlFor="fr-current-tool" className="block text-sm font-medium text-primary-700 mb-1">
             What do you currently use for this? <span className="text-primary-400">(optional)</span>
           </label>
           <input
+            id="fr-current-tool"
             type="text"
             value={currentTool}
             onChange={(e) => setCurrentTool(e.target.value)}

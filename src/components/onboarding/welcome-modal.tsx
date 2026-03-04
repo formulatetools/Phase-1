@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { completeOnboarding } from '@/app/(dashboard)/dashboard/actions'
 import { Button } from '@/components/ui/button'
 
@@ -56,10 +56,20 @@ export function WelcomeModal({ open, onStartTour }: WelcomeModalProps) {
   const [step, setStep] = useState(0)
   const [visible, setVisible] = useState(open)
 
-  const handleDismiss = async () => {
+  const handleDismiss = useCallback(async () => {
     setVisible(false)
     await completeOnboarding()
-  }
+  }, [])
+
+  // Close on Escape
+  useEffect(() => {
+    if (!visible) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleDismiss()
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [visible, handleDismiss])
 
   const handleGetStarted = async () => {
     setVisible(false)

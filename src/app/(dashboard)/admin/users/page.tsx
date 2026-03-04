@@ -4,8 +4,9 @@ import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { TIER_LABELS } from '@/lib/stripe/config'
 import { AdminTabs } from '@/components/admin/admin-tabs'
-import { SignupChart } from '@/components/admin/signup-chart'
-import { TierDistributionChart } from '@/components/admin/tier-distribution-chart'
+import dynamic from 'next/dynamic'
+const SignupChart = dynamic(() => import('@/components/admin/signup-chart').then(m => m.SignupChart), { ssr: false })
+const TierDistributionChart = dynamic(() => import('@/components/admin/tier-distribution-chart').then(m => m.TierDistributionChart), { ssr: false })
 import type { ContributorRoles } from '@/types/database'
 
 export const metadata = { title: 'User Analytics — Admin — Formulate' }

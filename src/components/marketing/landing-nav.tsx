@@ -85,35 +85,35 @@ export function LandingNav() {
             <Link
               href="/worksheets"
               onClick={() => setOpen(false)}
-              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-1"
+              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-3"
             >
               Resources
             </Link>
             <Link
               href="/blog"
               onClick={() => setOpen(false)}
-              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-1"
+              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-3"
             >
               Blog
             </Link>
             <Link
               href="#pricing"
               onClick={() => setOpen(false)}
-              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-1"
+              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-3"
             >
               Pricing
             </Link>
             <Link
               href="/faq"
               onClick={() => setOpen(false)}
-              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-1"
+              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-3"
             >
               FAQ
             </Link>
             <Link
               href="/login"
               onClick={() => setOpen(false)}
-              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-1"
+              className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-3"
             >
               Sign In
             </Link>

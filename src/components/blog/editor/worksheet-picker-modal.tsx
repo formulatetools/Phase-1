@@ -48,11 +48,11 @@ export function WorksheetPickerModal({ onSelect, onClose }: WorksheetPickerModal
     : results
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" role="dialog" aria-modal="true" aria-labelledby="picker-modal-title">
       <div className="w-full max-w-lg rounded-2xl border border-primary-100 bg-surface shadow-lg">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-primary-100 px-5 py-3">
-          <h3 className="text-sm font-semibold text-primary-900">Embed a Worksheet</h3>
+          <h3 id="picker-modal-title" className="text-sm font-semibold text-primary-900">Embed a Worksheet</h3>
           <button
             type="button"
             onClick={onClose}

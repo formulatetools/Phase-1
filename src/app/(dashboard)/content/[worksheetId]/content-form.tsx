@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { submitContent, unclaimContent } from '../actions'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 import { CONTENT_WORD_MIN, CONTENT_WORD_MAX } from '../constants'
 import { useToast } from '@/hooks/use-toast'
 import type { ContentStatus } from '@/types/database'
@@ -22,6 +23,7 @@ export function ContentForm({ worksheetId, worksheetSlug, existingContent, statu
 
   const [content, setContent] = useState(existingContent)
   const [submitting, setSubmitting] = useState(false)
+  const [showUnclaimConfirm, setShowUnclaimConfirm] = useState(false)
 
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length
   const isValidLength = wordCount >= CONTENT_WORD_MIN && wordCount <= CONTENT_WORD_MAX
@@ -61,9 +63,12 @@ export function ContentForm({ worksheetId, worksheetSlug, existingContent, statu
     }
   }
 
-  const handleUnclaim = async () => {
-    if (!window.confirm('Unclaim this worksheet? Any draft content will be lost.')) return
+  const handleUnclaim = () => {
+    setShowUnclaimConfirm(true)
+  }
 
+  const handleConfirmedUnclaim = async () => {
+    setShowUnclaimConfirm(false)
     setSubmitting(true)
     try {
       const result = await unclaimContent(worksheetId)
@@ -185,6 +190,16 @@ export function ContentForm({ worksheetId, worksheetSlug, existingContent, statu
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        open={showUnclaimConfirm}
+        title="Unclaim this worksheet?"
+        description="Any draft content will be lost."
+        confirmLabel="Unclaim"
+        variant="danger"
+        onConfirm={handleConfirmedUnclaim}
+        onCancel={() => setShowUnclaimConfirm(false)}
+      />
     </div>
   )
 }

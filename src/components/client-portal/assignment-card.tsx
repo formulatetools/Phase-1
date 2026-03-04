@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import type { WorksheetSchema } from '@/types/worksheet'
-import { downloadFillablePdf } from '@/lib/utils/fillable-pdf'
+// pdf-lib loaded dynamically on demand (~500KB)
 
 interface PortalAssignment {
   id: string
@@ -54,6 +54,11 @@ export function AssignmentCard({
   const title = worksheet?.title || 'Worksheet'
   const [downloading, setDownloading] = useState(false)
   const [downloadSuccess, setDownloadSuccess] = useState(false)
+  const successTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => {
+    return () => { if (successTimerRef.current) clearTimeout(successTimerRef.current) }
+  }, [])
 
   const isExpired = new Date(assignment.expires_at) < new Date()
   const isCurrent = variant === 'current'
@@ -62,13 +67,14 @@ export function AssignmentCard({
     if (!schema) return
     setDownloading(true)
     try {
+      const { downloadFillablePdf } = await import('@/lib/utils/fillable-pdf')
       await downloadFillablePdf({
         schema,
         title,
         values: responseData || undefined,
       })
       setDownloadSuccess(true)
-      setTimeout(() => setDownloadSuccess(false), 2000)
+      successTimerRef.current = setTimeout(() => setDownloadSuccess(false), 2000)
     } catch {
       // PDF generation failed silently — the user sees the button revert
     } finally {

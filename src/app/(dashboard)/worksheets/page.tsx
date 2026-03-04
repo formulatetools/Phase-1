@@ -1,3 +1,5 @@
+export const revalidate = 3600 // revalidate worksheet library every hour
+
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
@@ -235,11 +237,6 @@ export default async function WorksheetsPage({
                         <h3 className="font-semibold text-primary-900 group-hover:text-brand-dark">
                           {worksheet.title}
                         </h3>
-                        {worksheet.is_premium && (
-                          <span className="ml-2 shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-semibold text-brand">
-                            PRO
-                          </span>
-                        )}
                       </div>
                       <p className="mt-1 text-sm text-primary-500 line-clamp-2">
                         {worksheet.description}

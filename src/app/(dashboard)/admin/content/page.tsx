@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { AdminTabs } from '@/components/admin/admin-tabs'
-import { PopularWorksheetsChart } from '@/components/admin/popular-worksheets-chart'
+import dynamic from 'next/dynamic'
+const PopularWorksheetsChart = dynamic(() => import('@/components/admin/popular-worksheets-chart').then(m => m.PopularWorksheetsChart), { ssr: false })
 import { ContentReviewActions } from './content-review-actions'
 import type { ContributorProfile } from '@/types/database'
 

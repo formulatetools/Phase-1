@@ -241,6 +241,16 @@ export function SidebarNav({
     setMoreOpen(false)
   }, [pathname])
 
+  // ── Close more sheet on Escape ─────────────────────────────────────────
+  useEffect(() => {
+    if (!moreOpen) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMoreOpen(false)
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [moreOpen])
+
   // ── Swipe down to close more sheet ─────────────────────────────────────
   const touchStartY = useRef(0)
   const handleSheetTouchStart = useCallback((e: React.TouchEvent) => {
@@ -277,6 +287,7 @@ export function SidebarNav({
       key={item.href}
       href={item.href}
       data-tour={item.tourId}
+      aria-current={active ? 'page' : undefined}
       className={`flex items-center gap-3 rounded-lg py-2.5 text-sm transition-colors ${
         active
           ? 'border-l-[3px] border-brand bg-brand/10 pl-[calc(0.75rem-3px)] pr-3 font-semibold text-brand-dark'

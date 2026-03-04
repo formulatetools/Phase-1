@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
 import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
 import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
@@ -126,8 +126,8 @@ export function DataManagement({
     new Map()
   )
 
-  const worksheetMap = new Map(worksheets.map((w) => [w.id, w]))
-  const responseMap = new Map(responses.map((r) => [r.assignment_id, r]))
+  const worksheetMap = useMemo(() => new Map(worksheets.map((w) => [w.id, w])), [worksheets])
+  const responseMap = useMemo(() => new Map(responses.map((r) => [r.assignment_id, r])), [responses])
 
   // ─── Handlers ────────────────────────────────────────────────
 

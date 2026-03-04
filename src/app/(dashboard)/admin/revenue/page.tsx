@@ -3,8 +3,9 @@ import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { TIER_PRICES, TIER_LABELS } from '@/lib/stripe/config'
 import { AdminTabs } from '@/components/admin/admin-tabs'
-import { RevenueChart } from '@/components/admin/revenue-chart'
-import { TierDistributionChart } from '@/components/admin/tier-distribution-chart'
+import dynamic from 'next/dynamic'
+const RevenueChart = dynamic(() => import('@/components/admin/revenue-chart').then(m => m.RevenueChart), { ssr: false })
+const TierDistributionChart = dynamic(() => import('@/components/admin/tier-distribution-chart').then(m => m.TierDistributionChart), { ssr: false })
 
 export const metadata = { title: 'Revenue Analytics — Admin — Formulate' }
 

@@ -76,4 +76,5 @@ export const RATE_LIMITS: Record<string, { limit: number; windowMs: number }> = 
   '/api/blog/upload-image': { limit: 10, windowMs: 60_000 },
   '/api/blog/reactions': { limit: 30, windowMs: 60_000 },
   '/api/demo-generate': { limit: 3, windowMs: 60_000 },
+  '/api/generate-worksheet': { limit: 5, windowMs: 60_000 },
 }

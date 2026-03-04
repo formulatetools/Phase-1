@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { MetadataRoute } from 'next'
+import type { BlogCategory } from '@/types/database'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://formulatetools.co.uk'
@@ -20,10 +21,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     supabase.from('categories').select('slug'),
     supabase
       .from('blog_posts')
-      .select('slug, updated_at')
+      .select('slug, updated_at, category')
       .eq('status', 'published')
       .is('deleted_at', null),
   ])
+
+  // Derive blog categories from actually published posts instead of hardcoding
+  const usedBlogCategories = new Set(
+    (blogPosts || []).map((p) => p.category as BlogCategory).filter(Boolean)
+  )
 
   // ── Static pages ─────────────────────────────────────────────────────────
   const staticPages: MetadataRoute.Sitemap = [
@@ -64,9 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  const blogCategoryPages: MetadataRoute.Sitemap = [
-    'clinical', 'worksheet-guide', 'practice', 'updates',
-  ].map((cat) => ({
+  const blogCategoryPages: MetadataRoute.Sitemap = [...usedBlogCategories].map((cat) => ({
     url: `${baseUrl}/blog/category/${cat}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,

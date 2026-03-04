@@ -9,14 +9,14 @@ export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold text-primary-900">Privacy Policy</h1>
-      <p className="mt-2 text-sm text-primary-400">Draft — last updated February 2026. This policy requires legal review before formal publication.</p>
+      <p className="mt-2 text-sm text-primary-400">Last updated February 2026.</p>
 
       <div className="mt-10 space-y-8 text-sm leading-relaxed text-primary-700">
         <section>
           <h2 className="text-lg font-semibold text-primary-900">Who we are</h2>
           <p className="mt-2">
             Formulate is a platform of interactive clinical psychology tools and worksheets for use by qualified
-            healthcare professionals. For data protection queries, contact privacy@formulate.app.
+            healthcare professionals. For data protection queries, contact privacy@formulatetools.co.uk.
           </p>
         </section>
 
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
 
         <section>
           <h2 className="text-lg font-semibold text-primary-900">Your rights</h2>
-          <p className="mt-2">Under UK GDPR, you have the right to access, rectify, erase, restrict processing of, and port your data, and to object to processing. Contact privacy@formulate.app. We will respond within 30 days.</p>
+          <p className="mt-2">Under UK GDPR, you have the right to access, rectify, erase, restrict processing of, and port your data, and to object to processing. Contact privacy@formulatetools.co.uk. We will respond within 30 days.</p>
         </section>
 
         <section>

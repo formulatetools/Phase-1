@@ -87,7 +87,7 @@ export default async function Home() {
           </a>
         </div>
         <p className="mt-4 text-xs text-primary-400">
-          Free forever. No credit card required.
+          Start free. No credit card required.
         </p>
       </section>
 
@@ -125,7 +125,7 @@ export default async function Home() {
             <p className="mx-auto mt-4 max-w-2xl text-primary-500">
               Type a description like &ldquo;health anxiety maintenance formulation&rdquo;
               or &ldquo;thought record for social anxiety&rdquo; — and get a complete,
-              clinically accurate worksheet in seconds. Try it now.
+              structured worksheet in seconds. Review, refine, and make it yours.
             </p>
           </div>
 

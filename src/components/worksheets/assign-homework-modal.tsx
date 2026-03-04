@@ -470,10 +470,12 @@ export function AssignHomeworkModal({
         </p>
 
         {/* Tab bar */}
-        <div className="mt-4 flex rounded-lg border border-primary-200 bg-primary-50 p-0.5 dark:border-primary-700 dark:bg-primary-800">
+        <div className="mt-4 flex rounded-lg border border-primary-200 bg-primary-50 p-0.5 dark:border-primary-700 dark:bg-primary-800" role="tablist" aria-label="Assignment type">
           {(['worksheet', 'resource', 'template'] as const).map((tab) => (
             <button
               key={tab}
+              role="tab"
+              aria-selected={activeTab === tab}
               onClick={() => handleTabChange(tab)}
               className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 activeTab === tab
