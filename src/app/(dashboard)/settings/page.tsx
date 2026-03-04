@@ -7,6 +7,7 @@ import { SubscriptionDetails } from '@/components/ui/subscription-details'
 import { ContributorProfileForm } from '@/components/ui/contributor-profile-form'
 import { BlogDigestToggle } from '@/components/ui/blog-digest-toggle'
 import { ChangePasswordForm } from '@/components/ui/change-password-form'
+import { DeleteAccountSection } from '@/components/ui/delete-account-section'
 import type { ContributorRoles, ContributorProfile } from '@/types/database'
 
 export const metadata = {
@@ -135,6 +136,8 @@ export default async function SettingsPage() {
             <PromoCodeInput mode="redeem" />
           </div>
         )}
+
+        <DeleteAccountSection />
       </div>
     </div>
   )

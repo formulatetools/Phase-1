@@ -127,6 +127,7 @@ interface WorksheetRendererProps {
   initialValues?: Record<string, unknown>
   readOnlyFieldIds?: Set<string>  // Individual fields locked (e.g. therapist pre-fills)
   onValuesChange?: (values: Record<string, FieldValue>) => void
+  showValidation?: boolean  // Show required-field errors (set after submit attempt)
 }
 
 export function WorksheetRenderer({
@@ -135,6 +136,7 @@ export function WorksheetRenderer({
   initialValues,
   readOnlyFieldIds,
   onValuesChange,
+  showValidation = false,
 }: WorksheetRendererProps) {
   const [values, setValues] = useState<Record<string, FieldValue>>(() => {
     const initial: Record<string, FieldValue> = {}
@@ -751,6 +753,7 @@ export function WorksheetRenderer({
               field={field}
               value={values[field.id] as string}
               onChange={(v) => updateValue(field.id, v)}
+              showError={showValidation && !!field.required && !values[field.id]}
             />
           )
         case 'textarea':
@@ -760,6 +763,7 @@ export function WorksheetRenderer({
               field={field}
               value={values[field.id] as string}
               onChange={(v) => updateValue(field.id, v)}
+              showError={showValidation && !!field.required && !values[field.id]}
             />
           )
         case 'number':
@@ -769,6 +773,7 @@ export function WorksheetRenderer({
               field={field}
               value={values[field.id] as number | ''}
               onChange={(v) => updateValue(field.id, v)}
+              showError={showValidation && !!field.required && (values[field.id] === '' || values[field.id] === undefined)}
             />
           )
         case 'likert':
@@ -796,6 +801,7 @@ export function WorksheetRenderer({
               field={field}
               value={values[field.id] as string}
               onChange={(v) => updateValue(field.id, v)}
+              showError={showValidation && !!field.required && !values[field.id]}
             />
           )
         case 'time':
@@ -805,6 +811,7 @@ export function WorksheetRenderer({
               field={field}
               value={values[field.id] as string}
               onChange={(v) => updateValue(field.id, v)}
+              showError={showValidation && !!field.required && !values[field.id]}
             />
           )
         case 'select':
@@ -814,6 +821,7 @@ export function WorksheetRenderer({
               field={field}
               value={values[field.id] as string}
               onChange={(v) => updateValue(field.id, v)}
+              showError={showValidation && !!field.required && !values[field.id]}
             />
           )
         case 'table':

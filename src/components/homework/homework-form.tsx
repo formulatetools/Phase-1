@@ -55,6 +55,7 @@ export function HomeworkForm({
   const [submitted, setSubmitted] = useState(isCompleted)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [showValidation, setShowValidation] = useState(false)
   const [generatingPdf, setGeneratingPdf] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected')
   const [pendingSubmit, setPendingSubmit] = useState(false)
@@ -302,6 +303,25 @@ export function HomeworkForm({
   const handleSubmit = async () => {
     if (readOnly || submitted || isPreview) return
 
+    // Check required fields before submitting
+    const currentValues = isRepeatable
+      ? entriesRef.current[activeEntryIndex] || {}
+      : valuesRef.current
+
+    const requiredFields = schema.sections.flatMap((s) =>
+      s.fields.filter((f) => f.required)
+    )
+    const missingFields = requiredFields.filter((f) => {
+      const v = currentValues[f.id]
+      return v === undefined || v === '' || v === null
+    })
+
+    if (missingFields.length > 0) {
+      setShowValidation(true)
+      setErrorMessage('Please fill in all required fields before submitting.')
+      return
+    }
+
     if (!isOnline) {
       // Queue submission for when we reconnect
       setPendingSubmit(true)
@@ -512,6 +532,7 @@ export function HomeworkForm({
           initialValues={mergedInitialValues}
           readOnlyFieldIds={isRepeatable ? undefined : prefillReadOnlyIds}
           onValuesChange={readOnly ? undefined : handleValuesChange}
+          showValidation={showValidation}
         />
       </div>
 

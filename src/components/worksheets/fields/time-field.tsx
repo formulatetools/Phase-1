@@ -6,9 +6,11 @@ interface Props {
   field: TimeFieldType
   value: string
   onChange: (value: string) => void
+  showError?: boolean
 }
 
-export function TimeField({ field, value, onChange }: Props) {
+export function TimeField({ field, value, onChange, showError }: Props) {
+  const errorId = `${field.id}-error`
   return (
     <div>
       <label htmlFor={field.id} className="block text-sm font-medium text-primary-700">
@@ -21,8 +23,19 @@ export function TimeField({ field, value, onChange }: Props) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={field.required}
-        className="mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-base md:text-sm text-primary-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30"
+        aria-invalid={showError || undefined}
+        aria-describedby={showError ? errorId : undefined}
+        className={`mt-1 block w-full rounded-lg border px-3 py-2 text-base md:text-sm text-primary-900 focus:outline-none focus:ring-1 ${
+          showError
+            ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
+            : 'border-primary-200 focus:border-brand focus:ring-brand/30'
+        }`}
       />
+      {showError && (
+        <p id={errorId} className="mt-1 text-xs text-red-600" role="alert">
+          This field is required
+        </p>
+      )}
     </div>
   )
 }
