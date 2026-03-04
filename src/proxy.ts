@@ -15,8 +15,30 @@ const protectedPrefixes = [
   '/feature-requests', '/promo',
 ]
 
+// ── CSP nonce + header helper ───────────────────────────────────
+function buildCsp(nonce: string) {
+  return [
+    `default-src 'self'`,
+    `script-src 'self' 'nonce-${nonce}' https://va.vercel-scripts.com https://js.stripe.com`,
+    `style-src 'self' 'unsafe-inline'`,
+    `font-src 'self' https://fonts.gstatic.com`,
+    `img-src 'self' data: blob: https://*.supabase.co`,
+    `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.ingest.sentry.io https://vitals.vercel-insights.com https://va.vercel-scripts.com`,
+    `frame-src https://js.stripe.com`,
+    `object-src 'none'`,
+    `base-uri 'self'`,
+  ].join('; ')
+}
+
+function applyCsp(response: NextResponse, nonce: string) {
+  response.headers.set('Content-Security-Policy', buildCsp(nonce))
+  response.headers.set('x-nonce', nonce)
+  return response
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const nonce = crypto.randomUUID()
 
   // ── Rate limiting for API routes ─────────────────────────────────
   if (pathname.startsWith('/api/')) {
@@ -59,7 +81,7 @@ export async function proxy(request: NextRequest) {
 
   // Skip auth checks if Supabase isn't configured yet
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return supabaseResponse
+    return applyCsp(supabaseResponse, nonce)
   }
 
   const supabase = createServerClient(
@@ -97,12 +119,12 @@ export async function proxy(request: NextRequest) {
 
   // Allow public routes
   if (publicRoutes.some((route) => pathname === route)) {
-    return supabaseResponse
+    return applyCsp(supabaseResponse, nonce)
   }
 
   // Allow browse-only routes (worksheet library is the acquisition funnel)
   if (browseRoutes.some((route) => pathname.startsWith(route))) {
-    return supabaseResponse
+    return applyCsp(supabaseResponse, nonce)
   }
 
   // Redirect unauthenticated users to login only for known protected routes
@@ -114,7 +136,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  return supabaseResponse
+  return applyCsp(supabaseResponse, nonce)
 }
 
 export const config = {

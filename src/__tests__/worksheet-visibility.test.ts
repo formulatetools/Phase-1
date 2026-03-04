@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { evaluateShowWhen, resolveFieldValue } from '@/lib/utils/worksheet-visibility'
+import { evaluateShowWhen, resolveFieldValue, type FieldValue } from '@/lib/utils/worksheet-visibility'
 
 // ── resolveFieldValue ──────────────────────────────────────────────────
 
@@ -35,7 +35,7 @@ describe('resolveFieldValue', () => {
 
   it('returns undefined for a 2-part reference when parent is not an array', () => {
     const values = { 'thought-log': 'not-a-table' }
-    expect(resolveFieldValue('thought-log.emotion', values as Record<string, unknown>)).toBeUndefined()
+    expect(resolveFieldValue('thought-log.emotion', values as Record<string, FieldValue>)).toBeUndefined()
   })
 
   it('resolves a 3-part formulation.node.field reference', () => {
@@ -46,14 +46,14 @@ describe('resolveFieldValue', () => {
         },
       } as unknown,
     }
-    expect(resolveFieldValue('formulation.core-belief.content', values as Record<string, unknown>)).toBe(
+    expect(resolveFieldValue('formulation.core-belief.content', values as Record<string, FieldValue>)).toBe(
       'I am worthless'
     )
   })
 
   it('returns undefined for a 3-part reference when nodes are missing', () => {
     const values = { formulation: {} as unknown }
-    expect(resolveFieldValue('formulation.core-belief.content', values as Record<string, unknown>)).toBeUndefined()
+    expect(resolveFieldValue('formulation.core-belief.content', values as Record<string, FieldValue>)).toBeUndefined()
   })
 
   it('returns undefined for 4+ part references', () => {

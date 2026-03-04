@@ -1,6 +1,6 @@
 import type { ShowWhenRule } from '@/types/worksheet'
 
-type FieldValue = string | number | '' | string[] | Record<string, string | number | ''>[]
+export type FieldValue = string | number | '' | string[] | Record<string, string | number | ''>[]
 
 export function resolveFieldValue(
   fieldRef: string,

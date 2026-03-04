@@ -78,6 +78,26 @@
 - [x] Dashboard contributor section: flex wraps on mobile
 - **Audited 6 pages, fixed issues across 6 files. No horizontal overflow or sub-44px tap targets.**
 
+## ~~8. CI/CD Pipeline~~ ✅
+- [x] Added `typecheck` script (`tsc --noEmit`) to `package.json`
+- [x] Created `.github/workflows/ci.yml` — GitHub Actions workflow
+  - Runs on push to `main` and pull requests
+  - pnpm 10 + Node 22 with lockfile caching
+  - Steps: `pnpm lint`, `pnpm typecheck`, `pnpm test`
+- **Catches regressions automatically on every push and PR.**
+
+## ~~9. Content Security Policy (CSP)~~ ✅
+- [x] Added CSP with per-request nonces to `src/proxy.ts`
+  - `buildCsp()` generates strict directive string with nonce
+  - `applyCsp()` sets `Content-Security-Policy` + `x-nonce` headers
+  - Applied to all page-route return paths (public, browse, protected, fallthrough)
+  - API routes and redirects excluded (no HTML to protect)
+- [x] Modified `src/app/layout.tsx` to read nonce from headers
+  - `nonce={nonce}` on all 3 inline `<script>` tags (theme, JSON-LD × 2)
+  - Layout made async to read request headers
+- CSP directives: `default-src 'self'`, strict `script-src` with nonce, allowlists for Supabase/Stripe/Sentry/Vercel
+- **XSS protection for a healthcare SaaS handling clinical data under GDPR.**
+
 ## 7. Legal Housekeeping
 - [ ] ICO registration (legally required as data processor)
 - [ ] Professional indemnity insurance review
