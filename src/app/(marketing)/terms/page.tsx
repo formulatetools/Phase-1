@@ -9,11 +9,15 @@ export default function TermsPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold text-primary-900">Terms of Service</h1>
-      <p className="mt-2 text-sm text-primary-400">Draft — last updated February 2026. These terms require legal drafting before formal publication.</p>
+      <p className="mt-2 text-sm text-primary-400">Last updated March 2026</p>
 
       <div className="mt-10 space-y-8 text-sm leading-relaxed text-primary-700">
         <section>
           <h2 className="text-lg font-semibold text-primary-900">Service description</h2>
+          <p className="mt-2">
+            Formulate is operated by Formulate Tools Ltd, a company registered in England &amp; Wales
+            (Company No. 17065550), registered address 11 Chantry Close, TW16 7TH.
+          </p>
           <p className="mt-2">
             Formulate provides a platform of interactive clinical psychology tools and worksheets for use by
             qualified healthcare professionals in the course of their clinical practice. Formulate is a tool
@@ -77,7 +81,7 @@ export default function TermsPage() {
 
         <section>
           <h2 className="text-lg font-semibold text-primary-900">Contact</h2>
-          <p className="mt-2">For questions about these terms, contact privacy@formulate.app.</p>
+          <p className="mt-2">For questions about these terms, contact privacy@formulatetools.co.uk.</p>
         </section>
       </div>
 
