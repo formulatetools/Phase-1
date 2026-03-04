@@ -38,7 +38,7 @@ export default async function DashboardPage() {
     { count: completedAssignmentCount },
     { count: pendingReviewCount },
     { data: recentActivity },
-    { count: userExportCount },
+    { count: _userExportCount },
     { data: latestRedemption },
     { data: activeSubscription },
     { count: activeSuperviseeCount },
@@ -224,7 +224,6 @@ export default async function DashboardPage() {
     browsedWorksheets: (recentAccess && recentAccess.length > 0) || false,
     addedClient: totalClients > 0,
     assignedHomework: totalAssignments > 0,
-    exportedWorksheet: (userExportCount ?? 0) > 0,
   }
 
   // Activity feed helpers imported from @/lib/utils/activity

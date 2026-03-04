@@ -457,6 +457,7 @@ export function SidebarNav({
       {/* ── Mobile bottom tab bar ── */}
       <nav
         aria-label="Main"
+        data-tour="mobile-tab-bar"
         className="fixed bottom-0 left-0 right-0 z-30 border-t border-primary-100 bg-surface md:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
@@ -467,6 +468,7 @@ export function SidebarNav({
               <Link
                 key={item.href}
                 href={item.href}
+                data-tour={item.tourId ? `mobile-${item.tourId}` : undefined}
                 className={`flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1.5 text-[11px] font-medium transition-colors ${
                   active
                     ? 'text-primary-800'
@@ -492,6 +494,7 @@ export function SidebarNav({
             onClick={() => setMoreOpen((v) => !v)}
             aria-expanded={moreOpen}
             aria-label="Additional navigation menu"
+            data-tour="mobile-nav-more"
             className={`flex flex-col items-center gap-0.5 px-4 pt-2 pb-1.5 text-[11px] font-medium transition-colors ${
               moreOpen || isMoreActive
                 ? 'text-primary-800'

@@ -3,35 +3,45 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 
 interface TourStep {
-  target: string        // data-tour attribute value
+  target: string           // data-tour attribute value (desktop)
+  mobileTarget?: string    // fallback data-tour value for mobile
   title: string
+  mobileTitle?: string     // optional mobile-specific title
   description: string
-  position: 'right' | 'bottom'
+  mobileDescription?: string // optional mobile-specific description
+  position: 'right' | 'bottom' | 'top'
 }
 
 const TOUR_STEPS: TourStep[] = [
   {
     target: 'sidebar-nav',
+    mobileTarget: 'mobile-tab-bar',
     title: 'Your Navigation',
     description: 'Navigate between the library, clients, and settings from here.',
+    mobileDescription: 'Use the tab bar to navigate between the library, clients, plans, and more.',
     position: 'right',
   },
   {
     target: 'nav-worksheets',
+    mobileTarget: 'mobile-nav-worksheets',
     title: 'Library',
     description: 'Browse evidence-based CBT worksheets, create your own custom tools, or generate them with AI.',
     position: 'right',
   },
   {
     target: 'nav-clients',
+    mobileTarget: 'mobile-nav-clients',
     title: 'Client Management',
     description: 'Add clients using non-identifiable labels, assign homework, and track completion — all GDPR-compliant.',
     position: 'right',
   },
   {
     target: 'nav-settings',
+    mobileTarget: 'mobile-nav-more',
     title: 'Your Settings',
+    mobileTitle: 'Settings & More',
     description: 'Manage your profile, subscription, and preferences here. You can also change the theme.',
+    mobileDescription: 'Tap "More" to access your settings, blog, feature requests, and account preferences.',
     position: 'right',
   },
 ]
@@ -52,36 +62,66 @@ function isElementVisible(el: Element): boolean {
   return rect.width > 0 && rect.height > 0
 }
 
+/**
+ * Find the best visible target element for a step.
+ * Tries the primary target first, then the mobile fallback.
+ */
+function findVisibleTarget(step: TourStep): { el: Element; isMobile: boolean } | null {
+  const primaryEl = document.querySelector(`[data-tour="${step.target}"]`)
+  if (primaryEl && isElementVisible(primaryEl)) {
+    return { el: primaryEl, isMobile: false }
+  }
+
+  if (step.mobileTarget) {
+    const mobileEl = document.querySelector(`[data-tour="${step.mobileTarget}"]`)
+    if (mobileEl && isElementVisible(mobileEl)) {
+      return { el: mobileEl, isMobile: true }
+    }
+  }
+
+  return null
+}
+
 export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }: GuidedTourProps) {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
   const tooltipRef = useRef<HTMLDivElement>(null)
 
   const currentStep = TOUR_STEPS[step]
   const isLast = step === TOUR_STEPS.length - 1
   const isFirst = step === 0
 
+  // Resolve display text (use mobile overrides when on mobile)
+  const displayTitle = isMobile && currentStep?.mobileTitle
+    ? currentStep.mobileTitle
+    : currentStep?.title ?? ''
+  const displayDescription = isMobile && currentStep?.mobileDescription
+    ? currentStep.mobileDescription
+    : currentStep?.description ?? ''
+
   const updateTargetRect = useCallback(() => {
     if (!currentStep) return
-    const el = document.querySelector(`[data-tour="${currentStep.target}"]`)
-    if (el && isElementVisible(el)) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    const result = findVisibleTarget(currentStep)
+    if (result) {
+      setIsMobile(result.isMobile)
+      result.el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       // Small delay for scroll to complete
       setTimeout(() => {
-        setTargetRect(el.getBoundingClientRect())
+        setTargetRect(result.el.getBoundingClientRect())
       }, 100)
     } else {
-      // Target not found or not visible (e.g. sidebar hidden on mobile)
+      // Target not found or not visible
       setTargetRect(null)
     }
   }, [currentStep])
 
-  // Auto-skip steps whose target is invisible (mobile: sidebar items are hidden)
+  // Auto-skip steps whose target is invisible (both desktop and mobile targets)
   useEffect(() => {
     if (!active || !currentStep) return
 
-    const el = document.querySelector(`[data-tour="${currentStep.target}"]`)
-    if (!el || !isElementVisible(el)) {
-      // Target is invisible — auto-advance or complete
+    const result = findVisibleTarget(currentStep)
+    if (!result) {
+      // Neither target is visible — auto-advance or complete
       const timer = setTimeout(() => {
         if (isLast) {
           onComplete()
@@ -110,7 +150,15 @@ export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }:
   const padding = 8
   const tooltipStyle: React.CSSProperties = {}
 
-  if (currentStep.position === 'right' && targetRect.right + padding + 12 + tooltipWidth < vw) {
+  // Determine effective position: mobile targets at bottom of screen use 'top' positioning
+  const effectivePosition = isMobile ? 'top' : currentStep.position
+
+  if (effectivePosition === 'top') {
+    // Position above the target (for mobile tab bar at bottom of screen)
+    const tooltipHeight = 220 // approximate tooltip height
+    tooltipStyle.top = Math.max(12, targetRect.top - padding - 12 - tooltipHeight)
+    tooltipStyle.left = Math.max(12, Math.min((vw - tooltipWidth) / 2, vw - tooltipWidth - 12))
+  } else if (effectivePosition === 'right' && targetRect.right + padding + 12 + tooltipWidth < vw) {
     // Position to the right of the target (desktop sidebar)
     tooltipStyle.top = Math.min(targetRect.top, vh - 220)
     tooltipStyle.left = targetRect.right + padding + 12
@@ -175,9 +223,9 @@ export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }:
           </span>
         </div>
 
-        <h3 className="text-base font-bold text-primary-900">{currentStep.title}</h3>
+        <h3 className="text-base font-bold text-primary-900">{displayTitle}</h3>
         <p className="mt-1.5 text-sm leading-relaxed text-primary-500">
-          {currentStep.description}
+          {displayDescription}
         </p>
 
         {/* Actions */}

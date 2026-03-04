@@ -9,7 +9,6 @@ interface ChecklistStatus {
   browsedWorksheets: boolean
   addedClient: boolean
   assignedHomework: boolean
-  exportedWorksheet: boolean
 }
 
 interface OnboardingChecklistProps {
