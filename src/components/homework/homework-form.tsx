@@ -9,6 +9,7 @@ import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
 import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { BlankPdfGenerator, type BlankPdfGeneratorHandle } from './blank-pdf-generator'
 import { downloadInteractiveHtml } from '@/lib/utils/html-worksheet-export'
+import { findMissingRequiredFields } from '@/lib/utils/homework-validation'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 
 type FieldValue = string | number | '' | string[] | Record<string, string | number | ''>[]
@@ -308,13 +309,7 @@ export function HomeworkForm({
       ? entriesRef.current[activeEntryIndex] || {}
       : valuesRef.current
 
-    const requiredFields = schema.sections.flatMap((s) =>
-      s.fields.filter((f) => f.required)
-    )
-    const missingFields = requiredFields.filter((f) => {
-      const v = currentValues[f.id]
-      return v === undefined || v === '' || v === null
-    })
+    const missingFields = findMissingRequiredFields(schema, currentValues)
 
     if (missingFields.length > 0) {
       setShowValidation(true)
