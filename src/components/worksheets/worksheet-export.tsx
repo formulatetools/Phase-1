@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
-import { downloadFillablePdf } from '@/lib/utils/fillable-pdf'
 import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
 import { downloadInteractiveHtml } from '@/lib/utils/html-worksheet-export'
 import { Button } from '@/components/ui/button'
@@ -38,6 +37,7 @@ export function WorksheetExport({
     onExport?.()
 
     try {
+      const { downloadFillablePdf } = await import('@/lib/utils/fillable-pdf')
       await downloadFillablePdf({
         schema,
         title: worksheetTitle,

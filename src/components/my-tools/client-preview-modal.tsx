@@ -24,7 +24,7 @@ export function ClientPreviewModal({
   saving,
 }: ClientPreviewModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background">
+    <div className="fixed inset-0 z-50 flex flex-col bg-background" role="dialog" aria-modal="true" aria-label="Client preview">
       {/* Top bar */}
       <div className="sticky top-0 z-10 border-b border-primary-100 bg-surface/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3 sm:px-6">

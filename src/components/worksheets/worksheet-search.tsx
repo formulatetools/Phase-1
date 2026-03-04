@@ -129,6 +129,7 @@ export function WorksheetSearch({ initialQuery, initialTag, initialType, allTags
           <input
             type="text"
             data-search-input
+            aria-label="Search resources"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search resources by title, description, or keyword..."
@@ -137,6 +138,7 @@ export function WorksheetSearch({ initialQuery, initialTag, initialType, allTags
           {query && (
             <button
               onClick={() => setQuery('')}
+              aria-label="Clear search"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-primary-300 hover:text-primary-500"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">

@@ -76,7 +76,6 @@ export const TIER_FEATURES: Record<string, string[]> = {
     '3 custom worksheets',
     '3 AI worksheet generations per month',
     '1 homework plan',
-    'Bookmark & favourite tools',
   ],
   standard: [
     'Everything in Starter',

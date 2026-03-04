@@ -1,3 +1,5 @@
+export const revalidate = 3600 // revalidate worksheet library every hour
+
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'

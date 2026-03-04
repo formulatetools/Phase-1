@@ -36,18 +36,24 @@ function renderMarks(text: string, marks?: Array<{ type: string; attrs?: Record<
       case 'code':
         node = <code className="rounded bg-primary-100 px-1 py-0.5 text-sm">{node}</code>
         break
-      case 'link':
-        node = (
+      case 'link': {
+        const href = mark.attrs?.href as string
+        // Sanitize: only allow http(s) and mailto URLs to prevent javascript: XSS
+        const isSafe = typeof href === 'string' && /^(https?:|mailto:|\/)/i.test(href)
+        node = isSafe ? (
           <a
-            href={mark.attrs?.href as string}
+            href={href}
             target="_blank"
             rel="noopener noreferrer"
             className="text-brand hover:text-brand-dark underline"
           >
             {node}
           </a>
+        ) : (
+          <span className="underline">{node}</span>
         )
         break
+      }
     }
   }
   return node

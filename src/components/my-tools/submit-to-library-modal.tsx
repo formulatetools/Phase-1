@@ -65,7 +65,7 @@ export function SubmitToLibraryModal({ worksheetId, categories, agreementAccepte
     'mt-1 block w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30 placeholder:text-primary-300'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="submit-library-title">
       <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
         {/* Close button */}
         <button
@@ -77,7 +77,7 @@ export function SubmitToLibraryModal({ worksheetId, categories, agreementAccepte
           </svg>
         </button>
 
-        <h2 className="mb-1 text-lg font-semibold text-primary-900">Submit to Library</h2>
+        <h2 id="submit-library-title" className="mb-1 text-lg font-semibold text-primary-900">Submit to Library</h2>
         <p className="mb-5 text-sm text-primary-400">
           Your worksheet will be reviewed before appearing in the public library.
         </p>

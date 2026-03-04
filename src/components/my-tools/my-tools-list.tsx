@@ -140,10 +140,10 @@ export function MyToolsList({ worksheets }: MyToolsListProps) {
 
       {/* Delete confirmation modal */}
       {confirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="delete-ws-title">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setConfirmId(null)} />
           <div className="relative w-full max-w-sm rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-primary-900">Delete worksheet?</h3>
+            <h3 id="delete-ws-title" className="text-lg font-bold text-primary-900">Delete worksheet?</h3>
             <p className="mt-2 text-sm text-primary-500">
               This will remove the worksheet from your tools. Any existing homework assignments using this worksheet will still be accessible.
             </p>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import type { WorkspaceTemplate } from '@/types/database'
 import type { WorksheetSchema } from '@/types/worksheet'
@@ -242,8 +243,7 @@ function PreviewResourceCard({
               className="group relative block h-20 w-[120px] rounded-xl bg-primary-100 overflow-hidden"
             >
               {video.thumbnailUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={video.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                <Image src={video.thumbnailUrl} alt="" fill className="object-cover" unoptimized />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
                   <svg className="h-5 w-5 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">

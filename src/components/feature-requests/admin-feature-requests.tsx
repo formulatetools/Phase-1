@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { updateFeatureRequestStatus } from '@/app/(dashboard)/feature-requests/actions'
 import { useToast } from '@/components/providers/toast-provider'
 import type { FeatureRequest, FeatureRequestCategory, FeatureRequestStatus } from '@/types/database'
@@ -45,6 +45,11 @@ export function AdminFeatureRequests({ requests, voteCounts, userMap }: Props) {
   const [editNotes, setEditNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => {
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
+  }, [])
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const { toast } = useToast()
 
@@ -100,7 +105,7 @@ export function AdminFeatureRequests({ requests, voteCounts, userMap }: Props) {
       toast({ type: 'error', message: result.error })
     } else {
       setSaveSuccess(true)
-      setTimeout(() => setSaveSuccess(false), 3000)
+      saveTimerRef.current = setTimeout(() => setSaveSuccess(false), 3000)
     }
     setSaving(false)
   }

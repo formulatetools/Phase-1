@@ -8,6 +8,7 @@ import { getWorksheetBySlug } from '@/lib/supabase/queries'
 import { TIER_LIMITS } from '@/lib/stripe/config'
 import { WorksheetDetail } from '@/components/worksheets/worksheet-detail'
 import { getResourceType } from '@/lib/utils/resource-type'
+import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
 import type { ContributorProfile } from '@/types/database'
 
 export async function generateStaticParams() {
@@ -139,6 +140,16 @@ export default async function WorksheetPage({
     }
   }
 
+  // Compute PDF branding based on subscription tier
+  const isPaid = profile && profile.subscription_tier !== 'free'
+  const branding: PdfBrandingOptions = isPaid
+    ? { style: 'footer', text: 'Powered by Formulate', opacity: 1, fontSize: 48, showLogo: true, logoOpacity: 0.4 }
+    : { style: 'diagonal', text: 'Formulate', opacity: 0.06, fontSize: 48, showLogo: true, logoOpacity: 1 }
+
+  // Compute actual usesRemaining accounting for monthly reset
+  const resetAt = profile?.download_count_reset_at
+  const effectiveDownloadCount = (resetAt && new Date(resetAt) <= new Date()) ? 0 : (profile?.monthly_download_count ?? 0)
+
   const category = worksheet.categories as { name: string; slug: string } | null
 
   // ── Structured data (JSON-LD) ─────────────────────────────────────────
@@ -167,7 +178,7 @@ export default async function WorksheetPage({
     <div className="px-4 py-8 sm:px-8 lg:px-12">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <div className="mx-auto max-w-4xl">
         <div className="mb-2">
@@ -279,10 +290,11 @@ export default async function WorksheetPage({
           accessState={accessState}
           usesRemaining={
             profile
-              ? Math.max(0, TIER_LIMITS.free.monthlyUses - (profile.monthly_download_count ?? 0))
+              ? Math.max(0, TIER_LIMITS.free.monthlyUses - effectiveDownloadCount)
               : 0
           }
           resourceType={getResourceType(worksheet.tags)}
+          branding={branding}
         />
       </div>
     </div>

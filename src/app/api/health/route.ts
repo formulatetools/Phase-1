@@ -5,7 +5,6 @@ import { stripe } from '@/lib/stripe/client'
 interface ServiceStatus {
   status: 'ok' | 'error'
   latencyMs: number
-  error?: string
 }
 
 export async function GET() {
@@ -23,13 +22,11 @@ export async function GET() {
     checks.supabase = {
       status: error ? 'error' : 'ok',
       latencyMs: Date.now() - supabaseStart,
-      ...(error && { error: error.message }),
     }
-  } catch (err) {
+  } catch {
     checks.supabase = {
       status: 'error',
       latencyMs: Date.now() - supabaseStart,
-      error: err instanceof Error ? err.message : 'Unknown error',
     }
   }
 
@@ -41,11 +38,10 @@ export async function GET() {
       status: 'ok',
       latencyMs: Date.now() - stripeStart,
     }
-  } catch (err) {
+  } catch {
     checks.stripe = {
       status: 'error',
       latencyMs: Date.now() - stripeStart,
-      error: err instanceof Error ? err.message : 'Unknown error',
     }
   }
 
@@ -59,13 +55,11 @@ export async function GET() {
       checks.resend = {
         status: res.ok ? 'ok' : 'error',
         latencyMs: Date.now() - resendStart,
-        ...(!res.ok && { error: `HTTP ${res.status}` }),
       }
-    } catch (err) {
+    } catch {
       checks.resend = {
         status: 'error',
         latencyMs: Date.now() - resendStart,
-        error: err instanceof Error ? err.message : 'Unknown error',
       }
     }
   }

@@ -2,7 +2,6 @@
 
 import { useImperativeHandle, forwardRef } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
-import { downloadFillablePdf } from '@/lib/utils/fillable-pdf'
 import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
 
 export interface BlankPdfGeneratorHandle {
@@ -19,6 +18,7 @@ export const BlankPdfGenerator = forwardRef<BlankPdfGeneratorHandle, BlankPdfGen
   function BlankPdfGenerator({ schema, worksheetTitle, branding }, ref) {
     useImperativeHandle(ref, () => ({
       generatePdf: async () => {
+        const { downloadFillablePdf } = await import('@/lib/utils/fillable-pdf')
         await downloadFillablePdf({
           schema,
           title: worksheetTitle,

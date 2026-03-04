@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useToast } from '@/components/providers/toast-provider'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 import type {
   TherapeuticRelationship,
   WorksheetAssignment,
@@ -94,8 +95,10 @@ export function SuperviseeDetail({
     setEditingLabel(false)
   }
 
+  const [showEndConfirm, setShowEndConfirm] = useState(false)
+
   const handleEndSupervision = async () => {
-    if (!confirm('End supervision with this supervisee? They can be reactivated later.')) return
+    setShowEndConfirm(false)
     await endSupervision(relationship.id)
   }
 
@@ -226,7 +229,7 @@ export function SuperviseeDetail({
         <div className="flex gap-2">
           {relationship.status === 'active' ? (
             <button
-              onClick={handleEndSupervision}
+              onClick={() => setShowEndConfirm(true)}
               className="rounded-lg border border-primary-200 px-3 py-1.5 text-sm text-primary-500 hover:bg-primary-50 transition-colors"
             >
               End supervision
@@ -605,6 +608,16 @@ export function SuperviseeDetail({
         worksheetTitle={shareModal?.title || ''}
         clientLabel={relationship.client_label}
         dueDate={shareModal?.dueDate}
+      />
+
+      <ConfirmModal
+        open={showEndConfirm}
+        title="End supervision?"
+        description="This supervisee will be moved to the ended list. You can reactivate them later."
+        confirmLabel="End supervision"
+        variant="danger"
+        onConfirm={handleEndSupervision}
+        onCancel={() => setShowEndConfirm(false)}
       />
     </div>
   )

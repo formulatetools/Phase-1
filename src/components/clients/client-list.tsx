@@ -7,6 +7,7 @@ import { buttonVariants } from '@/components/ui/button'
 import type { TherapeuticRelationship, SubscriptionTier } from '@/types/database'
 import { createClient_action, dischargeClient, reactivateClient } from '@/app/(dashboard)/clients/actions'
 import { validateClientLabel } from '@/lib/validation/client-label'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 interface ClientListProps {
   relationships: TherapeuticRelationship[]
@@ -76,14 +77,25 @@ export function ClientList({
     setLoading(false)
   }
 
+  const [confirmAction, setConfirmAction] = useState<{ type: 'discharge' | 'reactivate'; id: string } | null>(null)
+
   const handleDischarge = async (id: string) => {
-    if (!confirm('Discharge this client? They will be moved to the discharged list.')) return
-    await dischargeClient(id)
+    setConfirmAction({ type: 'discharge', id })
   }
 
   const handleReactivate = async (id: string) => {
-    if (!confirm('Reactivate this client? They will be moved back to your active list.')) return
-    await reactivateClient(id)
+    setConfirmAction({ type: 'reactivate', id })
+  }
+
+  const executeConfirmedAction = async () => {
+    if (!confirmAction) return
+    const { type, id } = confirmAction
+    setConfirmAction(null)
+    if (type === 'discharge') {
+      await dischargeClient(id)
+    } else {
+      await reactivateClient(id)
+    }
   }
 
   const searchLower = search.toLowerCase()
@@ -333,6 +345,19 @@ export function ClientList({
           </div>
         </div>
       )}
+      <ConfirmModal
+        open={!!confirmAction}
+        title={confirmAction?.type === 'discharge' ? 'Discharge client?' : 'Reactivate client?'}
+        description={
+          confirmAction?.type === 'discharge'
+            ? 'This client will be moved to the discharged list. You can reactivate them later.'
+            : 'This client will be moved back to your active list.'
+        }
+        confirmLabel={confirmAction?.type === 'discharge' ? 'Discharge' : 'Reactivate'}
+        variant={confirmAction?.type === 'discharge' ? 'danger' : 'default'}
+        onConfirm={executeConfirmedAction}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   )
 }

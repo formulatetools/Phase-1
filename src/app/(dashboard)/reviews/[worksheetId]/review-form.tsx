@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { submitReview } from '../actions'
 import { useToast } from '@/hooks/use-toast'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 import type { WorksheetReview, ClinicalAccuracy, ReviewCompleteness, ReviewUsability, ReviewRecommendation } from '@/types/database'
 
 interface Props {
@@ -50,6 +51,7 @@ export function ReviewForm({ worksheetId, existingReview, isCompleted }: Props) 
   const [suggestedChanges, setSuggestedChanges] = useState(existingReview.suggested_changes || '')
   const [recommendation, setRecommendation] = useState<ReviewRecommendation | ''>(existingReview.recommendation || '')
   const [submitting, setSubmitting] = useState(false)
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
 
   const canSubmit = clinicalAccuracy && completeness && usability && recommendation
 
@@ -59,8 +61,11 @@ export function ReviewForm({ worksheetId, existingReview, isCompleted }: Props) 
       return
     }
 
-    if (!window.confirm('Submit your review? This cannot be changed afterwards.')) return
+    setShowSubmitConfirm(true)
+  }
 
+  const handleConfirmedSubmit = async () => {
+    setShowSubmitConfirm(false)
     setSubmitting(true)
     try {
       const result = await submitReview(worksheetId, {
@@ -216,6 +221,15 @@ export function ReviewForm({ worksheetId, existingReview, isCompleted }: Props) 
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        open={showSubmitConfirm}
+        title="Submit your review?"
+        description="This cannot be changed afterwards."
+        confirmLabel="Submit review"
+        onConfirm={handleConfirmedSubmit}
+        onCancel={() => setShowSubmitConfirm(false)}
+      />
     </div>
   )
 }

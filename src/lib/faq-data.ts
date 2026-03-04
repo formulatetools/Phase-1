@@ -96,7 +96,7 @@ export const EXTENDED_FAQ: FaqCategory[] = [
       },
       {
         q: 'What happens if a client doesn\'t complete their homework?',
-        a: 'You can see assignment status on your dashboard (pending, in progress, completed, overdue). The system can send automated reminder emails to clients with overdue homework. You can also withdraw an assignment if it\'s no longer relevant.',
+        a: 'You can see assignment status on your dashboard (pending, in progress, completed, overdue). You can also withdraw an assignment if it\'s no longer relevant. Automated reminder emails are on our roadmap but not yet available.',
       },
       {
         q: 'Can I see when a client has started but not finished?',

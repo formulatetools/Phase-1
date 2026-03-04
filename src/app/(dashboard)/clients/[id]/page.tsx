@@ -61,7 +61,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
 
       supabase
         .from('worksheets')
-        .select('*')
+        .select('id, title, slug, description, tags, is_published, is_curated, is_premium, created_by')
         .or(`and(is_published.eq.true,is_curated.eq.true),and(created_by.eq.${user.id},is_curated.eq.false)`)
         .is('deleted_at', null)
         .order('title'),
@@ -156,31 +156,28 @@ export default async function ClientDetailPage({ params }: PageProps) {
       .order('created_at', { ascending: false }),
   ])
 
-  // Fetch responses (depends on assignments result)
+  // Fetch responses and queue items in parallel (both depend on Phase 1 results)
   const assignmentIds = (assignments || []).map((a) => a.id)
-  let responses: WorksheetResponse[] = []
-  if (assignmentIds.length > 0) {
-    const { data } = await supabase
-      .from('worksheet_responses')
-      .select('*')
-      .in('assignment_id', assignmentIds)
-      .is('deleted_at', null)
-
-    responses = (data || []) as WorksheetResponse[]
-  }
-
-  // Fetch queue items (depends on queues result)
   const queueIds = (queues || []).map((q) => q.id)
-  let queueItems: PlanQueueItem[] = []
-  if (queueIds.length > 0) {
-    const { data } = await supabase
-      .from('plan_queue_items')
-      .select('*')
-      .in('queue_id', queueIds)
-      .order('position')
 
-    queueItems = (data || []) as PlanQueueItem[]
-  }
+  const [responses, queueItems] = await Promise.all([
+    assignmentIds.length > 0
+      ? supabase
+          .from('worksheet_responses')
+          .select('*')
+          .in('assignment_id', assignmentIds)
+          .is('deleted_at', null)
+          .then(({ data }) => (data || []) as WorksheetResponse[])
+      : Promise.resolve([] as WorksheetResponse[]),
+    queueIds.length > 0
+      ? supabase
+          .from('plan_queue_items')
+          .select('*')
+          .in('queue_id', queueIds)
+          .order('position')
+          .then(({ data }) => (data || []) as PlanQueueItem[])
+      : Promise.resolve([] as PlanQueueItem[]),
+  ])
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">

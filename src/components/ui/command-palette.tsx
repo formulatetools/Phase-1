@@ -1,7 +1,21 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo, useCallback, type ReactNode } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback, type ReactNode, type ReactElement } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+
+/** Highlight matching substring in text */
+function highlightMatch(text: string, q: string): ReactElement | string {
+  if (!q) return text
+  const idx = text.toLowerCase().indexOf(q.toLowerCase())
+  if (idx === -1) return text
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-brand/20 text-inherit rounded-sm px-px">{text.slice(idx, idx + q.length)}</mark>
+      {text.slice(idx + q.length)}
+    </>
+  )
+}
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -293,10 +307,10 @@ export function CommandPalette({ open, onClose, extraCommands = [] }: CommandPal
                     <span className={isSelected ? 'text-brand' : 'text-primary-400 dark:text-primary-500'}>
                       {item.icon}
                     </span>
-                    <span className="flex-1 truncate">{item.label}</span>
+                    <span className="flex-1 truncate">{highlightMatch(item.label, query)}</span>
                     {item.description && (
                       <span className="truncate text-xs text-primary-400 dark:text-primary-500">
-                        {item.description}
+                        {highlightMatch(item.description, query)}
                       </span>
                     )}
                   </button>

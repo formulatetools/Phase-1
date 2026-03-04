@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { BrandingConfig } from '@/lib/branding'
 import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
-import { generateFillablePdf } from '@/lib/utils/fillable-pdf'
+// pdf-lib loaded dynamically on demand (~500KB)
 import type { WorksheetSchema } from '@/types/worksheet'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -129,6 +129,7 @@ export function BrandingConfigurator({ initialConfig }: BrandingConfiguratorProp
 
     try {
       const branding = resolvePreview(config, previewTier)
+      const { generateFillablePdf } = await import('@/lib/utils/fillable-pdf')
       const pdfBytes = await generateFillablePdf({
         schema: SAMPLE_SCHEMA,
         title: 'Branding Preview',

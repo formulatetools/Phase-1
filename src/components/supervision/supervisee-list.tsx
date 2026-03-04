@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { TherapeuticRelationship, SubscriptionTier } from '@/types/database'
 import { createSupervisee, endSupervision, reactivateSupervisee } from '@/app/(dashboard)/clients/actions'
 import { validateSuperviseeLabel } from '@/lib/validation/supervisee-label'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 interface SuperviseeListProps {
   relationships: TherapeuticRelationship[]
@@ -67,9 +68,10 @@ export function SuperviseeList({
     setLoading(false)
   }
 
+  const [confirmEndId, setConfirmEndId] = useState<string | null>(null)
+
   const handleEnd = async (id: string) => {
-    if (!confirm('End supervision with this supervisee? They can be reactivated later.')) return
-    await endSupervision(id)
+    setConfirmEndId(id)
   }
 
   const handleReactivate = async (id: string) => {
@@ -331,6 +333,20 @@ export function SuperviseeList({
           </div>
         </div>
       )}
+      <ConfirmModal
+        open={!!confirmEndId}
+        title="End supervision?"
+        description="This supervisee will be moved to the ended list. You can reactivate them later."
+        confirmLabel="End supervision"
+        variant="danger"
+        onConfirm={async () => {
+          if (confirmEndId) {
+            await endSupervision(confirmEndId)
+            setConfirmEndId(null)
+          }
+        }}
+        onCancel={() => setConfirmEndId(null)}
+      />
     </div>
   )
 }

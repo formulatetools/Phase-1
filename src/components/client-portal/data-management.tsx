@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import type { WorksheetSchema } from '@/types/worksheet'
 import type { PdfBrandingOptions } from '@/lib/utils/fillable-pdf'
 import { MultiEntryViewer } from '@/components/worksheets/multi-entry-viewer'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
+import { PrivacyNotice } from './privacy-notice'
 import {
   BlankPdfGenerator,
   type BlankPdfGeneratorHandle,
@@ -94,6 +96,7 @@ export function DataManagement({
 }: DataManagementProps) {
   const [viewingResponse, setViewingResponse] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [showDeleteAll, setShowDeleteAll] = useState(false)
   const [deleteAllConfirm, setDeleteAllConfirm] = useState('')
   const [deleteAllLoading, setDeleteAllLoading] = useState(false)
@@ -123,8 +126,8 @@ export function DataManagement({
     new Map()
   )
 
-  const worksheetMap = new Map(worksheets.map((w) => [w.id, w]))
-  const responseMap = new Map(responses.map((r) => [r.assignment_id, r]))
+  const worksheetMap = useMemo(() => new Map(worksheets.map((w) => [w.id, w])), [worksheets])
+  const responseMap = useMemo(() => new Map(responses.map((r) => [r.assignment_id, r])), [responses])
 
   // ─── Handlers ────────────────────────────────────────────────
 
@@ -647,15 +650,7 @@ export function DataManagement({
                         a.status !== 'assigned' &&
                         a.status !== 'pdf_downloaded' && (
                           <button
-                            onClick={() => {
-                              if (
-                                confirm(
-                                  'Permanently delete your response? This cannot be undone.'
-                                )
-                              ) {
-                                handleDeleteResponse(a.id)
-                              }
-                            }}
+                            onClick={() => setConfirmDeleteId(a.id)}
                             disabled={deletingId === a.id}
                             className="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 flex items-center gap-1.5 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2"
                           >
@@ -961,79 +956,7 @@ export function DataManagement({
       )}
 
       {/* Privacy notice */}
-      <div className="rounded-2xl border border-primary-100 bg-primary-50/50 p-5 text-xs text-primary-500 space-y-2">
-        <p className="font-medium text-primary-600">Your privacy</p>
-        <ul className="space-y-1.5">
-          <li className="flex items-start gap-2">
-            <svg
-              className="mt-0.5 h-3 w-3 shrink-0 text-green-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4.5 12.75l6 6 9-13.5"
-              />
-            </svg>
-            Your data is stored securely and encrypted.
-          </li>
-          <li className="flex items-start gap-2">
-            <svg
-              className="mt-0.5 h-3 w-3 shrink-0 text-green-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4.5 12.75l6 6 9-13.5"
-              />
-            </svg>
-            Only you and your therapist can see your responses.
-          </li>
-          <li className="flex items-start gap-2">
-            <svg
-              className="mt-0.5 h-3 w-3 shrink-0 text-green-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4.5 12.75l6 6 9-13.5"
-              />
-            </svg>
-            You can delete any or all of your data at any time.
-          </li>
-          <li className="flex items-start gap-2">
-            <svg
-              className="mt-0.5 h-3 w-3 shrink-0 text-green-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4.5 12.75l6 6 9-13.5"
-              />
-            </svg>
-            Deletion is permanent and cannot be undone.
-          </li>
-        </ul>
-      </div>
+      <PrivacyNotice />
 
       {/* Hidden PDF generators */}
       {worksheets.map((w) => (
@@ -1066,6 +989,22 @@ export function DataManagement({
           />
         )
       })}
+
+      <ConfirmModal
+        open={!!confirmDeleteId}
+        title="Delete this response?"
+        description="This will permanently delete your response. This cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={() => {
+          if (confirmDeleteId) {
+            handleDeleteResponse(confirmDeleteId)
+            setConfirmDeleteId(null)
+          }
+        }}
+        onCancel={() => setConfirmDeleteId(null)}
+        loading={!!deletingId}
+      />
     </div>
   )
 }

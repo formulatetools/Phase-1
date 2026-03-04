@@ -17,9 +17,11 @@ export function WorksheetsPageTabs({
 
   return (
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="inline-flex rounded-lg bg-primary-100 p-1 dark:bg-primary-800">
+      <div className="inline-flex rounded-lg bg-primary-100 p-1 dark:bg-primary-800" role="tablist" aria-label="Worksheet views">
         <Link
           href="/worksheets"
+          role="tab"
+          aria-selected={!isMinePage}
           className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
             !isMinePage
               ? 'bg-surface text-primary-900 shadow-sm dark:bg-primary-700 dark:text-primary-50'
@@ -30,6 +32,8 @@ export function WorksheetsPageTabs({
         </Link>
         <Link
           href="/worksheets/mine"
+          role="tab"
+          aria-selected={isMinePage}
           className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
             isMinePage
               ? 'bg-surface text-primary-900 shadow-sm dark:bg-primary-700 dark:text-primary-50'
