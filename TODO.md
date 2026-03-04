@@ -41,12 +41,16 @@
 - [ ] Failed webhook retry visibility
 - **Why**: Currently no way to know something is broken until a user reports it.
 
-## 6. Mobile Experience
-- [ ] Audit homework assignment flow on mobile/tablet
-- [ ] Responsive pass on dashboard sidebar
-- [ ] Client list and detail views on small screens
-- [ ] Touch-friendly worksheet interactions
-- **Why**: Therapists work from tablets between sessions.
+## ~~6. Mobile Experience~~ ✅
+- [x] Full audit of all key pages at 375px viewport (iPhone SE)
+- [x] Dashboard: grids stack to single column, plan card font sizes responsive
+- [x] Client detail: header stacks vertically, action buttons wrap, label edit full-width
+- [x] Share modal: buttons stack on mobile, responsive padding
+- [x] Settings: all cards use responsive padding (p-4 → sm:p-6)
+- [x] Worksheets: empty state padding responsive
+- [x] Homework form: reassurance text bumped to 12px, download links wrap
+- [x] Dashboard contributor section: flex wraps on mobile
+- **Audited 6 pages, fixed issues across 6 files. No horizontal overflow or sub-44px tap targets.**
 
 ## 7. Legal Housekeeping
 - [ ] ICO registration (legally required as data processor)
