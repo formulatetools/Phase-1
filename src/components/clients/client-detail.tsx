@@ -280,20 +280,20 @@ export function ClientDetail({
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <Link href="/clients" className="text-sm text-primary-400 hover:text-primary-600 transition-colors">
             ← Back to clients
           </Link>
           <div className="mt-2 flex items-center gap-3">
             {editingLabel ? (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <input
                   type="text"
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                   maxLength={50}
-                  className="rounded-lg border border-primary-200 px-3 py-1.5 text-lg font-bold focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none"
+                  className="w-full rounded-lg border border-primary-200 px-3 py-1.5 text-base font-bold focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none sm:w-auto sm:text-lg"
                   onKeyDown={(e) => e.key === 'Enter' && handleSaveLabel()}
                   autoFocus
                 />
@@ -327,7 +327,7 @@ export function ClientDetail({
               </>
             )}
           </div>
-          <div className="mt-1 flex items-center gap-3 text-sm text-primary-500">
+          <div className="mt-1 flex flex-wrap items-center gap-2 sm:gap-3 text-sm text-primary-500">
             <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
               relationship.status === 'active' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300' : 'bg-primary-100 text-primary-500'
             }`}>
@@ -336,7 +336,7 @@ export function ClientDetail({
             <span>Since {new Date(relationship.started_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
           {relationship.status === 'active' ? (
             <button
               onClick={() => setShowDischargeConfirm(true)}
@@ -386,7 +386,7 @@ export function ClientDetail({
 
       {/* Action buttons */}
       {relationship.status === 'active' && !showAssign && (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => {
               if (!canAssign) {

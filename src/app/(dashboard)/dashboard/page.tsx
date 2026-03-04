@@ -267,7 +267,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Analytics stat cards ─────────────────────────────────────────── */}
-      <div className="mb-8 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Active Clients */}
         <Link href="/clients" aria-label={`${activeClientCount ?? 0} active clients`} className="rounded-2xl border border-primary-100 bg-surface p-3 sm:p-5 shadow-sm transition-colors hover:border-brand/30">
           <div className="flex items-center justify-between">
@@ -347,7 +347,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Second row: Plan card + Quick Actions + Activity ─────────────── */}
-      <div className="mb-8 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-3">
+      <div className="mb-8 grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Plan card */}
         <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between">
@@ -361,8 +361,8 @@ export default async function DashboardPage() {
           <div className="mt-4">
             {isFreeTier ? (
               <>
-                <p className="text-3xl font-bold text-primary-900">
-                  {usesRemaining}<span className="text-lg font-normal text-primary-300">/{TIER_LIMITS.free.monthlyUses}</span>
+                <p className="text-2xl font-bold text-primary-900 sm:text-3xl">
+                  {usesRemaining}<span className="text-base font-normal text-primary-300 sm:text-lg">/{TIER_LIMITS.free.monthlyUses}</span>
                 </p>
                 <p className="mt-1 text-sm text-primary-400">tools remaining this month</p>
                 <div
@@ -381,7 +381,7 @@ export default async function DashboardPage() {
               </>
             ) : (
               <>
-                <p className="text-3xl font-bold text-primary-900">Unlimited</p>
+                <p className="text-2xl font-bold text-primary-900 sm:text-3xl">Unlimited</p>
                 <p className="mt-1 text-sm text-primary-400">worksheet access</p>
               </>
             )}
@@ -404,7 +404,7 @@ export default async function DashboardPage() {
         <ActionsCard />
 
         {/* Recent Activity Feed */}
-        <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm col-span-2 lg:col-span-1">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 sm:p-6 shadow-sm sm:col-span-2 lg:col-span-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Recent Activity</p>
           {(recentActivity && recentActivity.length > 0) ? (
             <div className="mt-4 space-y-3" role="list">
@@ -487,9 +487,9 @@ export default async function DashboardPage() {
           <div className="space-y-4">
             {cRoles.clinical_contributor && (
               <div className="rounded-2xl border border-green-200 bg-surface p-4 sm:p-6 shadow-sm">
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
                       <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                       </svg>
@@ -501,7 +501,7 @@ export default async function DashboardPage() {
                   </div>
                   <Link
                     href="/my-tools/new"
-                    className="text-xs font-medium text-green-600 hover:text-green-700 transition-colors"
+                    className="shrink-0 text-xs font-medium text-green-600 hover:text-green-700 transition-colors"
                   >
                     + New worksheet
                   </Link>

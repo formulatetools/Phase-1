@@ -569,7 +569,7 @@ export function HomeworkForm({
             </div>
 
             {/* Reassurance text */}
-            <p className="text-center text-[11px] text-primary-400">
+            <p className="text-center text-xs text-primary-400">
               Your responses are confidential and shared only with your therapist.
             </p>
           </div>
@@ -578,7 +578,7 @@ export function HomeworkForm({
 
       {/* Download options — subtle links below action bar */}
       {!readOnly && !submitted && !isPreview && worksheetTitle && (
-        <div className="flex items-center justify-center gap-3 text-xs text-primary-400">
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-primary-400 sm:gap-3">
           <button
             onClick={handleBlankPdfDownload}
             disabled={generatingPdf}

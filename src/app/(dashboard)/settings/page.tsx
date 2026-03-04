@@ -43,7 +43,7 @@ export default async function SettingsPage() {
       </div>
 
       <div className="max-w-xl space-y-6">
-        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm sm:p-6">
           <h2 className="mb-1 text-base font-semibold text-primary-900">Profile</h2>
           <p className="mb-5 text-sm text-primary-400">Update your personal information</p>
           <ProfileForm
@@ -52,13 +52,13 @@ export default async function SettingsPage() {
           />
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm sm:p-6">
           <h2 className="mb-1 text-base font-semibold text-primary-900">Subscription</h2>
           <p className="mb-5 text-sm text-primary-400">Manage your plan and billing</p>
           <SubscriptionDetails profile={profile} subscription={subscription} />
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm sm:p-6">
           <h2 className="mb-1 text-base font-semibold text-primary-900">Account</h2>
           <p className="mb-5 text-sm text-primary-400">Your account details and preferences</p>
           <div className="space-y-4">
@@ -83,13 +83,13 @@ export default async function SettingsPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm sm:p-6">
           <h2 className="mb-1 text-base font-semibold text-primary-900">Password</h2>
           <p className="mb-5 text-sm text-primary-400">Change your account password</p>
           <ChangePasswordForm />
         </div>
 
-        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm sm:p-6">
           <h2 className="mb-1 text-base font-semibold text-primary-900">Email Preferences</h2>
           <p className="mb-5 text-sm text-primary-400">Control which emails you receive from Formulate</p>
           <BlogDigestToggle initialValue={profile.blog_digest_opt_in ?? false} />
@@ -99,7 +99,7 @@ export default async function SettingsPage() {
           const cRoles = profile.contributor_roles as ContributorRoles | null
           const hasAnyRole = cRoles?.clinical_contributor || cRoles?.clinical_reviewer || cRoles?.content_writer
           return hasAnyRole ? (
-            <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+            <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm sm:p-6">
               <h2 className="mb-1 text-base font-semibold text-primary-900">Contributor Profile</h2>
               <p className="mb-5 text-sm text-primary-400">How you appear on contributed worksheets</p>
               <ContributorProfileForm
@@ -109,7 +109,7 @@ export default async function SettingsPage() {
           ) : null
         })()}
 
-        <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm sm:p-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10">
               <svg className="h-5 w-5 text-brand" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -130,7 +130,7 @@ export default async function SettingsPage() {
         </div>
 
         {profile.subscription_tier === 'free' && (
-          <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
+          <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm sm:p-6">
             <h2 className="mb-1 text-base font-semibold text-primary-900">Promo Code</h2>
             <p className="mb-5 text-sm text-primary-400">Have a promo code? Enter it below to unlock features.</p>
             <PromoCodeInput mode="redeem" />

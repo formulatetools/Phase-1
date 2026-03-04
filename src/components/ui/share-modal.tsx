@@ -117,7 +117,7 @@ export function ShareModal({
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="share-title" className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-primary-100 bg-surface p-6 shadow-xl">
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="share-title" className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-primary-100 bg-surface p-4 shadow-xl sm:p-6">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -176,7 +176,7 @@ export function ShareModal({
         )}
 
         {/* Share options */}
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <button
             onClick={handleCopyMessage}
             className="flex items-center justify-center gap-2 rounded-xl border border-primary-200 px-3 py-2.5 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"

@@ -264,7 +264,7 @@ export default async function WorksheetsPage({
               )}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-primary-200 bg-surface p-10 text-center">
+            <div className="rounded-2xl border border-dashed border-primary-200 bg-surface p-6 text-center sm:p-10">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
                 <svg
                   className="h-6 w-6 text-primary-300"
