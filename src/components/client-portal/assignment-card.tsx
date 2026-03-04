@@ -32,10 +32,19 @@ interface AssignmentCardProps {
 }
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-  })
+  const date = new Date(dateStr)
+  const now = new Date()
+  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
+  // Include year if the date is not in the current year
+  if (date.getFullYear() !== now.getFullYear()) {
+    opts.year = 'numeric'
+  }
+  return date.toLocaleDateString('en-GB', opts)
+}
+
+function isOverdue(dueDateStr: string | null): boolean {
+  if (!dueDateStr) return false
+  return new Date(dueDateStr) < new Date()
 }
 
 export function AssignmentCard({
@@ -49,9 +58,11 @@ export function AssignmentCard({
 }: AssignmentCardProps) {
   const title = worksheet?.title || 'Worksheet'
   const [downloading, setDownloading] = useState(false)
+  const [downloadSuccess, setDownloadSuccess] = useState(false)
 
   const isExpired = new Date(assignment.expires_at) < new Date()
   const isCurrent = variant === 'current'
+  const overdue = isCurrent && !isExpired && isOverdue(assignment.due_date) && assignment.status !== 'completed'
 
   const handleDownloadPdf = async () => {
     if (!schema) return
@@ -62,6 +73,8 @@ export function AssignmentCard({
         title,
         values: responseData || undefined,
       })
+      setDownloadSuccess(true)
+      setTimeout(() => setDownloadSuccess(false), 2000)
     } catch {
       // PDF generation failed silently — the user sees the button revert
     } finally {
@@ -70,7 +83,13 @@ export function AssignmentCard({
   }
 
   return (
-    <div className="rounded-2xl border border-primary-100 bg-surface p-4 shadow-sm transition-colors hover:border-primary-200 sm:p-5">
+    <div className={`rounded-2xl border bg-surface p-4 shadow-sm transition-colors sm:p-5 ${
+      overdue
+        ? 'border-amber-200 hover:border-amber-300'
+        : isExpired
+          ? 'border-primary-200 border-dashed'
+          : 'border-primary-100 hover:border-primary-200'
+    }`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {/* Title */}
@@ -80,7 +99,9 @@ export function AssignmentCard({
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-primary-400 dark:text-primary-600">
             <span>Assigned {formatDate(assignment.assigned_at)}</span>
             {assignment.due_date && (
-              <span>Due {formatDate(assignment.due_date)}</span>
+              <span className={overdue ? 'font-medium text-amber-600' : ''}>
+                {overdue ? 'Overdue — was due' : 'Due'} {formatDate(assignment.due_date)}
+              </span>
             )}
             {assignment.completed_at && variant === 'completed' && (
               <span>
@@ -138,6 +159,10 @@ export function AssignmentCard({
                 <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              ) : downloadSuccess ? (
+                <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
               ) : (
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">

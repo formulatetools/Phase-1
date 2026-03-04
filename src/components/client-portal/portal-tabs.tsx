@@ -17,19 +17,20 @@ export function PortalTabs({ activeTab, onTabChange, resourceCount }: PortalTabs
 
   return (
     <div className="border-b border-primary-100">
-      <nav className="-mb-px flex" aria-label="Portal tabs">
+      <div className="-mb-px flex" role="tablist" aria-label="Portal tabs">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id
           return (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`relative flex-1 sm:flex-initial px-4 py-3 text-sm font-medium transition-colors ${
+              role="tab"
+              aria-selected={isActive}
+              className={`relative flex-1 sm:flex-initial px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-inset rounded-t-lg ${
                 isActive
                   ? 'text-primary-900'
                   : 'text-primary-400 hover:text-primary-600 dark:text-primary-600 dark:hover:text-primary-700'
               }`}
-              aria-current={isActive ? 'page' : undefined}
             >
               <span className="flex items-center justify-center gap-2">
                 {tab.label}
@@ -52,7 +53,7 @@ export function PortalTabs({ activeTab, onTabChange, resourceCount }: PortalTabs
             </button>
           )
         })}
-      </nav>
+      </div>
     </div>
   )
 }

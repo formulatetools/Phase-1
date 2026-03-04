@@ -82,6 +82,7 @@ export function ClientList({
   }
 
   const handleReactivate = async (id: string) => {
+    if (!confirm('Reactivate this client? They will be moved back to your active list.')) return
     await reactivateClient(id)
   }
 
@@ -275,7 +276,7 @@ export function ClientList({
                     </span>
                   )}
                   {(stats.active > 0 || stats.completed > 0) && (
-                    <span className="sm:hidden rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-medium text-primary-600">
+                    <span className="sm:hidden rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-medium text-primary-600" aria-label={`${stats.active} active, ${stats.completed} completed`}>
                       {stats.active + stats.completed}
                     </span>
                   )}

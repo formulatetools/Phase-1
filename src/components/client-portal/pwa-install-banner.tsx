@@ -113,13 +113,16 @@ export function PwaInstallBanner() {
 
       {platform === 'ios_safari' && (
         <div className="flex items-start justify-between gap-3">
-          <div className="text-xs text-primary-600 dark:text-primary-700 space-y-1">
+          <div className="text-xs text-primary-600 dark:text-primary-700 space-y-1.5">
             <p className="font-medium">Add to your home screen</p>
             <p>
-              Tap the share button{' '}
-              <span className="inline-block text-primary-800" aria-label="share icon">↑</span>
-              {' '}at the bottom of your screen, then tap &quot;Add to Home Screen&quot;
-              to access your homework like an app.
+              Tap the{' '}
+              <span className="inline-flex items-center align-middle">
+                <svg className="mx-0.5 h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-label="share icon">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15M12 2.25v12m0-12l3 3m-3-3l-3 3" />
+                </svg>
+              </span>
+              {' '}share button at the bottom of Safari, then tap <strong>&quot;Add to Home Screen&quot;</strong>.
             </p>
           </div>
           <button

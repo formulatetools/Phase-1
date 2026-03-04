@@ -167,8 +167,7 @@ export function ClientPortal({
           {/* Current Homework */}
           {currentAssignments.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold text-primary-800">Current Homework</h2>
-              <div className="mt-1 h-0.5 w-8 bg-brand" />
+              <h2 className="text-sm font-semibold text-primary-800 border-b-2 border-brand pb-1 inline-block">Current Homework</h2>
               <div className="mt-4 space-y-3">
                 {currentAssignments.map((a) => (
                   <AssignmentCard
@@ -188,8 +187,7 @@ export function ClientPortal({
           {/* Completed */}
           {completedAssignments.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold text-primary-800">Completed</h2>
-              <div className="mt-1 h-0.5 w-8 bg-brand" />
+              <h2 className="text-sm font-semibold text-primary-800 border-b-2 border-brand pb-1 inline-block">Completed</h2>
               <div className="mt-4 space-y-3">
                 {completedAssignments.map((a) => (
                   <AssignmentCard
