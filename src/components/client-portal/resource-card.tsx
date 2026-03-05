@@ -69,12 +69,14 @@ function LinkResourceCard({
     : null
 
   const handleClick = () => {
-    // Fire resource-viewed event (non-blocking)
-    fetch(`${appUrl}/api/client-portal/resource-viewed`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ portalToken, resourceId: resource.id }),
-    }).catch(() => {})
+    // Fire resource-viewed event (non-blocking) — skip if already tracked
+    if (!resource.viewed_at) {
+      fetch(`${appUrl}/api/client-portal/resource-viewed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portalToken, resourceId: resource.id }),
+      }).catch(() => {})
+    }
   }
 
   return (
@@ -177,8 +179,8 @@ function LinkResourceCard({
             onClick={handleClick}
             className="shrink-0 self-center rounded-lg border border-primary-200 px-3 py-2 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:border-primary-300 dark:text-primary-700 dark:hover:bg-primary-100 transition-colors flex items-center gap-1"
           >
-            Open
-            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            Open<span className="sr-only"> (opens in new tab)</span>
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
             </svg>
           </a>
@@ -241,7 +243,7 @@ function PsychoedResourceCard({
             )}
             <a
               href={`/client/${portalToken}/article/${resource.article_id}`}
-              className="ml-auto rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:border-primary-300 dark:text-primary-700 dark:hover:bg-primary-100 transition-colors"
+              className="ml-auto rounded-lg border border-primary-200 px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:border-primary-300 dark:text-primary-700 dark:hover:bg-primary-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
             >
               Read →
             </a>

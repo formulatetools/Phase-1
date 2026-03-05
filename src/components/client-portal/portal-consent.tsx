@@ -41,7 +41,7 @@ export function PortalConsent({ portalToken, onConsented }: PortalConsentProps) 
     return (
       <div className="space-y-6">
         <div className="rounded-2xl border border-primary-100 bg-surface p-8 text-center shadow-sm">
-          <p className="text-sm text-primary-500 dark:text-primary-700">
+          <p className="text-sm text-primary-500 dark:text-primary-400">
             No worries. You can still complete individual homework via the links
             your therapist shares with you.
           </p>
@@ -140,14 +140,14 @@ export function PortalConsent({ portalToken, onConsented }: PortalConsentProps) 
         {/* Legal text */}
         <p className="mt-5 text-xs text-primary-400 dark:text-primary-600">
           By continuing you agree to our{' '}
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary-600">Privacy Policy</a>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 rounded">Privacy Policy<span className="sr-only"> (opens in new tab)</span></a>
           {' '}and{' '}
-          <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary-600">Terms of Use</a>.
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 rounded">Terms of Use<span className="sr-only"> (opens in new tab)</span></a>.
         </p>
 
         {/* Error */}
         {error && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
             {error}
           </div>
         )}

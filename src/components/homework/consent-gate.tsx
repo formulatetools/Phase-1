@@ -108,12 +108,18 @@ export function ConsentGate({
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-primary-900">PDF downloaded</h2>
+          <h1 className="text-xl font-bold text-primary-900">PDF downloaded</h1>
           <p className="mt-2 text-sm text-primary-500">
             Your blank worksheet has been downloaded. You can print it and complete it by hand, then bring it to your next session.
           </p>
           <p className="mt-4 text-xs text-primary-400">
-            Changed your mind? You can open this link again to complete the worksheet online.
+            Changed your mind?{' '}
+            <button
+              onClick={() => window.location.reload()}
+              className="underline underline-offset-2 hover:text-primary-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 rounded"
+            >
+              Complete online instead
+            </button>
           </p>
 
           {isDemo && (
@@ -152,7 +158,7 @@ export function ConsentGate({
           </svg>
         </div>
 
-        <h2 className="text-center text-xl font-bold text-primary-900">Before you begin</h2>
+        <h1 className="text-center text-xl font-bold text-primary-900">Before you begin</h1>
         <p className="mt-2 text-center text-sm text-primary-500">
           Your therapist has asked you to complete this worksheet using Formulate, a secure online tool.
         </p>

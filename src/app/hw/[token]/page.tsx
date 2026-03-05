@@ -141,9 +141,9 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-primary-900">This link has expired</h1>
+          <h1 className="text-xl font-bold text-primary-900">This assignment&apos;s deadline has passed</h1>
           <p className="mt-2 text-sm text-primary-500">
-            This homework assignment link is no longer active. Please contact your therapist for a new link.
+            Don&apos;t worry — your therapist can send you a new link if needed. You can also reach out to them to discuss next steps.
           </p>
           {portalUrl && (
             <a
@@ -204,10 +204,20 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
 
       {readOnly && !isPreview && (
         <div className="mb-6 rounded-xl border border-primary-200 bg-primary-50 p-3 text-sm text-primary-600 flex items-center gap-2">
-          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+            {isLocked && !isCompleted ? (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            )}
           </svg>
-          <span className="flex-1">This worksheet has been submitted and reviewed. It is now read-only.</span>
+          <span className="flex-1">
+            {isLocked && !isCompleted
+              ? 'Your therapist has locked this worksheet. It is now read-only.'
+              : typedAssignment.status === 'reviewed'
+                ? 'This worksheet has been submitted and reviewed by your therapist.'
+                : 'This worksheet has been submitted. Your therapist can see your responses.'}
+          </span>
           {portalUrl && (
             <a
               href={portalUrl}
@@ -263,7 +273,12 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
           <div className="flex items-center gap-1">
             {typedAssignment.due_date && (
               <span className="text-xs text-primary-400">
-                Due {new Date(typedAssignment.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                Due {(() => {
+                  const d = new Date(typedAssignment.due_date!)
+                  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
+                  if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric'
+                  return d.toLocaleDateString('en-GB', opts)
+                })()}
               </span>
             )}
             <ThemeToggleCompact />

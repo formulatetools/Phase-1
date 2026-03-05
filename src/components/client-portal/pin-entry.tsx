@@ -170,10 +170,10 @@ export function PinEntry({ portalToken, appUrl }: PinEntryProps) {
               onKeyDown={(e) => handleKeyDown(i, e)}
               onPaste={i === 0 ? handlePaste : undefined}
               disabled={loading || lockedOut}
-              className={`h-14 w-12 rounded-xl border-2 text-center text-xl font-bold transition-colors focus:outline-none ${
+              className={`h-14 w-12 rounded-xl border-2 text-center text-xl font-bold transition-colors focus-visible:outline-none ${
                 error
-                  ? 'border-red-300 text-red-700 focus:border-red-400 focus:ring-2 focus:ring-red-100'
-                  : 'border-primary-200 text-primary-900 focus:border-brand focus:ring-2 focus:ring-brand/30'
+                  ? 'border-red-300 text-red-700 focus-visible:border-red-400 focus-visible:ring-2 focus-visible:ring-red-100'
+                  : 'border-primary-200 text-primary-900 focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/30'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
               aria-label={`PIN digit ${i + 1}`}
             />
@@ -186,7 +186,7 @@ export function PinEntry({ portalToken, appUrl }: PinEntryProps) {
             <p className="text-sm text-red-600">{error}</p>
             {lockedOut && lockoutSeconds > 0 && (
               <p className="mt-1 text-xs text-red-400">
-                Try again in {Math.floor(lockoutSeconds / 60)}:{String(lockoutSeconds % 60).padStart(2, '0')}
+                Try again in {Math.floor(lockoutSeconds / 60)} min {String(lockoutSeconds % 60).padStart(2, '0')} sec
               </p>
             )}
             {attemptsRemaining !== null && attemptsRemaining > 0 && !lockedOut && (
@@ -216,7 +216,7 @@ export function PinEntry({ portalToken, appUrl }: PinEntryProps) {
           </button>
         )}
 
-        <p className="mt-4 text-[10px] text-primary-400">
+        <p className="mt-4 text-xs text-primary-400">
           Forgot your PIN? Ask your therapist to reset it.
         </p>
       </div>

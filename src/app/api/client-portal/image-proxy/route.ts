@@ -26,6 +26,21 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Only HTTPS URLs are allowed' }, { status: 400 })
   }
 
+  // Block private/internal IP ranges to prevent SSRF
+  const hostname = parsed.hostname
+  if (
+    hostname === 'localhost' ||
+    hostname.startsWith('127.') ||
+    hostname.startsWith('10.') ||
+    hostname.startsWith('192.168.') ||
+    hostname === '[::1]' ||
+    hostname.startsWith('169.254.') ||
+    hostname.startsWith('0.') ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
+  ) {
+    return NextResponse.json({ error: 'URL not allowed' }, { status: 400 })
+  }
+
   try {
     const response = await fetch(url, {
       headers: { 'Accept': 'image/*' },

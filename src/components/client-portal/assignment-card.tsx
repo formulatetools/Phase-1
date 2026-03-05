@@ -54,6 +54,7 @@ export function AssignmentCard({
   const title = worksheet?.title || 'Worksheet'
   const [downloading, setDownloading] = useState(false)
   const [downloadSuccess, setDownloadSuccess] = useState(false)
+  const [downloadError, setDownloadError] = useState(false)
   const successTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
 
   useEffect(() => {
@@ -76,7 +77,10 @@ export function AssignmentCard({
       setDownloadSuccess(true)
       successTimerRef.current = setTimeout(() => setDownloadSuccess(false), 2000)
     } catch {
-      // PDF generation failed silently — the user sees the button revert
+      // Show brief error feedback — button text reverts after 2s
+      setDownloadSuccess(false)
+      setDownloadError(true)
+      successTimerRef.current = setTimeout(() => setDownloadError(false), 3000)
     } finally {
       setDownloading(false)
     }
@@ -159,6 +163,10 @@ export function AssignmentCard({
               ) : downloadSuccess ? (
                 <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              ) : downloadError ? (
+                <svg className="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                 </svg>
               ) : (
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">

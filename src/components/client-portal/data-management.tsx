@@ -159,7 +159,7 @@ export function DataManagement({
   }
 
   const handleDeleteAll = async () => {
-    if (deleteAllConfirm !== 'DELETE') return
+    if (deleteAllConfirm.trim().toUpperCase() !== 'DELETE') return
     setError(null)
     setDeleteAllLoading(true)
 
@@ -893,6 +893,53 @@ export function DataManagement({
         )}
       </div>
 
+      {/* Export data section (GDPR Article 20 — data portability) */}
+      {responses.length > 0 && !allDeleted && (
+        <div className="rounded-2xl border border-primary-100 bg-surface p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-primary-800">
+                Export my data
+              </h3>
+              <p className="mt-1 text-xs text-primary-500">
+                Download all your homework responses as a JSON file. This is a machine-readable format you can keep for your records.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                const exportData = assignments
+                  .filter((a) => !deletedAssignments.has(a.id))
+                  .map((a) => {
+                    const ws = worksheetMap.get(a.worksheet_id)
+                    const resp = responseMap.get(a.id)
+                    return {
+                      worksheet: ws?.title || 'Unknown',
+                      status: a.status,
+                      assigned_at: a.assigned_at,
+                      due_date: a.due_date,
+                      completed_at: a.completed_at,
+                      responses: resp?.response_data || null,
+                    }
+                  })
+                const blob = new Blob(
+                  [JSON.stringify(exportData, null, 2)],
+                  { type: 'application/json' }
+                )
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `my-therapy-data-${new Date().toISOString().slice(0, 10)}.json`
+                a.click()
+                URL.revokeObjectURL(url)
+              }}
+              className="shrink-0 rounded-lg border border-primary-200 px-4 py-2 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2"
+            >
+              Download JSON
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Delete all data section */}
       {hasDeletableData && (
         <div className="rounded-2xl border border-red-100 bg-red-50/30 p-5">
@@ -931,7 +978,7 @@ export function DataManagement({
                   <button
                     onClick={handleDeleteAll}
                     disabled={
-                      deleteAllLoading || deleteAllConfirm !== 'DELETE'
+                      deleteAllLoading || deleteAllConfirm.trim().toUpperCase() !== 'DELETE'
                     }
                     className="rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2"
                   >

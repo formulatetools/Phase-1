@@ -44,7 +44,7 @@ export function ProgressSection({ completedCount, weeksActive }: ProgressSection
 
         <p className="text-xs text-primary-400 dark:text-primary-600">
           {weeksActive} week{weeksActive !== 1 ? 's' : ''} active
-          {avgPerWeek && weeksActive >= 2 && (
+          {avgPerWeek && weeksActive >= 3 && (
             <span className="ml-1">
               &middot; ~{avgPerWeek}/week
             </span>
