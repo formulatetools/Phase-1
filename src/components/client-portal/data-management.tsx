@@ -795,7 +795,7 @@ export function DataManagement({
                 })
               : renderPinInputs(pinConfirmDigits, setPinConfirmDigits, pinConfirmRefs, handleSetPin)
             }
-            {pinError && <p className="text-xs text-red-600">{pinError}</p>}
+            {pinError && <p className="text-xs text-red-600" role="alert">{pinError}</p>}
             <div className="flex justify-center gap-2">
               {pinStep === 'confirm' && (
                 <button
@@ -846,7 +846,7 @@ export function DataManagement({
                   })
                 : renderPinInputs(pinConfirmDigits, setPinConfirmDigits, pinConfirmRefs, handleChangePin)
             }
-            {pinError && <p className="text-xs text-red-600">{pinError}</p>}
+            {pinError && <p className="text-xs text-red-600" role="alert">{pinError}</p>}
             <div className="flex justify-center gap-2">
               {pinStep !== 'current' && (
                 <button
@@ -880,7 +880,7 @@ export function DataManagement({
           <div className="mt-4 space-y-3 text-center">
             <p className="text-xs font-medium text-primary-700">Enter your current PIN to remove it</p>
             {renderPinInputs(pinCurrentDigits, setPinCurrentDigits, pinCurrentRefs, handleRemovePin)}
-            {pinError && <p className="text-xs text-red-600">{pinError}</p>}
+            {pinError && <p className="text-xs text-red-600" role="alert">{pinError}</p>}
             <div className="flex justify-center gap-2">
               <button
                 onClick={resetPinForm}

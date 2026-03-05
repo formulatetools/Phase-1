@@ -163,7 +163,7 @@ export function ClientPortal({
 
       {/* Homework Tab (default) */}
       {activeTab === 'homework' && (
-        <>
+        <div role="tabpanel" id="portal-tabpanel-homework" aria-labelledby="portal-tab-homework" className="space-y-6">
           {/* Current Homework */}
           {currentAssignments.length > 0 && (
             <section>
@@ -222,12 +222,12 @@ export function ClientPortal({
               weeksActive={weeksActive}
             />
           )}
-        </>
+        </div>
       )}
 
       {/* Resources Tab */}
       {activeTab === 'resources' && (
-        <>
+        <div role="tabpanel" id="portal-tabpanel-resources" aria-labelledby="portal-tab-resources">
           {resources.length > 0 ? (
             <div className="space-y-3">
               {resources.map((r) => (
@@ -247,7 +247,7 @@ export function ClientPortal({
               </p>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   )

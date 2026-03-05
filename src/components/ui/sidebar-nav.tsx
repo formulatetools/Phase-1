@@ -456,7 +456,7 @@ export function SidebarNav({
 
       {/* ── Mobile bottom tab bar ── */}
       <nav
-        aria-label="Main"
+        aria-label="Mobile navigation"
         data-tour="mobile-tab-bar"
         className="fixed bottom-0 left-0 right-0 z-30 border-t border-primary-100 bg-surface md:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}

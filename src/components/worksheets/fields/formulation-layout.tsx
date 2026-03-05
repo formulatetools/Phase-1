@@ -215,7 +215,7 @@ function ViciousFlowerLayout({
                 <button
                   type="button"
                   onClick={() => removePetal(index)}
-                  className="absolute right-2 top-2 text-primary-300 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
+                  className="absolute right-2 top-2 text-primary-300 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100 focus-visible:opacity-100"
                   aria-label="Remove petal"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">

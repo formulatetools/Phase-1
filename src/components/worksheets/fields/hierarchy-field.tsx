@@ -195,7 +195,7 @@ export function HierarchyField({ field, value, onChange }: Props) {
                 <button
                   type="button"
                   onClick={() => removeRow(originalIndex)}
-                  className="shrink-0 text-primary-300 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
+                  className="shrink-0 text-primary-300 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100 focus-visible:opacity-100"
                   aria-label="Remove step"
                 >
                   <svg

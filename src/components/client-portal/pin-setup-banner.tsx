@@ -208,7 +208,7 @@ export function PinSetupBanner({ portalToken, appUrl }: PinSetupBannerProps) {
           }
 
           {error && (
-            <p className="text-xs text-red-600">{error}</p>
+            <p className="text-xs text-red-600" role="alert">{error}</p>
           )}
 
           <div className="flex justify-center gap-2">

@@ -718,6 +718,7 @@ export function WorksheetRenderer({
               field={field}
               value={values[field.id] as string[]}
               onChange={(v) => updateValue(field.id, v)}
+              showError={showValidation}
             />
           )
         case 'date':

@@ -31,8 +31,9 @@ export function ProgressSection({ completedCount, weeksActive }: ProgressSection
         <div
           className="h-1.5 w-full overflow-hidden rounded-full bg-primary-100"
           role="progressbar"
-          aria-valuenow={completedCount}
+          aria-valuenow={progressPercent}
           aria-valuemin={0}
+          aria-valuemax={100}
           aria-label={`${completedCount} assignments completed`}
         >
           <div

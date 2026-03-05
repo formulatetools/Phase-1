@@ -6,9 +6,10 @@ interface Props {
   field: ChecklistFieldType
   value: string[]
   onChange: (value: string[]) => void
+  showError?: boolean
 }
 
-export function ChecklistField({ field, value, onChange }: Props) {
+export function ChecklistField({ field, value, onChange, showError }: Props) {
   const toggle = (optionId: string) => {
     if (value.includes(optionId)) {
       onChange(value.filter((v) => v !== optionId))
@@ -17,8 +18,10 @@ export function ChecklistField({ field, value, onChange }: Props) {
     }
   }
 
+  const hasError = showError && field.required && value.length === 0
+
   return (
-    <fieldset>
+    <fieldset aria-required={field.required || undefined}>
       <legend className="block text-sm font-medium text-primary-700">
         {field.label}
         {field.required && <span className="ml-1 text-red-500" aria-hidden="true">*</span>}
@@ -39,6 +42,9 @@ export function ChecklistField({ field, value, onChange }: Props) {
           </label>
         ))}
       </div>
+      {hasError && (
+        <p className="mt-1 text-xs text-red-600" role="alert">Please select at least one option</p>
+      )}
     </fieldset>
   )
 }
