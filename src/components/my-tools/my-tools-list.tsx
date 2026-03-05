@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
 import { deleteCustomWorksheet } from '@/app/(dashboard)/my-tools/actions'
-import { useToast } from '@/components/providers/toast-provider'
+import { useToast } from '@/hooks/use-toast'
 
 interface CustomWorksheetItem {
   id: string

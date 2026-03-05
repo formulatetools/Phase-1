@@ -17,7 +17,7 @@ const CARD_LAYOUT_THRESHOLD = 5
 function createEmptyRow(columns: TableColumn[]): RowData {
   const row: RowData = {}
   for (const col of columns) {
-    row[col.id] = col.type === 'number' ? '' : ''
+    row[col.id] = ''
   }
   return row
 }

@@ -694,13 +694,15 @@ export function RecordFieldRenderer({ field, value, onChange, readOnly }: Props)
               key={i}
               type="button"
               onClick={() => setCurrentIndex(i)}
-              className={`h-2 w-2 rounded-full transition-colors ${
+              className="flex h-6 w-6 items-center justify-center"
+              aria-label={`Go to record ${i + 1}`}
+            >
+              <span className={`block h-2 w-2 rounded-full transition-colors ${
                 i === safeIndex
                   ? 'bg-brand'
                   : 'bg-primary-200 hover:bg-primary-300'
-              }`}
-              aria-label={`Go to record ${i + 1}`}
-            />
+              }`} />
+            </button>
           ))}
         </div>
       )}

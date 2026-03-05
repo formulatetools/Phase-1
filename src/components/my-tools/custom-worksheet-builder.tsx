@@ -288,7 +288,7 @@ export function CustomWorksheetBuilder({
 
   // ── Section operations ─────────────────────────────────────────────────
   const addSection = () => {
-    const id = `s-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const id = `s-${crypto.randomUUID().slice(0, 12)}`
     setSections([...sections, { id, title: '', fields: [] }])
   }
 

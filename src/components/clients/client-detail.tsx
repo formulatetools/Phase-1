@@ -230,7 +230,7 @@ export function ClientDetail({
     setAssignLoading(false)
   }
 
-  const handleCopyLink = async (token: string, assignmentId?: string) => {
+  const handleCopyLink = async (token: string) => {
     const link = `${appUrl}/hw/${token}`
     try { await navigator.clipboard.writeText(link) } catch { /* clipboard unavailable */ }
     setCopiedToken(token)

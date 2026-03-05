@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { WorksheetSection, WorksheetField, DomainType } from '@/types/worksheet'
 import { getDomainColor } from '@/lib/domain-colors'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
@@ -137,6 +137,14 @@ function ViciousFlowerLayout({
       { petal_label: 'Behaviour', petal_content: '', domain: 'behaviour' as DomainType },
     ]
   })
+
+  // Sync local state if parent values change externally (e.g. prefill, form reset)
+  useEffect(() => {
+    const external = values['petals'] as unknown as PetalData[] | undefined
+    if (external && Array.isArray(external) && external.length > 0) {
+      setPetals(external)
+    }
+  }, [values])
 
   const minItems = petalsSection?.min_items ?? 3
   const maxItems = petalsSection?.max_items ?? 8

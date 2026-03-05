@@ -84,8 +84,10 @@ function compute(field: ComputedFieldType, allValues: Record<string, unknown>): 
       const diff = avgB - avgA // after - before
 
       if (computation.format === 'percentage_change') {
-        const sign = diff > 0 ? '+' : ''
-        return `${sign}${diff.toFixed(0)}% (${avgA.toFixed(0)}% \u2192 ${avgB.toFixed(0)}%)`
+        if (avgA === 0) return `${avgA.toFixed(1)} \u2192 ${avgB.toFixed(1)}`
+        const pctChange = (diff / Math.abs(avgA)) * 100
+        const sign = pctChange > 0 ? '+' : ''
+        return `${sign}${pctChange.toFixed(0)}% (${avgA.toFixed(1)} \u2192 ${avgB.toFixed(1)})`
       }
       return diff.toFixed(1)
     }

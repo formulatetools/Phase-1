@@ -493,7 +493,7 @@ function NodeConfigurator({
   const [collapsed, setCollapsed] = useState(false)
 
   const addField = (type: FormulationNodeFieldType) => {
-    const id = `nf-${Date.now()}-${Math.random().toString(36).slice(2, 4)}`
+    const id = `nf-${crypto.randomUUID().slice(0, 12)}`
     const newField: FormulationNodeField = { id, type, placeholder: '' }
     if (type === 'number') {
       newField.min = 0

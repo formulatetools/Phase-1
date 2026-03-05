@@ -44,7 +44,7 @@ export default async function DashboardLayout({
 
         {/* Main content area — offset by sidebar width on desktop */}
         <div className="md:pl-64">
-          <main id="main-content" className="min-h-screen pb-20 md:pb-0 animate-fade-in">
+          <main id="main-content" className="min-h-screen pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0 animate-fade-in">
             {children}
           </main>
         </div>

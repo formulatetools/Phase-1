@@ -287,7 +287,7 @@ function OptionsConfig({ field, onUpdate }: { field: ChecklistField | SelectFiel
         ))}
         <button
           onClick={() => {
-            const newOpt = { id: `opt-${Date.now()}`, label: '' }
+            const newOpt = { id: `opt-${crypto.randomUUID().slice(0, 8)}`, label: '' }
             onUpdate({ ...field, options: [...options, newOpt] } as WorksheetField)
           }}
           className="text-xs text-brand hover:text-brand-dark"
@@ -344,7 +344,7 @@ function TableConfig({ field, onUpdate }: { field: TableField; onUpdate: (f: Wor
         ))}
         <button
           onClick={() => {
-            const newCol = { id: `col-${Date.now()}`, header: '', type: 'text' as const }
+            const newCol = { id: `col-${crypto.randomUUID().slice(0, 8)}`, header: '', type: 'text' as const }
             onUpdate({ ...field, columns: [...columns, newCol] } as WorksheetField)
           }}
           className="text-xs text-brand hover:text-brand-dark"
@@ -485,11 +485,11 @@ function RecordConfig({ field, onUpdate }: { field: RecordField; onUpdate: (f: W
   }
 
   const addGroup = () => {
-    const id = `grp-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`
+    const id = `grp-${crypto.randomUUID().slice(0, 12)}`
     const newGroup: RecordGroup = {
       id,
       header: '',
-      fields: [{ id: `sf-${Date.now()}`, type: 'textarea' }],
+      fields: [{ id: `sf-${crypto.randomUUID().slice(0, 8)}`, type: 'textarea' }],
     }
     onUpdate({ ...field, groups: [...groups, newGroup] } as WorksheetField)
   }
@@ -507,7 +507,7 @@ function RecordConfig({ field, onUpdate }: { field: RecordField; onUpdate: (f: W
 
   const addSubField = (gi: number) => {
     const group = groups[gi]
-    const sf: RecordSubField = { id: `sf-${Date.now()}`, type: 'textarea' }
+    const sf: RecordSubField = { id: `sf-${crypto.randomUUID().slice(0, 8)}`, type: 'textarea' }
     updateGroup(gi, { ...group, fields: [...group.fields, sf] })
   }
 
@@ -650,7 +650,7 @@ function RecordConfig({ field, onUpdate }: { field: RecordField; onUpdate: (f: W
                           </div>
                         ))}
                         <button onClick={() => {
-                          const opts = [...(sf.options || []), { id: `opt-${Date.now()}`, label: '' }]
+                          const opts = [...(sf.options || []), { id: `opt-${crypto.randomUUID().slice(0, 8)}`, label: '' }]
                           updateSubField(gi, si, { ...sf, options: opts })
                         }} className="text-[10px] text-brand hover:text-brand-dark">+ Add option</button>
                       </div>

@@ -51,7 +51,7 @@ const FORMULATION_FIELD_TYPE = { type: 'formulation' as CustomFieldType, label: 
 const RECORD_FIELD_TYPE = { type: 'record' as CustomFieldType, label: 'Record', description: 'Paginated multi-column records (e.g. thought record)' }
 
 function createDefaultField(type: CustomFieldType): WorksheetField {
-  const id = `f-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+  const id = `f-${crypto.randomUUID().slice(0, 12)}`
   const base = { id, label: '', required: false }
 
   switch (type) {

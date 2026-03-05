@@ -5,10 +5,11 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useRef, useCallback, useEffect, type ReactNode } from 'react'
 import { Logo } from '@/components/ui/logo'
+import { TIER_LABELS } from '@/lib/stripe/config'
 import { ThemeToggle, ThemeIcon } from '@/components/ui/theme-toggle'
 import { useTheme } from '@/components/providers/theme-provider'
 import { useShortcutsModal } from '@/components/providers/keyboard-shortcuts-provider'
-import { buttonVariants } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button-variants'
 import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -145,12 +146,6 @@ const tierColors: Record<string, string> = {
   professional: 'bg-brand/10 text-brand-dark',
 }
 
-const tierLabels: Record<string, string> = {
-  free: 'Free',
-  starter: 'Starter',
-  standard: 'Practice',
-  professional: 'Specialist',
-}
 
 // ─── Component ─────────────────────────────────────────────────────────────
 
@@ -400,7 +395,7 @@ export function SidebarNav({
             <p className="truncate text-xs text-primary-400">{userEmail}</p>
           </div>
           <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tierColors[tier] || tierColors.free}`}>
-            {tierLabels[tier] || tier}
+            {TIER_LABELS[tier] || tier}
           </span>
         </div>
         <div className="mt-3 flex items-center gap-1">
@@ -578,7 +573,7 @@ export function SidebarNav({
               <p className="truncate text-xs text-primary-400">{userEmail}</p>
             </div>
             <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tierColors[tier] || tierColors.free}`}>
-              {tierLabels[tier] || tier}
+              {TIER_LABELS[tier] || tier}
             </span>
           </div>
           <div className="mt-3 flex items-center gap-1">

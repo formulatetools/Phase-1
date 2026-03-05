@@ -70,10 +70,6 @@ export function SuperviseeList({
 
   const [confirmEndId, setConfirmEndId] = useState<string | null>(null)
 
-  const handleEnd = async (id: string) => {
-    setConfirmEndId(id)
-  }
-
   const handleReactivate = async (id: string) => {
     const activeCount = relationships.filter((r) => r.status === 'active').length
     if (activeCount >= maxSupervisees) {

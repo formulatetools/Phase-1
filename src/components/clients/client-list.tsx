@@ -13,9 +13,7 @@ interface ClientListProps {
   relationships: TherapeuticRelationship[]
   assignmentsByClient: Record<string, { active: number; completed: number; total: number }>
   clientCount: number
-  activeAssignmentCount: number
   maxClients: number
-  maxActiveAssignments: number
   tier: SubscriptionTier
 }
 

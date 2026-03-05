@@ -113,9 +113,7 @@ export default async function ClientsPage({ searchParams }: PageProps) {
           relationships={(clinicalRelationships || []) as TherapeuticRelationship[]}
           assignmentsByClient={assignmentsByClient}
           clientCount={clientCount}
-          activeAssignmentCount={activeAssignmentCount}
           maxClients={limits.maxClients}
-          maxActiveAssignments={limits.maxActiveAssignments}
           tier={tier}
         />
       )}
