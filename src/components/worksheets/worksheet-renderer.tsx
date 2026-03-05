@@ -93,7 +93,7 @@ export function WorksheetRenderer({
         }
         switch (field.type) {
           case 'likert':
-            initial[field.id] = field.min
+            initial[field.id] = '' as unknown as FieldValue  // null-ish: distinguish "not answered" from min value
             break
           case 'checklist':
             initial[field.id] = []
@@ -138,7 +138,7 @@ export function WorksheetRenderer({
             for (const group of rf.groups) {
               const gv: Record<string, string | number | ''> = {}
               for (const f of group.fields) {
-                gv[f.id] = f.type === 'likert' ? (f.min ?? 0) : ''
+                gv[f.id] = ''
               }
               emptyRecord[group.id] = gv
             }
@@ -523,24 +523,29 @@ export function WorksheetRenderer({
         case 'likert': {
           const likertField = field as LikertFieldSchema
           const numValue = value as number
+          const likertUnanswered = value === '' || value === null || value === undefined
           return (
             <div key={field.id} className="space-y-1">
               <p className="text-sm font-medium text-primary-700">
                 {field.label}
               </p>
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold text-primary-800">
-                  {numValue}
-                </span>
-                <span className="text-sm text-primary-400">
-                  out of {likertField.max}
-                </span>
-                {likertField.anchors && (
-                  <span className="text-xs text-primary-400">
-                    ({likertField.anchors[String(numValue)] || ''})
+              {likertUnanswered ? (
+                <p className="text-sm italic text-primary-400">Not answered</p>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-semibold text-primary-800">
+                    {numValue}
                   </span>
-                )}
-              </div>
+                  <span className="text-sm text-primary-400">
+                    out of {likertField.max}
+                  </span>
+                  {likertField.anchors && (
+                    <span className="text-xs text-primary-400">
+                      ({likertField.anchors[String(numValue)] || ''})
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           )
         }
@@ -701,8 +706,9 @@ export function WorksheetRenderer({
             <LikertField
               key={field.id}
               field={field}
-              value={values[field.id] as number}
+              value={values[field.id] === '' ? null : values[field.id] as number}
               onChange={(v) => updateValue(field.id, v)}
+              showError={showValidation}
             />
           )
         case 'checklist':

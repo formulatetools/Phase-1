@@ -16,7 +16,10 @@ export function findMissingRequiredFields(
   return requiredFields
     .filter((f) => {
       const v = values[f.id]
-      return v === undefined || v === '' || v === null
+      if (v === undefined || v === '' || v === null) return true
+      // Checklist: at least one option must be selected
+      if (Array.isArray(v) && v.length === 0) return true
+      return false
     })
     .map((f) => f.id)
 }

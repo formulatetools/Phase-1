@@ -4,16 +4,19 @@ import type { LikertField as LikertFieldType } from '@/types/worksheet'
 
 interface Props {
   field: LikertFieldType
-  value: number
+  value: number | null
   onChange: (value: number) => void
+  showError?: boolean
 }
 
-export function LikertField({ field, value, onChange }: Props) {
+export function LikertField({ field, value, onChange, showError }: Props) {
   const step = field.step || 1
   const anchors = field.anchors || {}
+  const isUnset = value === null || value === undefined
 
   // Find the anchor label for the current value, if one exists
-  const currentAnchorLabel = anchors[String(value)]
+  const currentAnchorLabel = !isUnset ? anchors[String(value)] : undefined
+  const hasError = showError && field.required && isUnset
 
   return (
     <div>
@@ -28,10 +31,11 @@ export function LikertField({ field, value, onChange }: Props) {
           min={field.min}
           max={field.max}
           step={step}
-          value={value}
+          value={isUnset ? field.min : value}
           onChange={(e) => onChange(Number(e.target.value))}
-          aria-valuetext={currentAnchorLabel ? `${value} — ${currentAnchorLabel}` : String(value)}
-          className="w-full accent-brand"
+          aria-valuetext={isUnset ? 'Not set' : currentAnchorLabel ? `${value} — ${currentAnchorLabel}` : String(value)}
+          aria-required={field.required || undefined}
+          className={`w-full accent-brand${isUnset ? ' opacity-40' : ''}`}
         />
         <div className="mt-1 flex justify-between text-xs text-primary-500">
           {Object.entries(anchors).map(([val, label]) => (
@@ -41,8 +45,15 @@ export function LikertField({ field, value, onChange }: Props) {
           ))}
         </div>
         <div className="mt-1 text-center text-sm font-medium text-primary-700">
-          {value}
+          {isUnset ? (
+            <span className="text-primary-400 italic">Tap to set a value</span>
+          ) : (
+            value
+          )}
         </div>
+        {hasError && (
+          <p className="mt-1 text-xs text-red-600" role="alert">This field is required</p>
+        )}
       </div>
     </div>
   )

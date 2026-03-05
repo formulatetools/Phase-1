@@ -304,17 +304,25 @@ export function HomeworkForm({
   const handleSubmit = async () => {
     if (readOnly || submitted || isPreview) return
 
-    // Check required fields before submitting
-    const currentValues = isRepeatable
-      ? entriesRef.current[activeEntryIndex] || {}
-      : valuesRef.current
-
-    const missingFields = findMissingRequiredFields(schema, currentValues)
-
-    if (missingFields.length > 0) {
-      setShowValidation(true)
-      setErrorMessage('Please fill in all required fields before submitting.')
-      return
+    // Check required fields before submitting — validate ALL entries for repeatable worksheets
+    if (isRepeatable) {
+      for (let i = 0; i < entriesRef.current.length; i++) {
+        const entryValues = entriesRef.current[i] || {}
+        const missing = findMissingRequiredFields(schema, entryValues)
+        if (missing.length > 0) {
+          setActiveEntryIndex(i)
+          setShowValidation(true)
+          setErrorMessage(`Please fill in all required fields in Entry ${i + 1} before submitting.`)
+          return
+        }
+      }
+    } else {
+      const missingFields = findMissingRequiredFields(schema, valuesRef.current)
+      if (missingFields.length > 0) {
+        setShowValidation(true)
+        setErrorMessage('Please fill in all required fields before submitting.')
+        return
+      }
     }
 
     if (!isOnline) {

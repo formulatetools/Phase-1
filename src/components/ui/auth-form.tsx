@@ -86,8 +86,11 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
       options: {
         ...(mode === 'signup' ? {
           data: {
+            full_name: fullName,
             accepted_terms_at: new Date().toISOString(),
             accepted_privacy_at: new Date().toISOString(),
+            ...(promoCode ? { promo_code: promoCode } : {}),
+            ...(referralCode ? { referral_code: referralCode } : {}),
           },
         } : {}),
         emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo || '/dashboard'}`,
@@ -135,7 +138,7 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
         onSubmit={method === 'password' ? handlePasswordAuth : handleMagicLink}
         className="space-y-4"
       >
-        {mode === 'signup' && method === 'password' && (
+        {mode === 'signup' && (
           <div>
             <label
               htmlFor="fullName"
@@ -205,8 +208,8 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
           </div>
         )}
 
-        {/* Promo code field — signup + password mode only */}
-        {mode === 'signup' && method === 'password' && (
+        {/* Promo code field — signup only */}
+        {mode === 'signup' && (
           <div>
             {showPromoField ? (
               <PromoCodeInput

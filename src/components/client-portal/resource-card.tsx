@@ -63,6 +63,10 @@ function LinkResourceCard({
   const domain = extractDomain(url)
   const displayTitle = resource.og_title || resource.title
   const displayDescription = resource.og_description
+  // Proxy external OG images to avoid leaking client IP to third-party servers
+  const ogImageSrc = resource.og_image_url
+    ? `${appUrl}/api/client-portal/image-proxy?url=${encodeURIComponent(resource.og_image_url)}`
+    : null
 
   const handleClick = () => {
     // Fire resource-viewed event (non-blocking)
@@ -84,12 +88,13 @@ function LinkResourceCard({
                 handleClick()
                 onToggleEmbed()
               }}
+              aria-label={`Play video: ${displayTitle}`}
               className="group relative block h-20 w-[120px] rounded-xl bg-primary-100 overflow-hidden"
             >
               {video.thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={video.thumbnailUrl}
+                  src={`${appUrl}/api/client-portal/image-proxy?url=${encodeURIComponent(video.thumbnailUrl)}`}
                   alt=""
                   className="h-full w-full object-cover"
                 />
@@ -107,10 +112,10 @@ function LinkResourceCard({
                 </div>
               </div>
             </button>
-          ) : resource.og_image_url ? (
+          ) : ogImageSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={resource.og_image_url}
+              src={ogImageSrc}
               alt=""
               className="h-20 w-[120px] rounded-xl object-cover bg-primary-100"
             />
