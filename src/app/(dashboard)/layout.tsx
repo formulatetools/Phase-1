@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
-import { createClient } from '@/lib/supabase/server'
+import { getPendingReviewCount } from '@/lib/queries/pending-review-count'
 import { SidebarNav } from '@/components/ui/sidebar-nav'
 import { AssignProvider } from '@/components/providers/assign-provider'
 import { KeyboardShortcutsProvider } from '@/components/providers/keyboard-shortcuts-provider'
@@ -20,14 +20,8 @@ export default async function DashboardLayout({
     return <>{children}</>
   }
 
-  // Fetch sidebar data — lightweight head-only count query
-  const supabase = await createClient()
-  const { count: pendingReviewCount } = await supabase
-    .from('worksheet_assignments')
-    .select('*', { count: 'exact', head: true })
-    .eq('therapist_id', user.id)
-    .eq('status', 'completed')
-    .is('deleted_at', null)
+  // Fetch sidebar data — cached so dashboard/page.tsx reuses the same result
+  const pendingReviewCount = await getPendingReviewCount(user.id)
 
   return (
     <AssignProvider>

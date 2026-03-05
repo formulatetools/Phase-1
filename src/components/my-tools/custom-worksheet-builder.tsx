@@ -108,6 +108,87 @@ export function CustomWorksheetBuilder({
     reset: resetHistory,
   } = useHistory<WorksheetSection[]>(initialData?.schema?.sections || [])
 
+  // ── Auto-save draft to localStorage ───────────────────────────────────
+  const draftKey = `formulate_draft_${worksheetId || 'new'}`
+  const [showDraftBanner, setShowDraftBanner] = useState(false)
+  const pendingDraftRef = useRef<Record<string, unknown> | null>(null)
+
+  // Restore draft on mount (only if there's no AI draft to apply)
+  useEffect(() => {
+    // Skip draft restore if an AI draft is waiting
+    if (sessionStorage.getItem('formulate_ai_draft')) return
+    try {
+      const raw = localStorage.getItem(draftKey)
+      if (!raw) return
+      const draft = JSON.parse(raw) as {
+        title: string; description: string; instructions: string
+        tagsInput: string; estimatedMinutes: number | null
+        repeatable: boolean; maxEntries: number
+        sections: WorksheetSection[]; savedAt: number
+      }
+      // Only offer restore if draft is < 7 days old and differs from initial data
+      const age = Date.now() - (draft.savedAt || 0)
+      if (age > 7 * 24 * 60 * 60 * 1000) {
+        localStorage.removeItem(draftKey)
+        return
+      }
+      pendingDraftRef.current = draft as unknown as Record<string, unknown>
+      setShowDraftBanner(true)
+    } catch {
+      // Ignore corrupt drafts
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const restoreDraft = useCallback(() => {
+    const draft = pendingDraftRef.current as {
+      title: string; description: string; instructions: string
+      tagsInput: string; estimatedMinutes: number | null
+      repeatable: boolean; maxEntries: number
+      sections: WorksheetSection[]
+    } | null
+    if (!draft) return
+    setTitle(draft.title)
+    setDescription(draft.description)
+    setInstructions(draft.instructions)
+    setTagsInput(draft.tagsInput)
+    setEstimatedMinutes(draft.estimatedMinutes)
+    setRepeatable(draft.repeatable)
+    setMaxEntries(draft.maxEntries)
+    resetHistory(draft.sections)
+    setShowDraftBanner(false)
+    pendingDraftRef.current = null
+    toast({ type: 'success', message: 'Draft restored.' })
+  }, [resetHistory, toast])
+
+  const dismissDraft = useCallback(() => {
+    setShowDraftBanner(false)
+    pendingDraftRef.current = null
+    localStorage.removeItem(draftKey)
+  }, [draftKey])
+
+  // Debounced save to localStorage whenever content changes
+  useEffect(() => {
+    if (!isDirty) return
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(draftKey, JSON.stringify({
+          title, description, instructions, tagsInput,
+          estimatedMinutes, repeatable, maxEntries,
+          sections, savedAt: Date.now(),
+        }))
+      } catch {
+        // Storage full — ignore
+      }
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [draftKey, isDirty, title, description, instructions, tagsInput, estimatedMinutes, repeatable, maxEntries, sections])
+
+  // Clear draft on successful save (detected by navigating away after save)
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem(draftKey)
+  }, [draftKey])
+
   // Pick up AI-generated draft from sessionStorage (from /my-tools/ai)
   useEffect(() => {
     try {
@@ -303,6 +384,7 @@ export function CustomWorksheetBuilder({
       } else {
         setSavedWorksheetId(result.id!)
         // If a client was selected and we have imported response values, save the response
+        clearDraft()
         if (selectedClientId && importedValues && Object.keys(importedValues).length > 0) {
           const saveResult = await saveImportedResponse(
             result.id!,
@@ -335,6 +417,7 @@ export function CustomWorksheetBuilder({
         setError(result.error)
         setSaving(false)
       } else {
+        clearDraft()
         router.push(`/my-tools/${worksheetId}`)
       }
     }
@@ -480,6 +563,27 @@ export function CustomWorksheetBuilder({
           <p className="text-xs font-semibold uppercase tracking-wider text-orange-600 mb-1">Changes Requested</p>
           <p className="text-sm text-orange-800">{adminFeedback}</p>
           <p className="mt-2 text-xs text-orange-600">Make your revisions below and click &quot;Resubmit to Library&quot; when ready.</p>
+        </div>
+      )}
+
+      {/* Draft recovery banner */}
+      {showDraftBanner && (
+        <div className="mb-4 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+          <p className="text-sm text-blue-700">You have an unsaved draft. Would you like to restore it?</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={restoreDraft}
+              className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              Restore
+            </button>
+            <button
+              onClick={dismissDraft}
+              className="rounded-lg border border-blue-300 px-3 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-100"
+            >
+              Discard
+            </button>
+          </div>
         </div>
       )}
 

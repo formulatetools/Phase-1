@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { TIER_LIMITS, TIER_LABELS } from '@/lib/stripe/config'
+import { getPendingReviewCount } from '@/lib/queries/pending-review-count'
 import { ManageSubscriptionButton } from '@/components/ui/manage-subscription-button'
 import { AnnualUpgradeBanner } from '@/components/ui/annual-upgrade-banner'
 import { activityLabel, activityIcon, activityLink, timeAgo, type ActivityItem } from '@/lib/utils/activity'
@@ -31,23 +32,29 @@ export default async function DashboardPage() {
   const supabase = await createClient()
 
   // ── Parallel data fetches ──────────────────────────────────────────────
+  // pendingReviewCount uses a React cache() helper shared with layout.tsx
+  // so the query only runs once per request even though both files call it.
   const [
-    { data: recentAccess },
-    { count: activeClientCount },
-    { count: dischargedClientCount },
-    { count: activeAssignmentCount },
-    { count: completedAssignmentCount },
-    { count: pendingReviewCount },
-    { data: recentActivity },
-    { count: _userExportCount },
-    { data: latestRedemption },
-    { data: activeSubscription },
-    { count: activeSuperviseeCount },
-    { data: contributorSubmissions },
-    { data: reviewQueue },
-    { data: myContentItems },
-    { data: availableContent },
+    pendingReviewCount,
+    [
+      { data: recentAccess },
+      { count: activeClientCount },
+      { count: dischargedClientCount },
+      { count: activeAssignmentCount },
+      { count: completedAssignmentCount },
+      { data: recentActivity },
+      { count: _userExportCount },
+      { data: latestRedemption },
+      { data: activeSubscription },
+      { count: activeSuperviseeCount },
+      { data: contributorSubmissions },
+      { data: reviewQueue },
+      { data: myContentItems },
+      { data: availableContent },
+    ],
   ] = await Promise.all([
+    getPendingReviewCount(user.id),
+    Promise.all([
     // Recently accessed worksheets
     supabase
       .from('worksheet_access_log')
@@ -88,14 +95,6 @@ export default async function DashboardPage() {
       .select('*', { count: 'exact', head: true })
       .eq('therapist_id', user.id)
       .in('status', ['completed', 'reviewed'])
-      .is('deleted_at', null),
-
-    // Pending review (completed but not yet reviewed)
-    supabase
-      .from('worksheet_assignments')
-      .select('*', { count: 'exact', head: true })
-      .eq('therapist_id', user.id)
-      .eq('status', 'completed')
       .is('deleted_at', null),
 
     // Recent activity from audit log
@@ -188,6 +187,7 @@ export default async function DashboardPage() {
           .order('created_at', { ascending: false })
           .limit(5)
       : Promise.resolve({ data: null }),
+    ]),
   ])
 
   // Deduplicate recently accessed worksheets
