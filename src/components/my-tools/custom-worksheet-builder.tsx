@@ -546,7 +546,7 @@ export function CustomWorksheetBuilder({
                 placeholder="How to use this worksheet (shown to the client)"
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <label className="text-xs font-semibold text-primary-500">Category</label>
                 <select
@@ -653,7 +653,7 @@ export function CustomWorksheetBuilder({
 
         {/* Right: Live Preview */}
         <div className={`w-full lg:w-[420px] lg:shrink-0 ${showPreview ? '' : 'hidden lg:block'}`}>
-          <div className="sticky top-20">
+          <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary-400">
               Live Preview
             </h2>

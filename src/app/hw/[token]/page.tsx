@@ -45,52 +45,58 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
 
   const typedAssignment = assignment as Pick<WorksheetAssignment, 'id' | 'worksheet_id' | 'relationship_id' | 'status' | 'expires_at' | 'locked_at' | 'due_date' | 'prefill_data'>
 
-  // Fetch the worksheet (select only needed fields)
-  const { data: worksheet } = await supabase
-    .from('worksheets')
-    .select('title, description, instructions, schema, is_published')
-    .eq('id', typedAssignment.worksheet_id)
-    .single()
+  // Parallel fetch: worksheet, response, consent, relationship (all depend on assignment only)
+  const [
+    { data: worksheet },
+    { data: existingResponse },
+    consentResult,
+    { data: relationship },
+  ] = await Promise.all([
+    // Fetch the worksheet
+    supabase
+      .from('worksheets')
+      .select('title, description, instructions, schema, is_published')
+      .eq('id', typedAssignment.worksheet_id)
+      .single(),
+
+    // Fetch existing response
+    supabase
+      .from('worksheet_responses')
+      .select('response_data')
+      .eq('assignment_id', typedAssignment.id)
+      .is('deleted_at', null)
+      .single(),
+
+    // Check for existing consent (skip for previews)
+    isPreview
+      ? Promise.resolve({ data: { id: 'preview' } })
+      : supabase
+          .from('homework_consent')
+          .select('id')
+          .eq('relationship_id', typedAssignment.relationship_id)
+          .eq('consent_type', 'homework_digital_completion')
+          .is('withdrawn_at', null)
+          .single(),
+
+    // Fetch relationship with therapist info for portal token + branding
+    supabase
+      .from('therapeutic_relationships')
+      .select('client_portal_token, therapist_id')
+      .eq('id', typedAssignment.relationship_id)
+      .is('deleted_at', null)
+      .single(),
+  ])
 
   if (!worksheet) notFound()
 
   const typedWorksheet = worksheet as Pick<Worksheet, 'title' | 'description' | 'instructions' | 'schema' | 'is_published'>
+  const hasConsent = !!consentResult.data
 
   // Detect if this is a safety plan worksheet
   const isSafetyPlan = typedWorksheet.schema?.layout === 'safety_plan'
 
   // Detect custom (non-curated) worksheets — curated ones are published by admins
-  // Custom worksheets will have a therapist_id once the custom builder ships
   const isCurated = typedWorksheet.is_published
-
-  // Fetch existing response (if any — only need response_data)
-  const { data: existingResponse } = await supabase
-    .from('worksheet_responses')
-    .select('response_data')
-    .eq('assignment_id', typedAssignment.id)
-    .is('deleted_at', null)
-    .single()
-
-  // Check for existing consent (server-side, avoids flash for returning users)
-  // Skip consent check for previews — therapist doesn't need to consent
-  const hasConsent = isPreview
-    ? true
-    : !!(await supabase
-        .from('homework_consent')
-        .select('id')
-        .eq('relationship_id', typedAssignment.relationship_id)
-        .eq('consent_type', 'homework_digital_completion')
-        .is('withdrawn_at', null)
-        .single()
-      ).data
-
-  // Fetch client portal token for linking to the data portal
-  const { data: relationship } = await supabase
-    .from('therapeutic_relationships')
-    .select('client_portal_token')
-    .eq('id', typedAssignment.relationship_id)
-    .is('deleted_at', null)
-    .single()
 
   // Auto-generate portal token if missing (backfills older relationships)
   // Skip for previews — don't trigger side effects
@@ -105,19 +111,13 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
 
   const portalUrl = portalToken ? `/client/${portalToken}` : null
 
-  // Fetch therapist tier and resolve branding
-  const { data: therapistRel } = await supabase
-    .from('therapeutic_relationships')
-    .select('therapist_id')
-    .eq('id', typedAssignment.relationship_id)
-    .single()
-
+  // Fetch therapist tier and resolve branding (uses therapist_id from the relationship query above)
   let therapistTier = 'free'
-  if (therapistRel?.therapist_id) {
+  if (relationship?.therapist_id) {
     const { data: therapistProfile } = await supabase
       .from('profiles')
       .select('subscription_tier')
-      .eq('id', therapistRel.therapist_id)
+      .eq('id', relationship.therapist_id)
       .single()
     therapistTier = (therapistProfile as { subscription_tier: string } | null)?.subscription_tier ?? 'free'
   }

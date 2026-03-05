@@ -92,7 +92,7 @@ export default async function ReferralsPage() {
         {/* Stats */}
         <div className="rounded-2xl border border-primary-100 bg-surface p-6 shadow-sm">
           <h2 className="mb-4 text-base font-semibold text-primary-900">Your referral stats</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-xl bg-primary-50 p-4 text-center">
               <p className="text-2xl font-bold text-primary-900">{stats.total}</p>
               <p className="mt-0.5 text-xs text-primary-400">

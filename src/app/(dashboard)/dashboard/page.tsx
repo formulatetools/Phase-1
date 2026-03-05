@@ -12,6 +12,7 @@ import { PromoAutoRedeem } from '@/components/ui/promo-auto-redeem'
 import { ExpiredTrialBanner } from '@/components/ui/expired-trial-banner'
 import { ActionsCard } from '@/components/ui/actions-card'
 import { buttonVariants } from '@/components/ui/button-variants'
+import { ClientGreeting } from '@/components/ui/client-greeting'
 
 export const metadata = {
   title: 'Dashboard — Formulate',
@@ -212,12 +213,8 @@ export default async function DashboardPage() {
 
   const tierLabels = TIER_LABELS
 
-  const greeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return 'Good morning'
-    if (hour < 18) return 'Good afternoon'
-    return 'Good evening'
-  }
+  // Greeting is rendered client-side via the ClientGreeting component
+  // to use the user's local timezone instead of the server's
 
   // ── Onboarding checklist status ────────────────────────────────────────
   const checklistStatus = {
@@ -259,7 +256,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-primary-900 sm:text-3xl">
-          {greeting()}{profile.full_name ? `, ${profile.full_name}` : ''}
+          <ClientGreeting name={profile.full_name || undefined} />
         </h1>
         <p className="mt-1 text-primary-400">
           Here&apos;s an overview of your Formulate account

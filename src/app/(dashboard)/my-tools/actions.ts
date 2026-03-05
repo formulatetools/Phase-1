@@ -18,6 +18,21 @@ import { convertLegacyFormulation } from '@/lib/utils/convert-legacy-formulation
 /** Fallback category for custom/imported/AI-generated worksheets when none is chosen */
 const FALLBACK_CATEGORY_ID = 'ffe098e1-5ed1-4717-874a-3f70874205db' // "Other"
 
+/** Sanitize Supabase error messages to avoid exposing internal details to users */
+function sanitizeDbError(message: string): string {
+  if (message.includes('row-level security') || message.includes('RLS')) {
+    return 'You do not have permission to perform this action.'
+  }
+  if (message.includes('duplicate key') || message.includes('unique constraint')) {
+    return 'A record with that name already exists.'
+  }
+  if (message.includes('foreign key') || message.includes('violates')) {
+    return 'This action failed due to a data conflict. Please try again.'
+  }
+  // Generic fallback for any other database error
+  return 'Something went wrong. Please try again.'
+}
+
 function generateSlug(title: string, id: string): string {
   const baseSlug = title
     .toLowerCase()
@@ -96,7 +111,7 @@ export async function createCustomWorksheet(
     .select()
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeDbError(error.message) }
 
   // Update slug with actual ID
   const slug = generateSlug(title, (data as { id: string }).id)
@@ -172,7 +187,7 @@ export async function saveImportedResponse(
     .select()
     .single()
 
-  if (assignError) return { error: `Failed to create assignment: ${assignError.message}` }
+  if (assignError) return { error: sanitizeDbError(assignError.message) }
 
   // 2. Create the response record (no INSERT RLS policy → use admin client)
   const admin = createAdminClient()
@@ -198,7 +213,7 @@ export async function saveImportedResponse(
       .delete()
       .eq('id', (assignment as { id: string }).id)
 
-    return { error: `Failed to save response: ${respError.message}` }
+    return { error: sanitizeDbError(respError.message) }
   }
 
   // 3. Audit log
@@ -275,7 +290,7 @@ export async function updateCustomWorksheet(
     } as Record<string, unknown>)
     .eq('id', worksheetId)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeDbError(error.message) }
 
   // Audit log
   await supabase.from('audit_log').insert({
@@ -318,7 +333,7 @@ export async function deleteCustomWorksheet(worksheetId: string) {
     .update({ deleted_at: new Date().toISOString() } as Record<string, unknown>)
     .eq('id', worksheetId)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeDbError(error.message) }
 
   // Audit log
   await supabase.from('audit_log').insert({
@@ -407,7 +422,7 @@ export async function forkWorksheet(sourceWorksheetId: string) {
     .select()
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeDbError(error.message) }
 
   const forkedId = (forked as { id: string }).id
 
@@ -509,7 +524,7 @@ export async function submitToLibrary(
     })
     .eq('id', worksheetId)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeDbError(error.message) }
 
   // Audit log
   await supabase.from('audit_log').insert({
@@ -590,7 +605,7 @@ export async function resubmitToLibrary(
     .update(updatePayload)
     .eq('id', worksheetId)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeDbError(error.message) }
 
   // Audit log
   await supabase.from('audit_log').insert({

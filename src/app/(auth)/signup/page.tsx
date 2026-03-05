@@ -58,7 +58,7 @@ export default async function SignupPage({
         <p className="mt-6 text-center text-sm text-primary-500">
           Already have an account?{' '}
           <Link
-            href="/login"
+            href={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : '/login'}
             className="font-medium text-primary-800 hover:text-primary-900 underline underline-offset-2"
           >
             Sign in

@@ -45,7 +45,7 @@ export default async function LoginPage({
         <p className="mt-6 text-center text-sm text-primary-500">
           Don&apos;t have an account?{' '}
           <Link
-            href="/signup"
+            href={params.redirect ? `/signup?redirect=${encodeURIComponent(params.redirect)}` : '/signup'}
             className="font-medium text-primary-800 hover:text-primary-900 underline underline-offset-2"
           >
             Create free account
