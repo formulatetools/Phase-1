@@ -75,6 +75,12 @@ export function SuperviseeList({
   }
 
   const handleReactivate = async (id: string) => {
+    const activeCount = relationships.filter((r) => r.status === 'active').length
+    if (activeCount >= maxSupervisees) {
+      setError(`You've reached the limit of ${maxSupervisees} active supervisees on your plan. Please upgrade or end a supervision before reactivating.`)
+      return
+    }
+    setError(null)
     await reactivateSupervisee(id)
   }
 

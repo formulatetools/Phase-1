@@ -676,8 +676,8 @@ function ConnectionIndicator({
         <div role="status" aria-live="polite" className="flex items-center gap-2 text-xs text-red-600">
           <span className="h-1.5 w-1.5 rounded-full bg-red-500" aria-hidden="true" />
           <span>
-            Offline — your work is saved locally
-            {pendingSubmit && '. Submission will be sent when you reconnect.'}
+            Offline — keep this page open and your work will save when you reconnect
+            {pendingSubmit && '. Submission will also be sent automatically.'}
           </span>
         </div>
       )

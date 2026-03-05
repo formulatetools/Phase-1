@@ -216,7 +216,7 @@ export function ClientDetail({
       })
 
       // Also copy to clipboard automatically
-      await navigator.clipboard.writeText(link)
+      try { await navigator.clipboard.writeText(link) } catch { /* clipboard unavailable */ }
       setCopiedToken(result.token)
       setShowAssign(false)
       setSelectedWorksheet('')
@@ -232,7 +232,7 @@ export function ClientDetail({
 
   const handleCopyLink = async (token: string, assignmentId?: string) => {
     const link = `${appUrl}/hw/${token}`
-    await navigator.clipboard.writeText(link)
+    try { await navigator.clipboard.writeText(link) } catch { /* clipboard unavailable */ }
     setCopiedToken(token)
     setTimeout(() => setCopiedToken(null), 3000)
   }
@@ -958,7 +958,7 @@ export function ClientDetail({
                     </code>
                     <button
                       onClick={async () => {
-                        await navigator.clipboard.writeText(`${appUrl}/client/${relationship.client_portal_token}`)
+                        try { await navigator.clipboard.writeText(`${appUrl}/client/${relationship.client_portal_token}`) } catch { /* clipboard unavailable */ }
                         setCopiedPortalLink(true)
                         setTimeout(() => setCopiedPortalLink(false), 3000)
                       }}

@@ -126,7 +126,7 @@ export function SuperviseeDetail({
         dueDate: dueDate || undefined,
       })
 
-      await navigator.clipboard.writeText(link)
+      try { await navigator.clipboard.writeText(link) } catch { /* clipboard unavailable */ }
       setCopiedToken(result.token)
       setShowAssign(false)
       setSelectedWorksheet('')
@@ -408,7 +408,7 @@ export function SuperviseeDetail({
             </code>
             <button
               onClick={async () => {
-                await navigator.clipboard.writeText(`${appUrl}/client/${relationship.client_portal_token}`)
+                try { await navigator.clipboard.writeText(`${appUrl}/client/${relationship.client_portal_token}`) } catch { /* clipboard unavailable */ }
                 setCopiedPortalLink(true)
                 setTimeout(() => setCopiedPortalLink(false), 3000)
               }}

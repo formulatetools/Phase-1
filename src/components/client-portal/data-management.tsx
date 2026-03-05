@@ -996,9 +996,9 @@ export function DataManagement({
         description="This will permanently delete your response. This cannot be undone."
         confirmLabel="Delete"
         variant="danger"
-        onConfirm={() => {
+        onConfirm={async () => {
           if (confirmDeleteId) {
-            handleDeleteResponse(confirmDeleteId)
+            await handleDeleteResponse(confirmDeleteId)
             setConfirmDeleteId(null)
           }
         }}
