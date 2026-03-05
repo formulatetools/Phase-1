@@ -249,17 +249,17 @@ function generateCss(): string {
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #faf9f6;
+      --bg: #fafaf8;
       --surface: #ffffff;
-      --border: #e8e5e0;
-      --border-light: #f0ede8;
+      --border: #e8e8e6;
+      --border-light: #f1f0ee;
       --text-900: #2d2d2d;
-      --text-800: #3d3d3d;
-      --text-700: #4d4d4d;
-      --text-600: #5d5d5d;
-      --text-500: #7d7d7d;
-      --text-400: #9d9d9d;
-      --text-300: #bdbdbd;
+      --text-800: #2d2d2d;
+      --text-700: #444444;
+      --text-600: #666666;
+      --text-500: #888888;
+      --text-400: #999999;
+      --text-300: #d4d4d0;
       --brand: #e4a930;
       --brand-dark: #c48d1a;
       --brand-light: #fdf6e3;

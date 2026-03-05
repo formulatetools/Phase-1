@@ -6,7 +6,7 @@ import { createHmac } from 'crypto'
  * reversed via rainbow table (IPv4 is only ~4 billion addresses).
  * Stores the hash for GDPR consent audit trail without retaining the raw IP.
  */
-const IP_HASH_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string
+const IP_HASH_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
 if (!IP_HASH_KEY) throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for IP hashing')
 
 export function hashIP(ip: string): string {

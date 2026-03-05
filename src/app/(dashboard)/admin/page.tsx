@@ -188,10 +188,11 @@ export default async function AdminPage() {
       .gte('created_at', twelveMonthsAgo.toISOString())
       .order('created_at', { ascending: true }),
 
-    // 9. All access logs
+    // 9. Access logs (last 90 days — sufficient for popularity ranking)
     supabase
       .from('worksheet_access_log')
-      .select('worksheet_id, access_type'),
+      .select('worksheet_id, access_type')
+      .gte('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()),
 
     // 10. All assignment logs
     supabase

@@ -167,6 +167,17 @@ export function CustomWorksheetBuilder({
     localStorage.removeItem(draftKey)
   }, [draftKey])
 
+  // Track unsaved changes — warn before navigating away
+  const initialSnapshot = useMemo(
+    () => JSON.stringify({ title: initialData?.title || '', description: initialData?.description || '', instructions: initialData?.instructions || '', sections: initialData?.schema?.sections || [] }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  )
+  const isDirty = useMemo(
+    () => JSON.stringify({ title, description, instructions, sections }) !== initialSnapshot,
+    [title, description, instructions, sections, initialSnapshot]
+  )
+
   // Debounced save to localStorage whenever content changes
   useEffect(() => {
     if (!isDirty) return
@@ -237,17 +248,6 @@ export function CustomWorksheetBuilder({
     ...(repeatable ? { repeatable: true, max_entries: maxEntries } : {}),
     sections,
   }
-
-  // Track unsaved changes — warn before navigating away
-  const initialSnapshot = useMemo(
-    () => JSON.stringify({ title: initialData?.title || '', description: initialData?.description || '', instructions: initialData?.instructions || '', sections: initialData?.schema?.sections || [] }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  )
-  const isDirty = useMemo(
-    () => JSON.stringify({ title, description, instructions, sections }) !== initialSnapshot,
-    [title, description, instructions, sections, initialSnapshot]
-  )
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {

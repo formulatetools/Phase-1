@@ -8,7 +8,7 @@ import { cookies } from 'next/headers'
  * and scoped to /client/ paths only.
  */
 
-const SESSION_SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY as string
+const SESSION_SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY!
 if (!SESSION_SECRET) throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for portal session signing')
 const COOKIE_NAME = 'portal_pin_session'
 const MAX_AGE_SECONDS = 24 * 60 * 60 // 24 hours
