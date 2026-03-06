@@ -131,6 +131,10 @@ export const EXTENDED_FAQ: FaqCategory[] = [
         q: 'Do you strip personal information before AI processing?',
         a: 'Yes. Before any text is sent to the AI for worksheet generation, it\'s run through a PII stripping process that detects and replaces email addresses, phone numbers, NHS numbers, National Insurance numbers, UK postcodes, dates of birth, and common names with bracketed placeholders like [EMAIL] or [NAME].',
       },
+      {
+        q: 'Is Formulate GDPR compliant?',
+        a: 'Yes. Formulate is designed with GDPR compliance built in. All data is encrypted at rest (AES-256) and in transit (TLS). Client data is protected by row-level security in the database, and clients are identified by pseudonymous labels rather than real names. Every client has access to a secure data portal where they can view their data and request deletion (Article 17). Personal information is automatically stripped before any AI processing, and deleted data is permanently purged after a 90-day retention window. Our database is hosted in the UK (AWS eu-west-2).',
+      },
     ],
   },
   {

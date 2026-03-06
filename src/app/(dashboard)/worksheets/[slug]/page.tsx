@@ -152,6 +152,24 @@ export default async function WorksheetPage({
 
   const category = worksheet.categories as { name: string; slug: string } | null
 
+  // Fetch related worksheets from same category
+  let relatedWorksheets: { slug: string; title: string; description: string | null }[] = []
+  if (category) {
+    const directSupabase = createDirectClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const { data: related } = await directSupabase
+      .from('worksheets')
+      .select('slug, title, description, categories!inner(slug)')
+      .eq('categories.slug', category.slug)
+      .eq('is_published', true)
+      .is('deleted_at', null)
+      .neq('slug', slug)
+      .limit(4)
+    relatedWorksheets = (related || []) as { slug: string; title: string; description: string | null }[]
+  }
+
   // ── Structured data (JSON-LD) ─────────────────────────────────────────
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -284,6 +302,22 @@ export default async function WorksheetPage({
           </div>
         </div>
 
+        {/* When to use this — derived from tags */}
+        {worksheet.tags?.length > 0 && (
+          <div className="mb-6 rounded-xl border border-primary-100 bg-primary-50/50 p-4">
+            <h2 className="text-sm font-semibold text-primary-800">When to use this</h2>
+            <p className="mt-1 text-sm text-primary-600">
+              {worksheet.tags.map((tag: string, i: number) => {
+                const label = tag.charAt(0).toUpperCase() + tag.slice(1)
+                if (i === 0) return `Suitable for clients working with ${label.toLowerCase()}`
+                return `, ${label.toLowerCase()}`
+              }).join('')}
+              {'. '}
+              This tool can be used as a standalone worksheet or as part of a structured homework plan.
+            </p>
+          </div>
+        )}
+
         {/* Worksheet content — gated by access state */}
         <WorksheetDetail
           worksheet={worksheet}
@@ -296,6 +330,27 @@ export default async function WorksheetPage({
           resourceType={getResourceType(worksheet.tags)}
           branding={branding}
         />
+
+        {/* Related worksheets */}
+        {relatedWorksheets.length > 0 && (
+          <div className="mt-12 border-t border-primary-100 pt-8">
+            <h2 className="text-lg font-semibold text-primary-900">Related worksheets</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {relatedWorksheets.map((rw) => (
+                <Link
+                  key={rw.slug}
+                  href={`/worksheets/${rw.slug}`}
+                  className="rounded-xl border border-primary-100 bg-surface p-4 shadow-sm transition-colors hover:border-brand/30 hover:shadow-md"
+                >
+                  <h3 className="text-sm font-semibold text-primary-900">{rw.title}</h3>
+                  {rw.description && (
+                    <p className="mt-1 text-xs text-primary-500 line-clamp-2">{rw.description}</p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

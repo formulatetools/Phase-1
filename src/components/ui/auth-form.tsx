@@ -25,8 +25,7 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
   const [message, setMessage] = useState<string | null>(null)
   const [showPromoField, setShowPromoField] = useState(false)
   const [promoCode, setPromoCode] = useState<string | null>(null)
-  const [acceptTerms, setAcceptTerms] = useState(false)
-  const [acceptPrivacy, setAcceptPrivacy] = useState(false)
+  const [acceptTermsAndPrivacy, setAcceptTermsAndPrivacy] = useState(false)
 
   const supabase = createClient()
 
@@ -230,12 +229,12 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
 
         {/* Terms & Privacy acceptance — signup only */}
         {mode === 'signup' && (
-          <div className="space-y-2.5 pt-1">
+          <div className="pt-1">
             <label className="flex items-start gap-2.5 cursor-pointer">
               <input
                 type="checkbox"
-                checked={acceptTerms}
-                onChange={(e) => setAcceptTerms(e.target.checked)}
+                checked={acceptTermsAndPrivacy}
+                onChange={(e) => setAcceptTermsAndPrivacy(e.target.checked)}
                 className="mt-0.5 h-4 w-4 shrink-0 rounded border-primary-300 text-primary-800 focus:ring-brand/30"
               />
               <span className="text-sm text-primary-600">
@@ -248,17 +247,7 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
                 >
                   Terms of Service
                 </a>
-              </span>
-            </label>
-            <label className="flex items-start gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={acceptPrivacy}
-                onChange={(e) => setAcceptPrivacy(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 rounded border-primary-300 text-primary-800 focus:ring-brand/30"
-              />
-              <span className="text-sm text-primary-600">
-                I agree to the{' '}
+                {' '}and{' '}
                 <a
                   href="/privacy"
                   target="_blank"
@@ -288,14 +277,14 @@ export function AuthForm({ mode, redirectTo, referralCode }: AuthFormProps) {
           type="submit"
           size="lg"
           className="w-full"
-          disabled={loading || (mode === 'signup' && (!acceptTerms || !acceptPrivacy))}
+          disabled={loading || (mode === 'signup' && !acceptTermsAndPrivacy)}
         >
           {loading
             ? 'Please wait...'
             : method === 'magic-link'
               ? 'Send Magic Link'
               : mode === 'signup'
-                ? 'Create Account'
+                ? 'Create My Free Account'
                 : 'Sign In'}
         </Button>
       </form>

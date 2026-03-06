@@ -30,6 +30,9 @@ export default async function LoginPage({
           <p className="mt-3 text-sm text-primary-500">
             Sign in to your account
           </p>
+          <p className="mt-1 text-xs text-primary-400">
+            137+ CBT tools ready when you are
+          </p>
         </div>
 
         {params.error && (

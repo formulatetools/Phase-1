@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { KEY_FAQ, EXTENDED_FAQ } from '@/lib/faq-data'
-import { KeyFaqList, ExtendedFaqSection } from '@/components/marketing/faq-accordion'
+import { FaqSearch } from '@/components/marketing/faq-search'
 
 export const metadata: Metadata = {
   title: 'FAQ',
@@ -50,25 +50,10 @@ export default function FaqPage() {
           </p>
         </div>
 
-        {/* Key FAQ — always visible */}
-        <section className="mt-12">
-          <KeyFaqList items={KEY_FAQ} />
-        </section>
-
-        {/* Divider */}
-        <div className="mt-16 border-t border-primary-200 pt-12">
-          <h2 className="text-center text-lg font-semibold text-primary-700">
-            More Questions
-          </h2>
-          <p className="mt-1 text-center text-sm text-primary-400">
-            Tap a category to expand
-          </p>
+        {/* Searchable FAQ */}
+        <div className="mt-10">
+          <FaqSearch keyFaq={KEY_FAQ} extendedFaq={EXTENDED_FAQ} />
         </div>
-
-        {/* Extended FAQ — collapsed categories */}
-        <section className="mt-8">
-          <ExtendedFaqSection categories={EXTENDED_FAQ} />
-        </section>
 
         {/* Contact CTA */}
         <div className="mt-16 rounded-xl border border-primary-100 bg-primary-50 p-6 text-center">

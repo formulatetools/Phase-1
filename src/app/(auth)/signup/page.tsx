@@ -36,7 +36,7 @@ export default async function SignupPage({
             Create your free account
           </p>
           <p className="mt-1 text-xs text-primary-400">
-            Access 5 professional CBT tools per month, free
+            Get instant access to 137+ professional CBT worksheets
           </p>
         </div>
 

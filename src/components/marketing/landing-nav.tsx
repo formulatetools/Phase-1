@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Logo } from '@/components/ui/logo'
 import { ThemeToggleCompact } from '@/components/ui/theme-toggle'
 
 export function LandingNav() {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+  const pricingHref = pathname === '/' ? '#pricing' : '/pricing'
 
   return (
     <nav className="border-b border-primary-100 bg-surface/80 backdrop-blur-sm sticky top-0 z-50" data-landing-nav>
@@ -30,7 +33,7 @@ export function LandingNav() {
             Blog
           </Link>
           <Link
-            href="#pricing"
+            href={pricingHref}
             className="text-sm text-primary-600 hover:text-primary-900 transition-colors"
           >
             Pricing
@@ -97,7 +100,7 @@ export function LandingNav() {
               Blog
             </Link>
             <Link
-              href="#pricing"
+              href={pricingHref}
               onClick={() => setOpen(false)}
               className="text-sm text-primary-600 hover:text-primary-900 transition-colors py-3"
             >

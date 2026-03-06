@@ -30,6 +30,9 @@ export function MarketingFooter() {
             <Link href="/faq" className="hover:text-primary-600 transition-colors">
               FAQ
             </Link>
+            <Link href="/security" className="hover:text-primary-600 transition-colors">
+              Security
+            </Link>
             <Link href="/feature-requests" className="hover:text-primary-600 transition-colors">
               Feature Requests
             </Link>

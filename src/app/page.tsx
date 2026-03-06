@@ -63,21 +63,31 @@ export default async function Home() {
           <LogoIcon size={56} />
         </div>
         <h1 className="text-4xl font-bold tracking-tight text-primary-900 sm:text-5xl lg:text-6xl">
-          Stop printing PDFs.
+          Homework your clients
           <br />
-          <span className="text-brand">Start assigning interactive homework.</span>
+          <span className="text-brand">actually complete.</span>
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-primary-500">
-          Formulate gives therapists a curated library of CBT worksheets that
-          clients complete digitally — or describe what you need and let AI
-          build it in seconds.
+        <p className="mx-auto mt-3 text-lg font-medium text-primary-600">
+          Built for CBT therapists. Powered by AI.
         </p>
-        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <p className="mx-auto mt-4 max-w-2xl text-lg text-primary-500">
+          A curated library of interactive CBT worksheets that clients complete
+          on any device — or describe what you need and let AI build it in
+          seconds.
+        </p>
+        <div className="mt-6 flex items-center justify-center gap-2 text-sm text-primary-400">
+          <span>137+ worksheets</span>
+          <span aria-hidden="true">&middot;</span>
+          <span>20 formulation diagrams</span>
+          <span aria-hidden="true">&middot;</span>
+          <span>Built by clinicians</span>
+        </div>
+        <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link
             href="/signup"
             className={buttonVariants.primary('lg')}
           >
-            Get Started Free
+            Create My First Worksheet
           </Link>
           <a
             href="#preview"
@@ -352,7 +362,7 @@ export default async function Home() {
       <section className="py-20">
         <div className="mx-auto max-w-2xl px-4 text-center sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-primary-900">
-            Ready to ditch the photocopier?
+            Ready to streamline your practice?
           </h2>
           <p className="mt-4 text-primary-500">
             Create your free account and start assigning interactive homework today.
@@ -361,7 +371,7 @@ export default async function Home() {
             href="/signup"
             className={`mt-8 inline-block ${buttonVariants.primary('lg')}`}
           >
-            Get Started Free
+            Create My First Worksheet
           </Link>
         </div>
       </section>
