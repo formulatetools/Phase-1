@@ -73,12 +73,12 @@ export function WelcomeModal({ open, onStartTour }: WelcomeModalProps) {
 
   const handleGetStarted = () => {
     setVisible(false)
-    // Start the tour immediately — don't wait for the server action
-    // completeOnboarding() calls revalidatePath which can cause a re-render
-    // that temporarily removes DOM targets, causing the tour to auto-skip
+    // Only start the tour — do NOT call completeOnboarding() here.
+    // completeOnboarding() triggers revalidatePath('/dashboard') which causes
+    // the Server Component to re-render and remount DashboardTour, resetting
+    // the useTour() hook state and killing the tour mid-flight.
+    // Instead, DashboardTour calls completeOnboarding() when the tour finishes.
     onStartTour?.()
-    // Complete onboarding in background (non-blocking)
-    completeOnboarding().catch(() => {})
   }
 
   if (!visible) return null
