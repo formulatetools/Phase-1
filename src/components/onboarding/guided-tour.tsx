@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 interface TourStep {
   target: string           // data-tour attribute value (desktop)
@@ -212,7 +213,10 @@ export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }:
   const rw = targetRect.width + inset * 2
   const rh = targetRect.height + inset * 2
 
-  return (
+  // Render via portal to document.body to escape any ancestor with
+  // transform/filter/will-change that creates a containing block and
+  // breaks position:fixed (e.g. animate-fade-in on the main content area)
+  return createPortal(
     <>
       {/* Overlay with cut-out */}
       <div
@@ -292,7 +296,8 @@ export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }:
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   )
 }
 
