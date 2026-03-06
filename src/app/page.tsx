@@ -1,15 +1,18 @@
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { createClient as createDirectClient } from '@supabase/supabase-js'
 import { LogoIcon } from '@/components/ui/logo'
 import { LandingNav } from '@/components/marketing/landing-nav'
 import { MarketingFooter } from '@/components/marketing/marketing-footer'
-import { WorksheetPreview } from '@/components/marketing/worksheet-preview'
-import { AIGenerateTeaser } from '@/components/marketing/ai-generate-teaser'
-import { PricingTable } from '@/components/marketing/pricing-table'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { DEMO_WORKSHEETS } from '@/lib/demo-data'
 import type { Worksheet } from '@/types/database'
 import type { Metadata } from 'next'
+
+// Lazy load heavy below-fold client components to reduce initial JS bundle
+const WorksheetPreview = dynamic(() => import('@/components/marketing/worksheet-preview').then(m => ({ default: m.WorksheetPreview })))
+const AIGenerateTeaser = dynamic(() => import('@/components/marketing/ai-generate-teaser').then(m => ({ default: m.AIGenerateTeaser })))
+const PricingTable = dynamic(() => import('@/components/marketing/pricing-table').then(m => ({ default: m.PricingTable })))
 
 export const metadata: Metadata = {
   title: 'Formulate — AI-Powered CBT Worksheets for Therapists',
@@ -196,7 +199,7 @@ export default async function Home() {
                 1
               </div>
               <div className="mt-5 flex justify-center">
-                <svg className="h-8 w-8 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <svg className="h-8 w-8 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                 </svg>
               </div>
@@ -212,7 +215,7 @@ export default async function Home() {
                 2
               </div>
               <div className="mt-5 flex justify-center">
-                <svg className="h-8 w-8 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <svg className="h-8 w-8 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                 </svg>
               </div>
@@ -228,7 +231,7 @@ export default async function Home() {
                 3
               </div>
               <div className="mt-5 flex justify-center">
-                <svg className="h-8 w-8 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <svg className="h-8 w-8 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -257,7 +260,7 @@ export default async function Home() {
             {[
               {
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
                   </svg>
                 ),
@@ -267,7 +270,7 @@ export default async function Home() {
               },
               {
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                   </svg>
                 ),
@@ -277,7 +280,7 @@ export default async function Home() {
               },
               {
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
                   </svg>
                 ),
@@ -287,7 +290,7 @@ export default async function Home() {
               },
               {
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                   </svg>
                 ),
@@ -297,7 +300,7 @@ export default async function Home() {
               },
               {
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17l-5.384 3.174A1.125 1.125 0 014.5 17.28V5.97a1.125 1.125 0 011.536-1.064l5.384 3.174m0 0L16.804 5.9a1.125 1.125 0 011.536 1.064v11.31a1.125 1.125 0 01-1.536 1.064l-5.384-3.174m0 0L6.92 18.626" />
                   </svg>
                 ),
@@ -307,7 +310,7 @@ export default async function Home() {
               },
               {
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                   </svg>
                 ),

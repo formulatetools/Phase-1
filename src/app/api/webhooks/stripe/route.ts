@@ -38,6 +38,16 @@ export async function POST(request: NextRequest) {
 
   const supabase = createAdminClient()
 
+  // Idempotency: skip if this event was already processed
+  const { error: idempotencyError } = await supabase
+    .from('webhook_events')
+    .insert({ id: event.id, source: 'stripe', event_type: event.type })
+
+  if (idempotencyError?.code === '23505') {
+    // Duplicate — already processed this event
+    return NextResponse.json({ received: true })
+  }
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {

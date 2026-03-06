@@ -1,6 +1,15 @@
-// In-memory sliding window rate limiter for Vercel Edge Runtime.
-// State persists within a single Edge isolate (same region/instance).
-// Not globally consistent, but sufficient for abuse prevention at startup scale.
+// In-memory sliding window rate limiter for Vercel Edge/Serverless Runtime.
+// State persists within a single isolate (same region/instance) and resets
+// on cold starts. This is by design — it provides best-effort abuse prevention
+// without external dependencies.
+//
+// Known limitation: A Vercel cold start resets all counters. For routes where
+// this matters (e.g. checkout, AI generation), the limits are generous enough
+// that a reset is harmless. For security-critical rate limiting (e.g. PIN
+// brute force), use the DB-backed rate limiter in src/lib/utils/pin-rate-limit.ts.
+//
+// If global consistency is needed later, swap the Map store for a Redis or
+// Upstash-backed implementation while keeping the same checkRateLimit API.
 
 interface RateLimitEntry {
   timestamps: number[]

@@ -104,6 +104,19 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createAdminClient()
+
+    // Idempotency: use svix message ID to prevent duplicate processing
+    const msgId = request.headers.get('svix-id')
+    if (msgId) {
+      const { error: idempotencyError } = await supabase
+        .from('webhook_events')
+        .insert({ id: msgId, source: 'resend', event_type: payload.type })
+
+      if (idempotencyError?.code === '23505') {
+        return NextResponse.json({ received: true })
+      }
+    }
+
     const to = payload.data.to?.[0] || 'unknown'
     const emailType = payload.data.tags?.email_type || 'unknown'
     const messageId = payload.data.email_id || null

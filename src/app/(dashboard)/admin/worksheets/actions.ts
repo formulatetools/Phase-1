@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/supabase/auth'
 
@@ -66,6 +67,8 @@ export async function createWorksheet(formData: FormData) {
     metadata: { title },
   })
 
+  revalidatePath('/admin/worksheets')
+  revalidatePath('/worksheets')
   redirect('/admin')
 }
 
@@ -131,5 +134,8 @@ export async function updateWorksheet(worksheetId: string, formData: FormData) {
     metadata: { title },
   })
 
+  revalidatePath('/admin/worksheets')
+  revalidatePath('/worksheets')
+  revalidatePath(`/worksheets/${slug}`)
   redirect('/admin')
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -54,6 +55,8 @@ export async function POST(request: Request) {
     // Sync count — don't let a failure here break the response
     syncHelpfulCount(postId).catch((e) => console.error('syncHelpfulCount error:', e))
 
+    revalidatePath('/blog')
+
     return NextResponse.json({ ok: true })
   } catch (err) {
     console.error('Reaction POST error:', err)
@@ -88,6 +91,8 @@ export async function DELETE(request: Request) {
 
     // Sync count — don't let a failure here break the response
     syncHelpfulCount(postId).catch((e) => console.error('syncHelpfulCount error:', e))
+
+    revalidatePath('/blog')
 
     return NextResponse.json({ ok: true })
   } catch (err) {
