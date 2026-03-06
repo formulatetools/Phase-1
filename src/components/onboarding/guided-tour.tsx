@@ -85,6 +85,7 @@ function findVisibleTarget(step: TourStep): { el: Element; isMobile: boolean } |
 export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }: GuidedTourProps) {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [tooltipHeight, setTooltipHeight] = useState(220)
   const tooltipRef = useRef<HTMLDivElement>(null)
 
   const currentStep = TOUR_STEPS[step]
@@ -99,12 +100,25 @@ export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }:
     ? currentStep.mobileDescription
     : currentStep?.description ?? ''
 
+  // Measure actual tooltip height after render
+  useEffect(() => {
+    if (tooltipRef.current) {
+      const measured = tooltipRef.current.getBoundingClientRect().height
+      if (measured > 0) setTooltipHeight(measured)
+    }
+  })
+
   const updateTargetRect = useCallback(() => {
     if (!currentStep) return
     const result = findVisibleTarget(currentStep)
     if (result) {
       setIsMobile(result.isMobile)
-      result.el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      // Only scrollIntoView for non-fixed elements — fixed elements (mobile tab bar)
+      // don't need scrolling and it causes janky page jumps
+      const computedStyle = window.getComputedStyle(result.el)
+      if (computedStyle.position !== 'fixed') {
+        result.el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }
       // Small delay for scroll to complete
       setTimeout(() => {
         setTargetRect(result.el.getBoundingClientRect())
@@ -116,22 +130,42 @@ export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }:
   }, [currentStep])
 
   // Auto-skip steps whose target is invisible (both desktop and mobile targets)
+  // Use a retry approach: check multiple times before giving up, to handle
+  // cases where the DOM is still settling after a server component re-render
   useEffect(() => {
     if (!active || !currentStep) return
 
-    const result = findVisibleTarget(currentStep)
-    if (!result) {
-      // Neither target is visible — auto-advance or complete
-      const timer = setTimeout(() => {
+    let attempts = 0
+    const maxAttempts = 10
+    const retryInterval = 150 // ms between retries
+
+    const tryFindTarget = () => {
+      const result = findVisibleTarget(currentStep)
+      if (result) {
+        // Target found — update rect and stop retrying
+        updateTargetRect()
+        return
+      }
+
+      attempts++
+      if (attempts >= maxAttempts) {
+        // After ~1.5s of retrying, skip this step
         if (isLast) {
           onComplete()
         } else {
           onNext()
         }
-      }, 50)
-      return () => clearTimeout(timer)
+      }
     }
-  }, [active, step, currentStep, isLast, onNext, onComplete])
+
+    // Initial check
+    const result = findVisibleTarget(currentStep)
+    if (result) return // Target already visible, no need for retry loop
+
+    // Start retry loop
+    const timer = setInterval(tryFindTarget, retryInterval)
+    return () => clearInterval(timer)
+  }, [active, step, currentStep, isLast, onNext, onComplete, updateTargetRect])
 
   useEffect(() => {
     if (!active) return
@@ -155,16 +189,15 @@ export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }:
 
   if (effectivePosition === 'top') {
     // Position above the target (for mobile tab bar at bottom of screen)
-    const tooltipHeight = 220 // approximate tooltip height
     tooltipStyle.top = Math.max(12, targetRect.top - padding - 12 - tooltipHeight)
     tooltipStyle.left = Math.max(12, Math.min((vw - tooltipWidth) / 2, vw - tooltipWidth - 12))
   } else if (effectivePosition === 'right' && targetRect.right + padding + 12 + tooltipWidth < vw) {
     // Position to the right of the target (desktop sidebar)
-    tooltipStyle.top = Math.min(targetRect.top, vh - 220)
+    tooltipStyle.top = Math.min(targetRect.top, vh - tooltipHeight)
     tooltipStyle.left = targetRect.right + padding + 12
   } else {
     // Position below the target (or fallback when right doesn't fit)
-    tooltipStyle.top = Math.min(targetRect.bottom + padding + 12, vh - 220)
+    tooltipStyle.top = Math.min(targetRect.bottom + padding + 12, vh - tooltipHeight)
     tooltipStyle.left = Math.max(12, Math.min(targetRect.left, vw - tooltipWidth - 12))
   }
 
@@ -188,7 +221,8 @@ export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }:
             ${rx}px ${ry + rh}px, ${rx}px 100%, 100% 100%, 100% 0%
           )`,
         }}
-        onClick={onSkip}
+        // Don't dismiss tour on backdrop tap — too easy to trigger accidentally
+        // on mobile. Users can use the "Skip tour" text link in the tooltip instead.
       />
 
       {/* Highlight border around target */}

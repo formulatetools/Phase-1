@@ -71,10 +71,14 @@ export function WelcomeModal({ open, onStartTour }: WelcomeModalProps) {
     return () => document.removeEventListener('keydown', handler)
   }, [visible, handleDismiss])
 
-  const handleGetStarted = async () => {
+  const handleGetStarted = () => {
     setVisible(false)
-    await completeOnboarding()
+    // Start the tour immediately — don't wait for the server action
+    // completeOnboarding() calls revalidatePath which can cause a re-render
+    // that temporarily removes DOM targets, causing the tour to auto-skip
     onStartTour?.()
+    // Complete onboarding in background (non-blocking)
+    completeOnboarding().catch(() => {})
   }
 
   if (!visible) return null
