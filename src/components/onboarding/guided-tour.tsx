@@ -139,10 +139,13 @@ export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }:
     const maxAttempts = 10
     const retryInterval = 150 // ms between retries
 
+    let timer: ReturnType<typeof setInterval> | null = null
+
     const tryFindTarget = () => {
       const result = findVisibleTarget(currentStep)
       if (result) {
         // Target found — update rect and stop retrying
+        if (timer) clearInterval(timer)
         updateTargetRect()
         return
       }
@@ -150,6 +153,7 @@ export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }:
       attempts++
       if (attempts >= maxAttempts) {
         // After ~1.5s of retrying, skip this step
+        if (timer) clearInterval(timer)
         if (isLast) {
           onComplete()
         } else {
@@ -163,8 +167,8 @@ export function GuidedTour({ active, step, onNext, onPrev, onSkip, onComplete }:
     if (result) return // Target already visible, no need for retry loop
 
     // Start retry loop
-    const timer = setInterval(tryFindTarget, retryInterval)
-    return () => clearInterval(timer)
+    timer = setInterval(tryFindTarget, retryInterval)
+    return () => { if (timer) clearInterval(timer) }
   }, [active, step, currentStep, isLast, onNext, onComplete, updateTargetRect])
 
   useEffect(() => {
