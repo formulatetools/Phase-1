@@ -37,7 +37,7 @@ const tiers = [
       'Clean PDF export (minimal branding)',
     ],
     cta: 'Get Started',
-    checkoutTier: 'starter' as const,
+    href: '/signup',
     highlighted: false,
   },
   {
@@ -55,7 +55,7 @@ const tiers = [
       'Supervision portal (up to 4 supervisees)',
     ],
     cta: 'Get Started',
-    checkoutTier: 'standard' as const,
+    href: '/signup',
     highlighted: true,
     badge: 'Most Popular',
   },
@@ -72,7 +72,7 @@ const tiers = [
       'Unlimited supervisees',
     ],
     cta: 'Get Started',
-    checkoutTier: 'professional' as const,
+    href: '/signup',
     highlighted: false,
   },
 ]
@@ -123,7 +123,7 @@ export function PricingTable() {
           return (
             <div
               key={tier.name}
-              className={`relative rounded-2xl border p-6 ${
+              className={`relative flex flex-col rounded-2xl border p-6 ${
                 tier.highlighted
                   ? 'border-brand/30 bg-surface shadow-lg ring-1 ring-brand/20'
                   : 'border-primary-200 bg-surface shadow-sm'
@@ -182,29 +182,18 @@ export function PricingTable() {
                 ))}
               </ul>
 
-              {tier.checkoutTier ? (
-                <form action="/api/checkout" method="POST">
-                  <input type="hidden" name="tier" value={tier.checkoutTier} />
-                  <input type="hidden" name="period" value={period} />
-                  <button
-                    type="submit"
-                    className={`w-full rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
-                      tier.highlighted
-                        ? 'bg-primary-800 text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900'
-                        : 'border border-primary-200 bg-surface text-primary-700 hover:bg-primary-50'
-                    }`}
-                  >
-                    {tier.cta}
-                  </button>
-                </form>
-              ) : (
+              <div className="mt-auto">
                 <Link
                   href={tier.href || '/signup'}
-                  className="block w-full rounded-lg border border-primary-200 bg-surface px-4 py-2.5 text-center text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50"
+                  className={`block w-full rounded-lg px-4 py-2.5 text-center text-sm font-medium transition-colors ${
+                    tier.highlighted
+                      ? 'bg-primary-800 text-white hover:bg-primary-900 dark:bg-primary-800 dark:text-primary-50 dark:hover:bg-primary-900'
+                      : 'border border-primary-200 bg-surface text-primary-700 hover:bg-primary-50'
+                  }`}
                 >
                   {tier.cta}
                 </Link>
-              )}
+              </div>
             </div>
           )
         })}

@@ -42,6 +42,9 @@ export function MarketingFooter() {
             <Link href="/terms" className="hover:text-primary-600 transition-colors">
               Terms
             </Link>
+            <Link href="/login" className="hover:text-primary-600 transition-colors">
+              Sign In
+            </Link>
           </div>
         </div>
       </div>

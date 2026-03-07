@@ -58,7 +58,7 @@ export default async function Home() {
       <LandingNav />
 
       {/* Hero */}
-      <section className="mx-auto max-w-4xl px-4 py-24 text-center sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 sm:py-24 lg:px-8">
         <div className="mb-8 flex justify-center">
           <LogoIcon size={56} />
         </div>
