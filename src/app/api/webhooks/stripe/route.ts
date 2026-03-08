@@ -6,6 +6,7 @@ import { STRIPE_PRICES, TIER_LABELS } from '@/lib/stripe/config'
 import { sendEmail } from '@/lib/email'
 import { abandonedCheckoutEmail, subscriptionCancelledEmail, paymentFailedEmail } from '@/lib/email-templates'
 import { logger } from '@/lib/logger'
+import { logWebhookFailure } from '@/lib/webhooks/log-failure'
 
 // Determine subscription tier from the Stripe price ID
 function getTierFromPriceId(priceId: string): 'starter' | 'standard' | 'professional' | null {
@@ -346,6 +347,15 @@ export async function POST(request: NextRequest) {
     // (e.g. profile not found, DB constraint violations). Stripe will retry
     // indefinitely on 5xx responses, creating noise and wasted compute.
     logger.error('Stripe webhook handler error', error)
+
+    // Persist failure for admin inspection and manual retry
+    await logWebhookFailure({
+      provider: 'stripe',
+      eventId: event.id,
+      eventType: event.type,
+      payload: event.data.object as unknown as Record<string, unknown>,
+      error,
+    })
   }
 
   return NextResponse.json({ received: true })

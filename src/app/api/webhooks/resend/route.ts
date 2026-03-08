@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
+import { logWebhookFailure } from '@/lib/webhooks/log-failure'
 
 /**
  * Resend webhook handler — tracks email delivery events
@@ -88,8 +89,9 @@ function verifySignature(body: string, headers: Headers): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  const body = await request.text()
+
   try {
-    const body = await request.text()
 
     if (!verifySignature(body, request.headers)) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
@@ -123,6 +125,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true })
   } catch (error) {
     logger.error('[resend-webhook] Error processing event', error)
+
+    // Persist failure for admin inspection and manual retry
+    try {
+      const parsed = JSON.parse(body) as ResendWebhookPayload
+      await logWebhookFailure({
+        provider: 'resend',
+        eventId: parsed.data?.email_id ?? null,
+        eventType: parsed.type ?? null,
+        payload: parsed as unknown as Record<string, unknown>,
+        error,
+      })
+    } catch {
+      // body may not be valid JSON — log with raw body
+      await logWebhookFailure({
+        provider: 'resend',
+        eventId: null,
+        eventType: null,
+        payload: { raw_body: body },
+        error,
+      })
+    }
+
     // Always return 200 to prevent Resend from retrying
     return NextResponse.json({ received: true })
   }

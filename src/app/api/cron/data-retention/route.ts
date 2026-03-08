@@ -43,6 +43,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Purge resolved webhook failures older than retention threshold.
+    // Unresolved failures are kept so admins can investigate.
+    try {
+      const { count } = await supabase
+        .from('webhook_failures')
+        .delete({ count: 'exact' })
+        .not('resolved_at', 'is', null)
+        .lt('resolved_at', threshold)
+
+      results['webhook_failures'] = count ?? 0
+    } catch (tableErr) {
+      console.error('[data-retention] Failed to purge webhook_failures:', tableErr)
+      errors['webhook_failures'] = String(tableErr)
+    }
+
     const total = Object.values(results).reduce((s, n) => s + n, 0)
 
     // Log to audit_log for compliance trail

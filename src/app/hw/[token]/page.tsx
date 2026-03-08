@@ -7,6 +7,7 @@ import { LogoIcon } from '@/components/ui/logo'
 import { generatePortalToken } from '@/lib/tokens'
 import { isValidPreviewHash } from '@/lib/preview'
 import { ThemeToggleCompact } from '@/components/ui/theme-toggle'
+import { HomeworkSwRegister } from '@/components/homework/homework-sw-register'
 import { getBrandingConfig, resolveBranding } from '@/lib/branding'
 
 export const metadata = {
@@ -248,6 +249,9 @@ export default async function HomeworkPage({ params, searchParams }: PageProps) 
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Register service worker for offline support */}
+      {!isPreview && <HomeworkSwRegister />}
+
       {/* Preview banner */}
       {isPreview && (
         <div className="sticky top-0 z-50 border-b border-amber-300 bg-amber-50 px-4 py-3 text-center">

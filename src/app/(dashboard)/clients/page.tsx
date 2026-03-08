@@ -6,6 +6,7 @@ import type { TherapeuticRelationship, SubscriptionTier } from '@/types/database
 import { ClientList } from '@/components/clients/client-list'
 import { SuperviseeList } from '@/components/supervision/supervisee-list'
 import { ClientsTabBar } from '@/components/clients/clients-tab-bar'
+import { RealtimeWrapper } from '@/components/clients/realtime-wrapper'
 
 export const metadata = {
   title: 'Clients — Formulate',
@@ -83,40 +84,42 @@ export default async function ClientsPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-primary-900">Clients</h1>
-        <p className="mt-1 text-sm text-primary-500">
-          {activeTab === 'supervisees'
-            ? 'Manage your supervisees and assign structured supervision preparation worksheets.'
-            : 'Manage your clients and assign homework. Clients are identified by non-identifiable labels only — no personal data is stored.'}
-        </p>
-      </div>
+    <RealtimeWrapper therapistId={user.id}>
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-primary-900">Clients</h1>
+          <p className="mt-1 text-sm text-primary-500">
+            {activeTab === 'supervisees'
+              ? 'Manage your supervisees and assign structured supervision preparation worksheets.'
+              : 'Manage your clients and assign homework. Clients are identified by non-identifiable labels only — no personal data is stored.'}
+          </p>
+        </div>
 
-      <ClientsTabBar
-        clientCount={clientCount}
-        superviseeCount={superviseeCount}
-        activeTab={activeTab}
-        showSupervisees={showSupervisees}
-      />
-
-      {activeTab === 'supervisees' ? (
-        <SuperviseeList
-          relationships={(supervisionRelationships || []) as TherapeuticRelationship[]}
-          assignmentsByClient={assignmentsByClient}
-          superviseeCount={superviseeCount}
-          maxSupervisees={limits.maxSupervisees}
-          tier={tier}
-        />
-      ) : (
-        <ClientList
-          relationships={(clinicalRelationships || []) as TherapeuticRelationship[]}
-          assignmentsByClient={assignmentsByClient}
+        <ClientsTabBar
           clientCount={clientCount}
-          maxClients={limits.maxClients}
-          tier={tier}
+          superviseeCount={superviseeCount}
+          activeTab={activeTab}
+          showSupervisees={showSupervisees}
         />
-      )}
-    </div>
+
+        {activeTab === 'supervisees' ? (
+          <SuperviseeList
+            relationships={(supervisionRelationships || []) as TherapeuticRelationship[]}
+            assignmentsByClient={assignmentsByClient}
+            superviseeCount={superviseeCount}
+            maxSupervisees={limits.maxSupervisees}
+            tier={tier}
+          />
+        ) : (
+          <ClientList
+            relationships={(clinicalRelationships || []) as TherapeuticRelationship[]}
+            assignmentsByClient={assignmentsByClient}
+            clientCount={clientCount}
+            maxClients={limits.maxClients}
+            tier={tier}
+          />
+        )}
+      </div>
+    </RealtimeWrapper>
   )
 }

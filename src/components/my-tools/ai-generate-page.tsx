@@ -8,6 +8,7 @@ import { WorksheetRenderer } from '@/components/worksheets/worksheet-renderer'
 import { LogoIcon } from '@/components/ui/logo'
 import { createCustomWorksheet } from '@/app/(dashboard)/my-tools/actions'
 import { useToast } from '@/hooks/use-toast'
+import { useStreamingGenerate } from '@/hooks/use-streaming-generate'
 
 interface AIGeneratePageProps {
   tier: string
@@ -37,36 +38,47 @@ const EXAMPLE_PROMPTS = [
   'Grounding techniques worksheet',
 ]
 
-const STATUS_MESSAGES = [
-  'Analysing description...',
-  'Selecting clinical model...',
-  'Building worksheet structure...',
-  'Generating fields...',
-]
-
 type PageState = 'input' | 'generating' | 'preview'
 
 export function AIGeneratePage({ tier, atLimit }: AIGeneratePageProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const [state, setState] = useState<PageState>('input')
   const [description, setDescription] = useState('')
-  const [result, setResult] = useState<GenerateResult | null>(null)
   const [saving, setSaving] = useState(false)
-  const [statusIndex, setStatusIndex] = useState(0)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Cycle status messages during generation
+  // Streaming generation hook
+  const streaming = useStreamingGenerate()
+
+  // Derive page state from streaming status
+  const state: PageState =
+    streaming.status === 'streaming'
+      ? 'generating'
+      : streaming.status === 'complete' && streaming.result
+        ? 'preview'
+        : 'input'
+
+  // Map streaming result to our GenerateResult interface
+  const result: GenerateResult | null = streaming.result
+    ? {
+        title: streaming.result.title,
+        description: streaming.result.description,
+        instructions: streaming.result.instructions,
+        estimatedMinutes: streaming.result.estimatedMinutes,
+        tags: streaming.result.tags,
+        schema: streaming.result.schema,
+        confidence: streaming.result.confidence,
+        interpretation: streaming.result.interpretation,
+        remaining: streaming.result.remaining,
+      }
+    : null
+
+  // Show errors via toast
   useEffect(() => {
-    if (state !== 'generating') {
-      setStatusIndex(0)
-      return
+    if (streaming.error) {
+      toast({ type: 'error', message: streaming.error })
     }
-    const interval = setInterval(() => {
-      setStatusIndex((i) => (i + 1) % STATUS_MESSAGES.length)
-    }, 2500)
-    return () => clearInterval(interval)
-  }, [state])
+  }, [streaming.error, toast])
 
   // Check localStorage or URL params for a pre-filled prompt
   const searchParams = useSearchParams()
@@ -90,41 +102,8 @@ export function AIGeneratePage({ tier, atLimit }: AIGeneratePageProps) {
   const handleGenerate = useCallback(async () => {
     const trimmed = description.trim()
     if (!trimmed) return
-
-    setState('generating')
-
-    try {
-      const response = await fetch('/api/generate-worksheet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: trimmed }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        toast({ type: 'error', message: data.error || 'Failed to generate worksheet.' })
-        setState('input')
-        return
-      }
-
-      setResult({
-        title: data.title,
-        description: data.description,
-        instructions: data.instructions,
-        estimatedMinutes: data.estimatedMinutes,
-        tags: data.tags,
-        schema: data.schema,
-        confidence: data.confidence,
-        interpretation: data.interpretation,
-        remaining: data.remaining,
-      })
-      setState('preview')
-    } catch {
-      toast({ type: 'error', message: 'Network error. Check your connection and try again.' })
-      setState('input')
-    }
-  }, [description, toast])
+    await streaming.generate(trimmed)
+  }, [description, streaming])
 
   // Auto-trigger generation when pre-filled from landing page
   useEffect(() => {
@@ -175,11 +154,10 @@ export function AIGeneratePage({ tier, atLimit }: AIGeneratePageProps) {
   }, [result, router])
 
   const handleGenerateAnother = useCallback(() => {
-    setState('input')
-    setResult(null)
+    streaming.reset()
     setDescription('')
     setTimeout(() => inputRef.current?.focus(), 100)
-  }, [])
+  }, [streaming])
 
   // ── At custom worksheet limit ─────────────────────────────────────
   if (atLimit) {
@@ -388,14 +366,22 @@ export function AIGeneratePage({ tier, atLimit }: AIGeneratePageProps) {
           </button>
         </div>
 
-        {/* Shimmer progress bar during generation */}
+        {/* Progress bar during streaming generation */}
         {state === 'generating' && (
           <div className="mt-3">
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary-100 dark:bg-primary-700">
-              <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-transparent via-brand to-transparent animate-shimmer" />
+              <div
+                className="h-full rounded-full bg-brand transition-all duration-300 ease-out"
+                style={{ width: `${Math.max(5, streaming.progress)}%` }}
+              />
             </div>
             <p className="mt-2 text-center text-xs text-primary-500 transition-opacity">
-              {STATUS_MESSAGES[statusIndex]}
+              {streaming.statusMessage || 'Generating worksheet...'}
+              {streaming.tokensReceived > 0 && (
+                <span className="ml-1.5 text-primary-400">
+                  ({streaming.progress}%)
+                </span>
+              )}
             </p>
           </div>
         )}

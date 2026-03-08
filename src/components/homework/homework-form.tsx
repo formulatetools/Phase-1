@@ -12,6 +12,7 @@ import { downloadInteractiveHtml } from '@/lib/utils/html-worksheet-export'
 import { findMissingRequiredFields } from '@/lib/utils/homework-validation'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 import { ConfirmModal } from '@/components/ui/confirm-modal'
+import { saveFormState, loadFormState, clearFormState } from '@/lib/utils/offline-storage'
 
 type FieldValue = string | number | '' | string[] | Record<string, string | number | ''>[]
 
@@ -121,6 +122,14 @@ export function HomeworkForm({
       setLastSaved(new Date())
       setConnectionStatus('connected')
       markOnline()
+
+      // Persist to IndexedDB for offline resilience
+      saveFormState(
+        token,
+        responsePayload as Record<string, unknown>,
+        worksheetTitle || ''
+      ).catch(() => {})
+
       return true
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save'
@@ -129,6 +138,16 @@ export function HomeworkForm({
       if (isNetworkError) {
         setConnectionStatus('offline')
         markOffline()
+
+        // Save to IndexedDB even though API failed — preserves data offline
+        const offlinePayload = isRepeatable
+          ? { _entries: entriesRef.current }
+          : valuesRef.current
+        saveFormState(
+          token,
+          offlinePayload as Record<string, unknown>,
+          worksheetTitle || ''
+        ).catch(() => {})
       } else {
         setConnectionStatus('error')
         setErrorMessage(message)
@@ -217,6 +236,31 @@ export function HomeworkForm({
     }
   }, [])
 
+  // ── Load saved state from IndexedDB on mount (offline resilience) ─────
+  useEffect(() => {
+    if (readOnly || submitted || isPreview || existingResponse) return
+
+    loadFormState(token).then((draft) => {
+      if (draft && draft.values) {
+        // Restore form values from the offline draft
+        if (isRepeatable && '_entries' in draft.values) {
+          const entries = (draft.values as { _entries: Record<string, FieldValue>[] })._entries
+          if (Array.isArray(entries) && entries.length > 0) {
+            entriesRef.current = entries
+            setEntryCount(entries.length)
+          }
+        } else {
+          valuesRef.current = draft.values as Record<string, FieldValue>
+          setDisplayValues(draft.values as Record<string, FieldValue>)
+        }
+        hasChangesRef.current = true
+      }
+    }).catch(() => {
+      // IndexedDB not available — ignore
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // ── Values change handler ───────────────────────────────────────────────
   const handleValuesChange = useCallback(
     (newValues: Record<string, FieldValue>) => {
@@ -283,6 +327,9 @@ export function HomeworkForm({
       hasChangesRef.current = false
       setSubmitted(true)
       setConnectionStatus('connected')
+
+      // Clear IndexedDB draft on successful submission
+      clearFormState(token).catch(() => {})
       markOnline()
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to submit'

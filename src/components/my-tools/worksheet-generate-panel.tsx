@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import { useStreamingGenerate } from '@/hooks/use-streaming-generate'
 import type { WorksheetSchema } from '@/types/worksheet'
 
 interface GenerateResult {
@@ -19,8 +20,6 @@ interface WorksheetGeneratePanelProps {
   tier: string
 }
 
-type GenerateState = 'idle' | 'generating' | 'success'
-
 const EXAMPLE_PROMPTS = [
   'Health anxiety maintenance formulation',
   '3-column thought record for social anxiety',
@@ -32,94 +31,59 @@ const EXAMPLE_PROMPTS = [
   'Grounding techniques worksheet',
 ]
 
-const STATUS_MESSAGES = [
-  'Analysing description...',
-  'Selecting clinical model...',
-  'Building worksheet structure...',
-  'Generating fields...',
-]
-
 export function WorksheetGeneratePanel({
   onGenerateComplete,
   disabled,
   tier,
 }: WorksheetGeneratePanelProps) {
   const { toast } = useToast()
-  const [state, setState] = useState<GenerateState>('idle')
   const [description, setDescription] = useState('')
-  const [confidence, setConfidence] = useState<string | null>(null)
-  const [interpretation, setInterpretation] = useState<string | null>(null)
-  const [remaining, setRemaining] = useState<number | null>(null)
   const [collapsed, setCollapsed] = useState(false)
-  const [statusIndex, setStatusIndex] = useState(0)
 
-  // Cycle status messages during generation
+  // Streaming generation hook
+  const streaming = useStreamingGenerate()
+
+  // Derive panel state from streaming status
+  const isGenerating = streaming.status === 'streaming'
+  const isSuccess = streaming.status === 'complete' && !!streaming.result
+
+  // Show errors via toast
   useEffect(() => {
-    if (state !== 'generating') {
-      setStatusIndex(0)
-      return
+    if (streaming.error) {
+      toast({ type: 'error', message: streaming.error })
     }
-    const interval = setInterval(() => {
-      setStatusIndex((i) => (i + 1) % STATUS_MESSAGES.length)
-    }, 2500)
-    return () => clearInterval(interval)
-  }, [state])
+  }, [streaming.error, toast])
 
-  const handleGenerate = useCallback(async () => {
-    const trimmed = description.trim()
-    if (!trimmed) return
-
-    setState('generating')
-    setConfidence(null)
-    setInterpretation(null)
-
-    try {
-      const response = await fetch('/api/generate-worksheet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: trimmed }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        toast({ type: 'error', message: data.error || 'Failed to generate worksheet.' })
-        setState('idle')
-        return
-      }
-
-      setState('success')
-      setConfidence(data.confidence || null)
-      setInterpretation(data.interpretation || null)
-      if (data.remaining !== null && data.remaining !== undefined) {
-        setRemaining(data.remaining)
-      }
-
+  // When generation completes, forward the result
+  useEffect(() => {
+    if (isSuccess && streaming.result) {
       toast({
         type: 'success',
         message: 'Worksheet generated — review and edit below.',
       })
 
       onGenerateComplete({
-        title: data.title,
-        description: data.description,
-        instructions: data.instructions,
-        estimatedMinutes: data.estimatedMinutes,
-        tags: data.tags,
-        schema: data.schema,
+        title: streaming.result.title,
+        description: streaming.result.description,
+        instructions: streaming.result.instructions,
+        estimatedMinutes: streaming.result.estimatedMinutes,
+        tags: streaming.result.tags,
+        schema: streaming.result.schema,
       })
-    } catch {
-      toast({ type: 'error', message: 'Network error. Check your connection and try again.' })
-      setState('idle')
     }
-  }, [description, onGenerateComplete, toast])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess])
+
+  const handleGenerate = useCallback(async () => {
+    const trimmed = description.trim()
+    if (!trimmed) return
+    await streaming.generate(trimmed)
+  }, [description, streaming])
 
   const handleGenerateAgain = useCallback(() => {
-    setState('idle')
+    streaming.reset()
     setDescription('')
-    setConfidence(null)
-    setInterpretation(null)
-  }, [])
+  }, [streaming])
 
   // Tier blocked
   if (tier === 'free') {
@@ -145,7 +109,11 @@ export function WorksheetGeneratePanel({
   }
 
   // Success state
-  if (state === 'success') {
+  if (isSuccess && streaming.result) {
+    const confidence = streaming.result.confidence
+    const interpretation = streaming.result.interpretation
+    const remaining = streaming.result.remaining
+
     return (
       <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-5 py-3.5 dark:border-green-800/40 dark:bg-green-900/20">
         <div className="flex items-center justify-between">
@@ -181,7 +149,7 @@ export function WorksheetGeneratePanel({
             {interpretation}
           </p>
         )}
-        {remaining !== null && (
+        {remaining !== null && remaining !== undefined && (
           <p className="mt-1 text-[10px] text-green-500/70 dark:text-green-600">
             {remaining} generation{remaining !== 1 ? 's' : ''} remaining this month
           </p>
@@ -191,7 +159,7 @@ export function WorksheetGeneratePanel({
   }
 
   // Collapsed state (for when user has scrolled into builder)
-  if (collapsed && state === 'idle') {
+  if (collapsed && !isGenerating) {
     return (
       <div className="mb-6">
         <button
@@ -242,11 +210,11 @@ export function WorksheetGeneratePanel({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && description.trim() && state === 'idle') {
+              if (e.key === 'Enter' && description.trim() && !isGenerating) {
                 handleGenerate()
               }
             }}
-            disabled={disabled || state === 'generating'}
+            disabled={disabled || isGenerating}
             placeholder="e.g. Health anxiety maintenance formulation"
             className="flex-1 rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-800 placeholder:text-primary-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand disabled:opacity-50 dark:border-primary-600 dark:bg-primary-800 dark:text-primary-200 dark:placeholder:text-primary-500"
             maxLength={500}
@@ -254,10 +222,10 @@ export function WorksheetGeneratePanel({
           <button
             type="button"
             onClick={handleGenerate}
-            disabled={disabled || state === 'generating' || !description.trim()}
+            disabled={disabled || isGenerating || !description.trim()}
             className="shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50"
           >
-            {state === 'generating' ? (
+            {isGenerating ? (
               <span className="flex items-center gap-2">
                 <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -272,7 +240,7 @@ export function WorksheetGeneratePanel({
         </div>
 
         {/* Example prompts */}
-        {state === 'idle' && !description && (
+        {!isGenerating && !description && (
           <div className="mt-3">
             <p className="text-[10px] font-medium uppercase tracking-wider text-primary-400 dark:text-primary-500">
               Try:
@@ -292,14 +260,22 @@ export function WorksheetGeneratePanel({
           </div>
         )}
 
-        {/* Generating feedback */}
-        {state === 'generating' && (
+        {/* Streaming progress bar */}
+        {isGenerating && (
           <div className="mt-3">
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary-100 dark:bg-primary-700">
-              <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-transparent via-brand to-transparent animate-shimmer" />
+              <div
+                className="h-full rounded-full bg-brand transition-all duration-300 ease-out"
+                style={{ width: `${Math.max(5, streaming.progress)}%` }}
+              />
             </div>
             <p className="mt-1.5 text-center text-[11px] text-primary-500 dark:text-primary-400">
-              {STATUS_MESSAGES[statusIndex]}
+              {streaming.statusMessage || 'Generating worksheet...'}
+              {streaming.tokensReceived > 0 && (
+                <span className="ml-1.5 text-primary-400">
+                  ({streaming.progress}%)
+                </span>
+              )}
             </p>
           </div>
         )}

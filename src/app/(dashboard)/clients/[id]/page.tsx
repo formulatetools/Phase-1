@@ -15,6 +15,7 @@ import type {
 } from '@/types/database'
 import { ClientDetail } from '@/components/clients/client-detail'
 import { SuperviseeDetail } from '@/components/supervision/supervisee-detail'
+import { RealtimeWrapper } from '@/components/clients/realtime-wrapper'
 
 export const metadata = { title: 'Client — Formulate' }
 
@@ -86,18 +87,20 @@ export default async function ClientDetailPage({ params }: PageProps) {
     }
 
     return (
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <SuperviseeDetail
-          relationship={relationship as TherapeuticRelationship}
-          assignments={(assignments || []) as WorksheetAssignment[]}
-          responses={responses}
-          worksheets={(worksheets || []) as Worksheet[]}
-          totalActiveAssignments={totalActiveAssignments || 0}
-          maxActiveAssignments={limits.maxActiveAssignments}
-          tier={tier}
-          appUrl={appUrl}
-        />
-      </div>
+      <RealtimeWrapper therapistId={user.id}>
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+          <SuperviseeDetail
+            relationship={relationship as TherapeuticRelationship}
+            assignments={(assignments || []) as WorksheetAssignment[]}
+            responses={responses}
+            worksheets={(worksheets || []) as Worksheet[]}
+            totalActiveAssignments={totalActiveAssignments || 0}
+            maxActiveAssignments={limits.maxActiveAssignments}
+            tier={tier}
+            appUrl={appUrl}
+          />
+        </div>
+      </RealtimeWrapper>
     )
   }
 
@@ -180,21 +183,23 @@ export default async function ClientDetailPage({ params }: PageProps) {
   ])
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      <ClientDetail
-        relationship={relationship as TherapeuticRelationship}
-        assignments={(assignments || []) as WorksheetAssignment[]}
-        responses={responses}
-        worksheets={(worksheets || []) as Worksheet[]}
-        sharedResources={(sharedResources || []) as SharedResource[]}
-        templates={(templates || []) as WorkspaceTemplate[]}
-        queues={(queues || []) as PlanQueue[]}
-        queueItems={queueItems}
-        totalActiveAssignments={totalActiveAssignments || 0}
-        maxActiveAssignments={limits.maxActiveAssignments}
-        tier={tier}
-        appUrl={appUrl}
-      />
-    </div>
+    <RealtimeWrapper therapistId={user.id}>
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        <ClientDetail
+          relationship={relationship as TherapeuticRelationship}
+          assignments={(assignments || []) as WorksheetAssignment[]}
+          responses={responses}
+          worksheets={(worksheets || []) as Worksheet[]}
+          sharedResources={(sharedResources || []) as SharedResource[]}
+          templates={(templates || []) as WorkspaceTemplate[]}
+          queues={(queues || []) as PlanQueue[]}
+          queueItems={queueItems}
+          totalActiveAssignments={totalActiveAssignments || 0}
+          maxActiveAssignments={limits.maxActiveAssignments}
+          tier={tier}
+          appUrl={appUrl}
+        />
+      </div>
+    </RealtimeWrapper>
   )
 }

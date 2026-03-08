@@ -521,6 +521,22 @@ export interface PlanQueueItem {
   created_at: string
 }
 
+// Webhook failure tracking — dead-letter log for failed Stripe/Resend events
+export type WebhookProvider = 'stripe' | 'resend'
+
+export interface WebhookFailure {
+  id: string
+  provider: WebhookProvider
+  event_id: string | null
+  event_type: string | null
+  payload: Record<string, unknown>
+  error_message: string
+  error_stack: string | null
+  retry_count: number
+  resolved_at: string | null
+  created_at: string
+}
+
 // Note: We use untyped Supabase clients and cast query results to our
 // row types explicitly. This avoids fighting Supabase's complex internal
 // generics which require Views, Functions, Enums, and Relationships fields.
